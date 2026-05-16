@@ -1,0 +1,281 @@
+{% load static pwa l10n %}
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Buckezz{% endblock %}</title>
+    
+    <!-- Meta Tags for PWA -->
+    {% progressive_web_app_meta %}
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <style>
+        :root {
+            --bg-main: {{ user_settings.bg_color|default:"#0a0e14" }};
+            --bg-accent: #151b23;
+            --primary: {{ user_settings.primary_color|default:"#00d2ff" }};
+            --accent: {{ user_settings.accent_color|default:"#ffab00" }};
+            --text-main: {{ user_settings.text_color|default:"#ffffff" }};
+            --text-muted: #cbd5e0;
+            --glass-bg: rgba(255, 255, 255, {{ user_settings.glass_opacity|default:0.15|unlocalize }});
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            line-height: 1.6;
+            background-image: 
+                radial-gradient(circle at 10% 20%, color-mix(in srgb, var(--primary) 15%, transparent) 0%, transparent 50%),
+                radial-gradient(circle at 90% 80%, color-mix(in srgb, var(--accent) 10%, transparent) 0%, transparent 50%);
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        header {
+            padding: var(--spacing-md) 0;
+            margin-bottom: var(--spacing-lg);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-main);
+            text-decoration: none;
+            letter-spacing: -1px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            color: var(--text-main);
+            background: transparent;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px color-mix(in srgb, var(--primary) 30%, transparent);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px color-mix(in srgb, var(--primary) 50%, transparent);
+            background: linear-gradient(135deg, var(--primary), color-mix(in srgb, var(--accent) 80%, white));
+        }
+
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-glass:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* Legacy .btn.glass support */
+        .btn.glass {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+        }
+        .btn.glass:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: var(--primary);
+        }
+
+        .card {
+            border-radius: var(--radius-md);
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+        }
+
+        input.glass {
+            width: 100%;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--radius-sm);
+            color: var(--text-main);
+            margin-bottom: var(--spacing-sm);
+            outline: none;
+        }
+
+        input.glass::placeholder {
+            color: var(--text-muted);
+            opacity: 0.7;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+            transition: opacity 0.2s;
+        }
+        a:hover {
+            opacity: 0.8;
+            text-decoration: underline;
+        }
+
+        /* Responsive Layout Classes */
+        .nav-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 75px;
+        }
+        .nav-left {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-lg);
+        }
+        .nav-links {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+        .welcome-text {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        /* Mobile Adjustments */
+        @media (max-width: 768px) {
+            .nav-content {
+                flex-direction: column;
+                padding: var(--spacing-md) 0;
+                gap: var(--spacing-md);
+            }
+            .nav-left {
+                flex-direction: column;
+                gap: var(--spacing-xs);
+            }
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 12px;
+            }
+            .welcome-text {
+                display: none; /* Hide welcome text on mobile to save space */
+            }
+            .container {
+                padding: 0 15px;
+            }
+            .btn {
+                padding: 8px 16px;
+                font-size: 0.85rem;
+            }
+            body {
+                font-size: 14px;
+            }
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+    
+    <!-- JS -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <header class="glass">
+        <div class="container nav-content">
+            <div class="nav-left">
+                <a href="{% url 'core:home' %}" class="logo" style="display: flex; align-items: center; text-decoration: none; height: 75px;">
+                    <img src="{% static 'img/logo.svg' %}" alt="buckezz" style="height: 100%; width: auto; display: block;">
+                </a>
+                {% if user.is_authenticated %}
+                    <span class="welcome-text">Willkommen {{ user.username }}</span>
+                {% endif %}
+            </div>
+            <nav class="nav-links">
+                {% if user.is_authenticated %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin:index' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">⚙️ Admin</a>
+                    {% endif %}
+                    <a href="{% url 'core:settings' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🎨 Design</a>
+                    <form action="{% url 'admin:logout' %}" method="post" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" style="background: none; border: none; color: var(--primary); font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0;">🚪 Logout</button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'admin:login' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🔑 Anmelden</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,54 @@
+<div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
+    <div>
+        <input type="checkbox" 
+               {% if item.is_completed %}checked{% endif %} 
+               {% if not can_edit %}disabled{% endif %}
+               class="status-check"
+               {% if can_edit %}
+               hx-post="{% url 'core:toggle_item' item.id %}"
+               hx-target="#item-{{ item.id }}"
+               hx-swap="outerHTML"
+               {% endif %}>
+    </div>
+    <div style="{% if item.is_completed %}text-decoration: line-through; opacity: 0.5;{% endif %}">
+        <strong>{{ item.title }}</strong>
+        {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block;">{{ item.brand }}</span>{% endif %}
+        
+        {% if item.involved_persons.all %}
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+            {% for person in item.involved_persons.all %}
+                <span style="font-size: 0.7rem; background: color-mix(in srgb, var(--primary) 20%, transparent); padding: 2px 6px; border-radius: 8px; color: var(--primary);">{{ person.name }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; opacity: 0.9;">
+            {% if item.created_by %}
+                Erstellt von {{ item.created_by.username }}
+            {% endif %}
+            {% if item.updated_by and item.updated_by != item.created_by %}
+                | Zuletzt geändert von {{ item.updated_by.username }}
+            {% endif %}
+        </div>
+    </div>
+    {% if bucket.category.template.use_amount %}
+        <div class="text-muted">{{ item.amount|default:"-" }}</div>
+    {% endif %}
+    {% if bucket.category.template.use_price %}
+        <div class="text-muted">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
+    {% endif %}
+    <div style="display: flex; gap: var(--spacing-sm);">
+        {% if can_edit %}
+        <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" 
+                hx-target="#form-insertion-point" 
+                hx-swap="innerHTML"
+                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;">✏️</button>
+        
+        <button hx-delete="{% url 'core:delete_item' item.id %}" 
+                hx-confirm="Diesen Eintrag wirklich löschen?"
+                hx-target="#item-{{ item.id }}"
+                hx-swap="delete"
+                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;">🗑️</button>
+        {% endif %}
+    </div>
+</div>

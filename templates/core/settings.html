@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load l10n %}
+
+{% block content %}
+<div class="settings-container" 
+     x-data="{ 
+        primary: '{{ settings.primary_color|default:"#00d2ff" }}', 
+        accent: '{{ settings.accent_color|default:"#ffab00" }}', 
+        bg: '{{ settings.bg_color|default:"#0a0e14" }}',
+        text: '{{ settings.text_color|default:"#ffffff" }}',
+        opacity: {{ settings.glass_opacity|default:0.15|unlocalize }}
+     }">
+    
+    <!-- Inline style to override colors in real-time -->
+    <style x-text="`
+        :root {
+            --primary: ${primary} !important;
+            --accent: ${accent} !important;
+            --bg-main: ${bg} !important;
+            --text-main: ${text} !important;
+            --glass-bg: rgba(255, 255, 255, ${opacity}) !important;
+        }
+    `"></style>
+
+    <h1>🎨 Design-Einstellungen</h1>
+    <p class="text-muted" style="margin-bottom: var(--spacing-lg);">Hier kannst du alle Farben inkl. der Textfarbe anpassen.</p>
+
+    <div class="settings-layout">
+        <form action="{% url 'core:settings' %}" method="POST" class="card glass settings-form">
+            {% csrf_token %}
+            
+            <div class="control-group">
+                <label>Haupt-Textfarbe</label>
+                <div class="picker-row">
+                    <input type="color" name="text_color" x-model="text" class="color-input">
+                    <code x-text="text"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Primärfarbe (Buttons & Links)</label>
+                <div class="picker-row">
+                    <input type="color" name="primary_color" x-model="primary" class="color-input">
+                    <code x-text="primary"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Akzentfarbe (Highlights)</label>
+                <div class="picker-row">
+                    <input type="color" name="accent_color" x-model="accent" class="color-input">
+                    <code x-text="accent"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Hintergrundfarbe</label>
+                <div class="picker-row">
+                    <input type="color" name="bg_color" x-model="bg" class="color-input">
+                    <code x-text="bg"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Glas-Transparenz</label>
+                <input type="range" name="glass_opacity" min="0.05" max="0.5" step="0.01" x-model="opacity" class="range-slider">
+                <div class="slider-labels">
+                    <span>Transparent</span>
+                    <span x-text="Math.round(opacity * 100) + '%'" class="percentage"></span>
+                    <span>Solide</span>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Design speichern</button>
+                <a href="{% url 'core:dashboard' %}" class="btn btn-glass">Abbrechen</a>
+            </div>
+        </form>
+
+        <div class="preview-panel">
+            <h3>Vorschau</h3>
+            <div class="preview-canvas" style="background: var(--bg-main);">
+                <div class="glass preview-card" style="border: 1px solid var(--accent); background: var(--glass-bg);">
+                    <h4 style="color: var(--primary)">Premium Design</h4>
+                    <p :style="`color: ${text}; font-size: 0.8rem; margin: 10px 0; transition: color 0.2s;` ">Dieser Text nutzt deine Haupt-Textfarbe.</p>
+                    <button class="btn btn-primary" style="width: 100%;">Beispiel Button</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .settings-container { max-width: 900px; margin: 0 auto; }
+    .settings-layout { display: grid; grid-template-columns: 1fr 320px; gap: 30px; }
+    .control-group { margin-bottom: 25px; }
+    .control-group label { display: block; margin-bottom: 8px; font-weight: 600; color: var(--text-main); }
+    .picker-row { display: flex; align-items: center; gap: 15px; background: rgba(0,0,0,0.4); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+    .color-input { width: 60px; height: 40px; border: 2px solid white; border-radius: 6px; cursor: pointer; background: none; padding: 0; }
+    .color-input::-webkit-color-swatch-wrapper { padding: 0; }
+    .color-input::-webkit-color-swatch { border: none; border-radius: 4px; }
+    .range-slider { width: 100%; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px; }
+    .form-actions { display: flex; gap: 15px; margin-top: 40px; }
+    .preview-canvas { padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); }
+    .preview-card { padding: 20px; border-radius: 12px; }
+    code { font-family: monospace; font-size: 1.1rem; color: var(--primary); font-weight: bold; }
+    .percentage { color: var(--primary); font-weight: 800; }
+    
+    @media (max-width: 768px) {
+        .settings-layout {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-md);
+        }
+        .form-actions {
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+        .form-actions button, .form-actions a {
+            width: 100%;
+            justify-content: center;
+        }
+        .picker-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+{% endblock %}

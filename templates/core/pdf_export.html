@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 12pt;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .title {
+            font-size: 24pt;
+            font-weight: bold;
+            margin: 0;
+        }
+        .subtitle {
+            font-size: 14pt;
+            color: #666;
+            margin-top: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th {
+            background-color: #f2f2f2;
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 10pt;
+            text-transform: uppercase;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            vertical-align: top;
+        }
+        .completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            text-align: center;
+            font-size: 9pt;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">{{ bucket.title }}</h1>
+        <div class="subtitle">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="30">#</th>
+                <th>Bezeichnung</th>
+                {% if template_config.use_amount %}<th>Menge</th>{% endif %}
+                {% if template_config.use_brand %}<th>Marke</th>{% endif %}
+                {% if template_config.use_shop %}<th>Shop</th>{% endif %}
+                {% if template_config.use_price %}<th>Preis</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td>{% if item.is_completed %}[X]{% else %}[ ]{% endif %}</td>
+                <td class="{% if item.is_completed %}completed{% endif %}">
+                    <strong>{{ item.title }}</strong>
+                    {% if item.notes %}<br/><small>{{ item.notes }}</small>{% endif %}
+                </td>
+                {% if template_config.use_amount %}<td>{{ item.amount|default:"-" }}</td>{% endif %}
+                {% if template_config.use_brand %}<td>{{ item.brand|default:"-" }}</td>{% endif %}
+                {% if template_config.use_shop %}<td>{{ item.shop|default:"-" }}</td>{% endif %}
+                {% if template_config.use_price %}<td>{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</td>{% endif %}
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;">Keine Einträge vorhanden.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        Generiert mit buckezz am {{ now|date:"d.m.Y H:i" }}
+    </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+django
+django-environ
+django-htmx
+django-pwa
+xhtml2pdf
+django-extensions
+whitenoise
+gunicorn

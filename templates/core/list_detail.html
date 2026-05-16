@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="list-header" style="margin-bottom: var(--spacing-xl);">
+    <nav style="margin-bottom: var(--spacing-md);">
+        <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
+    </nav>
+    <div class="detail-header">
+        <div>
+            <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                <span style="font-size: 2rem;">{{ bucket.category.icon }}</span>
+                <h1>{{ bucket.title }}</h1>
+            </div>
+            <p class="text-muted">{{ bucket.category.name }}</p>
+        </div>
+        <div class="actions" x-data="{ showShare: false }">
+            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass">🖨️ PDF Export</a>
+            {% if bucket.owner == user %}
+                <button class="btn btn-glass" @click="showShare = !showShare">🔗 Teilen</button>
+                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass">⚙️ Einstellungen</a>
+            {% endif %}
+            
+            <template x-if="showShare">
+                {% include 'core/partials/share_controls.html' %}
+            </template>
+        </div>
+    </div>
+</div>
+
+<div class="card glass">
+    <div class="items-table-container">
+        <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
+            <div>Status</div>
+            <div>Bezeichnung</div>
+            {% if bucket.category.template.use_amount %}<div>Menge</div>{% endif %}
+            {% if bucket.category.template.use_price %}<div>Preis</div>{% endif %}
+            <div>Aktion</div>
+        </div>
+
+        <div id="item-list">
+            {% for item in bucket.items.all %}
+                {% include 'core/partials/item_row.html' with can_edit=can_edit %}
+            {% empty %}
+                <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Noch keine Einträge vorhanden.</p>
+            {% endfor %}
+        </div>
+
+        <div id="form-insertion-point"></div>
+    </div>
+
+    {% if can_edit %}
+    <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-md); border-top: 1px solid var(--primary);">
+        <button hx-get="{% url 'core:get_add_form' bucket.id %}" 
+                hx-target="#form-insertion-point" 
+                hx-swap="innerHTML"
+                class="btn btn-primary" 
+                style="width: 100%; justify-content: center;">
+            + Neuen Eintrag hinzufügen
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .detail-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    @media (max-width: 768px) {
+        .detail-header {
+            flex-direction: column;
+            gap: var(--spacing-md);
+        }
+        .detail-header .actions {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: var(--spacing-sm);
+        }
+        .detail-header .actions .btn {
+            width: 100%;
+            justify-content: center;
+        }
+        .items-table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: var(--spacing-sm);
+        }
+        .items-header, .list-item {
+            min-width: 500px; /* Ensures grid stays intact and scrolls */
+        }
+    }
+
+    @media print {
+        header, .actions, form, nav { display: none !important; }
+        body { background: white !important; color: black !important; }
+        .card { border: none !important; box-shadow: none !important; }
+        .text-muted { color: #666 !important; }
+    }
+</style>
+{% endblock %}

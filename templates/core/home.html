@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<section class="hero">
+    <h1>Ein Bucket für alles.</h1>
+    <p class="text-muted">Kombiniere Einkaufslisten, To-Dos, Merklisten und mehr an einem Ort.</p>
+    
+    <div class="card" style="margin-top: var(--spacing-xl);">
+        {% if user.is_authenticated %}
+            <h2>Willkommen zurück, {{ user.username }}!</h2>
+            <p>Du hast aktuell {{ my_lists.count }} aktive Buckets.</p>
+            <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
+                <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Zum Dashboard</a>
+                <a href="{% url 'admin:core_bucketlist_add' %}" class="btn glass">+ Neuen Bucket erstellen</a>
+            </div>
+        {% else %}
+            <h2>Bereit für Ordnung?</h2>
+            <p>Erstelle deine erste Liste oder trete einer gemeinsamen Liste bei.</p>
+            <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
+                <a href="{% url 'admin:login' %}" class="btn btn-primary">Jetzt starten</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+
+<section style="margin-top: var(--spacing-xl);">
+    <h3>Beispiele für deine Buckets:</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-md);">
+        <div class="card glass">
+            <h4>🍷 Weinliste</h4>
+            <p class="text-muted">Behalte den Überblick über deine Bestände und Favoriten.</p>
+        </div>
+        <div class="card glass">
+            <h4>🛒 Einkauf</h4>
+            <p class="text-muted">Gemeinsame Listen für den Haushalt, synchronisiert in Echtzeit.</p>
+        </div>
+        <div class="card glass">
+            <h4>✅ To-Do</h4>
+            <p class="text-muted">Aufgaben planen, priorisieren und gemeinsam erledigen.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,31 @@
+<div id="share-controls" class="card glass" style="margin-top: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--accent);">
+    <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">🔗 Freigabe-Einstellungen</h3>
+    
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+        <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
+            <input type="checkbox" 
+                   {% if bucket.is_public %}checked{% endif %}
+                   hx-post="{% url 'core:share_toggle' bucket.id %}"
+                   hx-vals='{"action": "toggle_public"}'
+                   hx-target="#share-controls"
+                   hx-swap="outerHTML">
+            <span>Link-Freigabe aktivieren</span>
+        </label>
+
+        {% if bucket.is_public %}
+            <div style="background: rgba(0,0,0,0.2); padding: var(--spacing-sm); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin: var(--spacing-xs) 0;">
+                {{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}
+            </div>
+            
+            <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" 
+                       {% if bucket.allow_public_edit %}checked{% endif %}
+                       hx-post="{% url 'core:share_toggle' bucket.id %}"
+                       hx-vals='{"action": "toggle_edit"}'
+                       hx-target="#share-controls"
+                       hx-swap="outerHTML">
+                <span>Bearbeiten erlauben (für jeden mit Link)</span>
+            </label>
+        {% endif %}
+    </div>
+</div>
