@@ -59,11 +59,10 @@
         <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px;">📅 HEUTIGER STATUS:</span>
         <div style="display: flex; flex-wrap: wrap; gap: 8px;">
             {% for t in item.tracker_times_list %}
-                {% with is_done=t in item.completed_tracker_times_today %}
                 <button type="button" 
-                        class="tracker-badge {% if is_done %}done{% endif %}" 
+                        class="tracker-badge {% if t in item.completed_tracker_times_today %}done{% endif %}" 
                         style="border: none; padding: 6px 12px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
-                               {% if is_done %}
+                               {% if t in item.completed_tracker_times_today %}
                                    background: color-mix(in srgb, #00e676 20%, transparent); color: #00e676; border: 1px solid #00e676;
                                {% else %}
                                    background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--glass-border);
@@ -72,10 +71,9 @@
                         hx-target="#item-list"
                         hx-swap="innerHTML"
                         hx-vals='{"scheduled_time": "{{ t }}"}'>
-                    <span>{% if is_done %}✓{% else %}🔔{% endif %}</span>
+                    <span>{% if t in item.completed_tracker_times_today %}✓{% else %}🔔{% endif %}</span>
                     <span>{{ t }} Uhr</span>
                 </button>
-                {% endwith %}
             {% endfor %}
         </div>
     </div>
