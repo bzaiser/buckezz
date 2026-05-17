@@ -555,13 +555,14 @@ class CalendarView(LoginRequiredMixin, TemplateView):
             models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)
         ).distinct()
 
-        # Fetch all items with dates from these lists
+        # Fetch all items with dates or tracker times from these lists
         items = ListItem.objects.filter(
             bucket_list__in=lists
         ).filter(
             models.Q(start_date__isnull=False) |
             models.Q(end_date__isnull=False) |
-            models.Q(reminder_at__isnull=False)
+            models.Q(reminder_at__isnull=False) |
+            (models.Q(tracker_times__isnull=False) & ~models.Q(tracker_times=''))
         ).select_related('bucket_list', 'bucket_list__category')
 
         events = []
@@ -633,6 +634,41 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'completed': item.is_completed
                     }
                 })
+
+            # 5. Recurring Daily Tracker Times
+            if item.tracker_times:
+                times_list = [t.strip() for t in item.tracker_times.split(',') if t.strip()]
+                for t in times_list:
+                    # Validate HH:MM format
+                    if len(t) == 5 and t[2] == ':':
+                        start_time = f"{t}:00"
+                        try:
+                            hour, minute = map(int, t.split(':'))
+                            end_hour = hour
+                            end_minute = minute + 30
+                            if end_minute >= 60:
+                                end_hour = (end_hour + 1) % 24
+                                end_minute = end_minute - 60
+                            end_time = f"{end_hour:02d}:{end_minute:02d}:00"
+                        except Exception:
+                            end_time = f"{t}:00"
+                            
+                        events.append({
+                            'id': f"tracker-{item.id}-{t}",
+                            'title': f"{cat_icon} {item.title}",
+                            'startTime': start_time,
+                            'endTime': end_time,
+                            'daysOfWeek': [0, 1, 2, 3, 4, 5, 6], # Every day!
+                            'url': list_url,
+                            'color': 'rgba(0, 230, 118, 0.12)', # Soft neon-green glass
+                            'borderColor': '#00e676',
+                            'textColor': '#00e676',
+                            'extendedProps': {
+                                'listName': item.bucket_list.title,
+                                'notes': f"Tägliche Routine um {t} Uhr.",
+                                'completed': False
+                            }
+                        })
 
         context['events_json'] = json.dumps(events)
         return context
