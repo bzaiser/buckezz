@@ -52,19 +52,20 @@
                 .role-fulfilled { background: color-mix(in srgb, #66bb6a 20%, transparent); color: #66bb6a; }
             </style>
             {% for role in item.person_roles.all %}
-                {% with is_own_role=current_person and role.person_id == current_person.id %}
-                {% with can_cycle=bucket.owner == request.user or is_own_role %}
-                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; {% if can_cycle %}cursor: pointer;{% endif %}"
-                      title="{% if can_cycle %}Klicken um Status zu ändern{% else %}Reserviert von {{ role.person.name }}{% endif %}"
-                      {% if can_cycle %}
+                {% if bucket.owner == request.user or current_person and role.person_id == current_person.id %}
+                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; cursor: pointer;"
+                      title="Klicken um Status zu ändern"
                       hx-post="{% url 'core:cycle_person_role' role.id %}" 
                       hx-target="#item-list" 
-                      hx-swap="innerHTML"
-                      {% endif %}>
+                      hx-swap="innerHTML">
                     {{ role.person.name }} ({{ role.get_role_display }})
                 </span>
-                {% endwith %}
-                {% endwith %}
+                {% else %}
+                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor;"
+                      title="Reserviert von {{ role.person.name }}">
+                    {{ role.person.name }} ({{ role.get_role_display }})
+                </span>
+                {% endif %}
             {% endfor %}
         </div>
         {% endif %}
