@@ -19,7 +19,7 @@
         </div>
         <div class="actions">
             <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass" title="PDF Export">🖨️ <span class="hide-mobile">PDF Export</span></a>
-            {% if bucket.owner == user and bucket.is_public %}
+            {% if bucket.owner == user %}
                 <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
             {% endif %}
             {% if bucket.owner == user %}
@@ -28,29 +28,19 @@
         </div>
     </div>
     
-    <template x-if="showShare">
-        <div class="card glass" style="margin-top: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--accent); animation: fadeIn 0.2s ease-out;">
-            <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">🔗 Freigabelink</h3>
-            
-            <div style="background: rgba(0,0,0,0.2); padding: var(--spacing-sm); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin-bottom: var(--spacing-md);">
-                {{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}
-            </div>
-            
-            <div style="display: flex; gap: var(--spacing-sm);">
-                <button type="button" class="btn btn-primary" style="flex: 1; padding: 8px; justify-content: center;" @click="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}'); let old = $el.innerHTML; $el.innerHTML='✅ Kopiert!'; setTimeout(() => $el.innerHTML=old, 2000)">📋 Kopieren</button>
-                <a href="mailto:?subject=Listen-Freigabe:%20{{ bucket.title|urlencode }}&body=Hier%20ist%20der%20Link%20zu%20meiner%20Liste:%0A{{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}" class="btn btn-glass" style="flex: 1; padding: 8px; justify-content: center; text-decoration: none;">📧 E-Mail</a>
-            </div>
-        </div>
-    </template>
+    <div x-show="showShare" style="display: none; animation: fadeIn 0.2s ease-out;">
+        {% include 'core/partials/share_controls.html' %}
+    </div>
 </div>
 
 <div class="card glass">
     <div class="items-table-container">
-        <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
+        <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
             <div>Status</div>
             <div>Bezeichnung</div>
             {% if bucket.category.template.use_amount %}<div>Menge</div>{% endif %}
             {% if bucket.category.template.use_price %}<div>Preis</div>{% endif %}
+            {% if bucket.category.template.use_rating %}<div>Bewertung</div>{% endif %}
             <div>Aktion</div>
         </div>
 

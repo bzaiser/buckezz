@@ -20,6 +20,7 @@ class Person(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField(blank=True, null=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='person_profile')
+    access_token = models.UUIDField(default=uuid.uuid4, unique=True)
 
     def __str__(self):
         return self.name
@@ -53,7 +54,9 @@ class ListTemplate(models.Model):
     use_reminder = models.BooleanField(default=False)
     use_location = models.BooleanField(default=False)
     use_persons = models.BooleanField(default=False)
+    use_url = models.BooleanField(default=False)
     use_status = models.BooleanField(default=True)
+    use_rating = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Template für {self.category.name}"
@@ -66,6 +69,10 @@ class BucketList(models.Model):
     shared_with = models.ManyToManyField(User, related_name='shared_lists', blank=True)
     is_public = models.BooleanField(default=False, help_text="Zugriff über Link ohne Login möglich")
     allow_public_edit = models.BooleanField(default=False, help_text="Personen mit Link dürfen Einträge hinzufügen/ändern")
+    
+    beneficiary = models.ForeignKey(Person, on_delete=models.SET_NULL, null=True, blank=True, related_name='beneficiary_lists', help_text="Für wen ist diese Liste? (z.B. Geburtstagskind)")
+    is_secret_santa = models.BooleanField(default=False, help_text="Versteckt Zuordnungen vor dem Begünstigten")
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -76,6 +83,16 @@ class BucketList(models.Model):
         verbose_name = _("Liste")
         verbose_name_plural = _("Listen")
 
+class ListParticipant(models.Model):
+    bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='participants')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='participating_in')
+    link_sent = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('bucket_list', 'person')
+        verbose_name = _("Listen-Teilnehmer")
+        verbose_name_plural = _("Listen-Teilnehmer")
+
 class ListItem(models.Model):
     bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='items')
     title = models.CharField(max_length=255)
@@ -85,6 +102,8 @@ class ListItem(models.Model):
     amount = models.CharField(max_length=100, null=True, blank=True)
     brand = models.CharField(max_length=255, null=True, blank=True)
     shop = models.CharField(max_length=255, null=True, blank=True)
+    url = models.URLField(max_length=1000, null=True, blank=True)
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
     
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
@@ -128,7 +147,9 @@ class ItemPersonRole(models.Model):
         ('invited', _('Eingeladen')),
         ('attending', _('Zugesagt')),
         ('declined', _('Abgesagt')),
-        ('maybe', _('Vielleicht'))
+        ('maybe', _('Vielleicht')),
+        ('reserved', _('Reserviert')),
+        ('fulfilled', _('Wunsch erfüllt'))
     ]
     item = models.ForeignKey(ListItem, on_delete=models.CASCADE, related_name='person_roles')
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='item_roles')

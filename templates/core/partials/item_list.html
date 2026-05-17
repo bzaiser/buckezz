@@ -1,5 +1,5 @@
 {% for item in active_items %}
-    {% include 'core/partials/item_row.html' with can_edit=can_edit %}
+    {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
 {% empty %}
     {% if not completed_items %}
         <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Noch keine Einträge vorhanden.</p>
@@ -13,7 +13,7 @@
     <summary style="cursor: pointer; color: var(--text-muted); font-weight: 600; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border); list-style-position: inside;">Erledigte Einträge ({{ completed_items|length }})</summary>
     <div class="completed-items" style="margin-top: var(--spacing-md); opacity: 0.6;">
         {% for item in completed_items %}
-            {% include 'core/partials/item_row.html' with can_edit=can_edit %}
+            {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
         {% endfor %}
     </div>
 </details>

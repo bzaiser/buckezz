@@ -43,6 +43,12 @@ class Command(BaseCommand):
                 'name': 'Wunschliste',
                 'icon': '🎬',
                 'fields': {'use_location': True, 'use_persons': True}
+            },
+            {
+                'old_name': '🏆 Winliste',
+                'name': 'Winliste',
+                'icon': '🏆',
+                'fields': {'use_rating': True, 'use_persons': True}
             }
         ]
 
@@ -61,7 +67,8 @@ class Command(BaseCommand):
                 full_fields = {
                     'use_amount': False, 'use_brand': False, 'use_shop': False,
                     'use_price': False, 'use_location': False, 'use_start_date': False,
-                    'use_end_date': False, 'use_persons': False, 'use_reminder': False
+                    'use_end_date': False, 'use_persons': False, 'use_reminder': False,
+                    'use_rating': False
                 }
                 full_fields.update(data['fields'])
                 

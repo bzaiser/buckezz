@@ -1,22 +1,22 @@
 <div id="share-controls" class="card glass" style="margin-top: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--accent);">
-    <h3 style="font-size: 1rem; margin-bottom: var(--spacing-sm);">🔗 Freigabe-Einstellungen</h3>
+    <h3 style="font-size: 1.1rem; margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: 8px;">
+        <span>🔗 Freigabe-Einstellungen</span>
+    </h3>
     
-    <div style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
-        <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
-            <input type="checkbox" 
-                   {% if bucket.is_public %}checked{% endif %}
-                   hx-post="{% url 'core:share_toggle' bucket.id %}"
-                   hx-vals='{"action": "toggle_public"}'
-                   hx-target="#share-controls"
-                   hx-swap="outerHTML">
-            <span>Link-Freigabe aktivieren</span>
-        </label>
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+        <!-- Base settings -->
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+            <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
+                <input type="checkbox" 
+                       {% if bucket.is_public %}checked{% endif %}
+                       hx-post="{% url 'core:share_toggle' bucket.id %}"
+                       hx-vals='{"action": "toggle_public"}'
+                       hx-target="#share-controls"
+                       hx-swap="outerHTML">
+                <span>Öffentliche Link-Freigabe</span>
+            </label>
 
-        {% if bucket.is_public %}
-            <div style="background: rgba(0,0,0,0.2); padding: var(--spacing-sm); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin: var(--spacing-xs) 0;">
-                {{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}
-            </div>
-            
+            {% if bucket.is_public %}
             <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; font-size: 0.9rem;">
                 <input type="checkbox" 
                        {% if bucket.allow_public_edit %}checked{% endif %}
@@ -24,8 +24,153 @@
                        hx-vals='{"action": "toggle_edit"}'
                        hx-target="#share-controls"
                        hx-swap="outerHTML">
-                <span>Bearbeiten erlauben (für jeden mit Link)</span>
+                <span>Bearbeiten erlauben (Gäste)</span>
             </label>
+            {% endif %}
+
+            <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; color: var(--primary);">
+                <input type="checkbox" 
+                       {% if bucket.is_secret_santa %}checked{% endif %}
+                       hx-post="{% url 'core:share_toggle' bucket.id %}"
+                       hx-vals='{"action": "toggle_secret_santa"}'
+                       hx-target="#share-controls"
+                       hx-swap="outerHTML">
+                <strong>🎅 Wichtel-Modus (Secret Santa)</strong>
+            </label>
+        </div>
+
+        {% if bucket.is_public and not bucket.is_secret_santa %}
+            <div style="background: rgba(0,0,0,0.2); padding: var(--spacing-sm); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.8rem; word-break: break-all; margin: var(--spacing-xs) 0; display: flex; justify-content: space-between; align-items: center;" x-data="{ copied: false }">
+                <span style="flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                    {{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}
+                </span>
+                <button class="glass" style="border: none; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; color: var(--primary);" 
+                        @click="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}'); copied = true; setTimeout(() => copied = false, 2000)">
+                    <span x-show="!copied">📋 Kopieren</span>
+                    <span x-show="copied" style="color: #4ade80;">✓ Kopiert</span>
+                </button>
+            </div>
+        {% endif %}
+
+        <!-- Secret Santa configurations -->
+        {% if bucket.is_secret_santa %}
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem;">🎅 Wichtel-Optionen</h4>
+            
+            <!-- Beneficiary Selection -->
+            <div class="form-group" style="margin: 0;">
+                <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">
+                    Wer wird beschenkt? (Begünstigter / sieht keine Badges)
+                </label>
+                <select name="beneficiary_id" class="glass input" style="width: 100%; border-radius: 8px;"
+                        hx-post="{% url 'core:share_toggle' bucket.id %}"
+                        hx-vals='{"action": "set_beneficiary"}'
+                        hx-target="#share-controls"
+                        hx-swap="outerHTML">
+                    <option value="">-- Person auswählen --</option>
+                    {% for person in people %}
+                        <option value="{{ person.id }}" {% if bucket.beneficiary_id == person.id %}selected{% endif %}>
+                            {{ person.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Manage participants -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-sm); border-radius: var(--radius-md);">
+                <label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: var(--spacing-sm);">
+                    Wichtel-Teilnehmer (Schenkende)
+                </label>
+                
+                <!-- Quick add/select participant -->
+                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 180px;">
+                        <select id="select-participant" class="glass input" style="width: 100%; border-radius: 8px; padding: 6px 12px;">
+                            <option value="">Aus vorhandenen wählen...</option>
+                            {% for person in people %}
+                                <option value="{{ person.id }}">{{ person.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div style="flex: 1.2; min-width: 200px; display: flex; gap: 4px;">
+                        <input type="text" id="new-participant-name" class="glass input" placeholder="Oder neuer Name..." style="flex: 1; border-radius: 8px; padding: 6px 12px;">
+                        <button type="button" class="glass" style="background: var(--primary); color: #000; font-weight: bold; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer;"
+                                onclick="
+                                    const select = document.getElementById('select-participant');
+                                    const input = document.getElementById('new-participant-name');
+                                    const val = select.value;
+                                    const name = input.value;
+                                    if(val) {
+                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
+                                            target: '#share-controls',
+                                            values: { action: 'add_participant', person_id: val }
+                                        });
+                                    } else if(name) {
+                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
+                                            target: '#share-controls',
+                                            values: { action: 'add_participant', new_person_name: name }
+                                        });
+                                    }
+                                ">
+                            + Hinzufügen
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Participant list -->
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    {% if not bucket.participants.exists %}
+                        <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 12px 0;">
+                            Noch keine Wichtel-Teilnehmer hinzugefügt.
+                        </div>
+                    {% endif %}
+                    
+                    {% for participant in bucket.participants.all %}
+                        {% with person_url=request.scheme|add:"://"|add:request.get_host|add:"/list/"|add:bucket.id|add:"/?p="|add:participant.person.access_token %}
+                        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; gap: 8px; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 140px;">
+                                <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem;" title="Link gesendet?">
+                                    <input type="checkbox" 
+                                           {% if participant.link_sent %}checked{% endif %}
+                                           hx-post="{% url 'core:share_toggle' bucket.id %}"
+                                           hx-vals='{"action": "toggle_participant_sent", "participant_id": "{{ participant.id }}"}'
+                                           hx-target="#share-controls"
+                                           hx-swap="outerHTML">
+                                    <span style="{% if participant.link_sent %}text-decoration: line-through; opacity: 0.5;{% endif %} font-weight: 500;">
+                                        {{ participant.person.name }}
+                                    </span>
+                                </label>
+                                {% if participant.person == bucket.beneficiary %}
+                                    <span style="font-size: 0.7rem; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: bold;">Beschenkt</span>
+                                {% endif %}
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 4px;" x-data="{ copied: false }">
+                                <button type="button" class="glass" style="border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; color: var(--primary);"
+                                        @click="navigator.clipboard.writeText('{{ person_url }}'); copied = true; setTimeout(() => copied = false, 2000)">
+                                    <span x-show="!copied">📋 Link</span>
+                                    <span x-show="copied" style="color: #4ade80;">✓</span>
+                                </button>
+                                
+                                <a href="mailto:?subject=Einladung%20zur%20Wunschliste%20{{ bucket.title|urlencode }}&body=Hallo%20{{ participant.person.name|urlencode }},%0A%0Ahier%20ist%20dein%20pers%C3%B6nlicher%20Link%20zur%20Wunschliste%20'{{ bucket.title|urlencode }}':%0A{{ person_url|urlencode }}%0A%0ALiebe%20Gr%C3%BC%C3%9Fe!" 
+                                   class="glass" style="padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; color: #fff; text-decoration: none; display: inline-flex; align-items: center;">
+                                    ✉ Mail
+                                </a>
+
+                                <button type="button" class="glass" style="border: none; padding: 6px 10px; border-radius: 6px; cursor: pointer; color: #f87171;"
+                                        hx-post="{% url 'core:share_toggle' bucket.id %}"
+                                        hx-vals='{"action": "remove_participant", "participant_id": "{{ participant.id }}"}'
+                                        hx-target="#share-controls"
+                                        hx-swap="outerHTML">
+                                    🗑
+                                </button>
+                            </div>
+                        </div>
+                        {% endwith %}
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
         {% endif %}
     </div>
 </div>

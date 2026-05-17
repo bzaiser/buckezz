@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
-from .models import BucketList, ListItem, ListCategory, UserSetting, Person, ItemPersonRole
+from .models import BucketList, ListItem, ListCategory, UserSetting, Person, ItemPersonRole, ListParticipant
 
 class HomeView(TemplateView):
     template_name = 'core/home.html'
@@ -55,13 +55,41 @@ class CreateBucketView(LoginRequiredMixin, View):
         )
         return redirect('core:list_detail', pk=bucket.id)
 
+def get_list_items_for_user(request, bucket):
+    # Get current person from session or user profile
+    current_person = None
+    person_id = request.session.get('person_id')
+    if person_id:
+        try:
+            current_person = Person.objects.get(id=person_id)
+        except Person.DoesNotExist:
+            pass
+    elif request.user.is_authenticated:
+        try:
+            current_person = request.user.person_profile
+        except Person.DoesNotExist:
+            pass
+            
+    is_beneficiary = False
+    if bucket.is_secret_santa and bucket.beneficiary and current_person == bucket.beneficiary:
+        is_beneficiary = True
+
+    items = bucket.items.all()
+    if is_beneficiary:
+        # Beneficiary sees all items as active (hiding completed/fulfilled ones)
+        active_items = list(items)
+        completed_items = []
+    else:
+        active_items = [i for i in items if not i.is_completed]
+        completed_items = [i for i in items if i.is_completed]
+        
+    return active_items, completed_items, is_beneficiary, current_person
+
 class BucketListDetailView(DetailView):
-    model = BucketList
     template_name = 'core/list_detail.html'
     context_object_name = 'bucket'
 
     def get_queryset(self):
-        # Allow owner, shared users OR public lists
         return BucketList.objects.all()
 
     def get_object(self, queryset=None):
@@ -69,14 +97,44 @@ class BucketListDetailView(DetailView):
         # Check permissions
         is_owner = obj.owner == self.request.user
         is_shared = self.request.user.is_authenticated and self.request.user in obj.shared_with.all()
-        if not (is_owner or is_shared or obj.is_public):
+        
+        # If public or is_secret_santa (which works with personalized links)
+        if not (is_owner or is_shared or obj.is_public or obj.is_secret_santa):
             raise PermissionDenied("Zugriff verweigert.")
         return obj
 
     def get(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if not request.user.is_authenticated and not request.session.get('guest_name'):
+        
+        # Personalized token auto-login
+        token_str = request.GET.get('p')
+        if token_str:
+            try:
+                person = Person.objects.get(access_token=token_str)
+                request.session['person_id'] = person.id
+                request.session['guest_name'] = person.name
+            except (Person.DoesNotExist, ValueError):
+                pass
+                
+        # Access control for Secret Santa lists
+        if self.object.is_secret_santa:
+            is_owner = self.object.owner == request.user
+            person_id = request.session.get('person_id')
+            
+            # Auto-associate logged in user's person profile
+            if request.user.is_authenticated and not person_id:
+                try:
+                    person = request.user.person_profile
+                    request.session['person_id'] = person.id
+                    request.session['guest_name'] = person.name
+                except Person.DoesNotExist:
+                    pass
+                    
+            if not is_owner and not request.session.get('person_id'):
+                return render(request, 'core/secret_santa_error.html', {'bucket': self.object})
+        elif not request.user.is_authenticated and not request.session.get('guest_name'):
             return render(request, 'core/guest_login.html', {'bucket': self.object})
+            
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
@@ -89,27 +147,44 @@ class BucketListDetailView(DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         bucket = self.get_object()
-        # Check if user can edit
-        can_edit = bucket.owner == self.request.user or \
-                  (self.request.user.is_authenticated and self.request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
-        context['can_edit'] = can_edit
         
-        items = bucket.items.all()
-        context['active_items'] = [i for i in items if not i.is_completed]
-        context['completed_items'] = [i for i in items if i.is_completed]
+        active_items, completed_items, is_beneficiary, current_person = get_list_items_for_user(self.request, bucket)
+        
+        is_owner = bucket.owner == self.request.user
+        if bucket.is_secret_santa:
+            can_edit = is_owner or is_beneficiary
+        else:
+            can_edit = is_owner or \
+                      (self.request.user.is_authenticated and self.request.user in bucket.shared_with.all()) or \
+                      (bucket.is_public and bucket.allow_public_edit)
+                      
+        context['can_edit'] = can_edit
+        context['active_items'] = active_items
+        context['completed_items'] = completed_items
+        context['is_beneficiary'] = is_beneficiary
+        context['current_person'] = current_person
+        context['people'] = Person.objects.all()
         
         return context
 
 def render_item_list(request, bucket, can_edit):
-    items = bucket.items.all()
-    active_items = [i for i in items if not i.is_completed]
-    completed_items = [i for i in items if i.is_completed]
+    active_items, completed_items, is_beneficiary, current_person = get_list_items_for_user(request, bucket)
+    
+    is_owner = bucket.owner == request.user
+    if bucket.is_secret_santa:
+        can_edit = is_owner or is_beneficiary
+    else:
+        can_edit = is_owner or \
+                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                  (bucket.is_public and bucket.allow_public_edit)
+                  
     return render(request, 'core/partials/item_list.html', {
         'bucket': bucket,
         'active_items': active_items,
         'completed_items': completed_items,
-        'can_edit': can_edit
+        'can_edit': can_edit,
+        'is_beneficiary': is_beneficiary,
+        'current_person': current_person
     })
 
 class GetItemFormView(View):
@@ -148,9 +223,11 @@ class AddItemView(View):
             brand=data.get('brand'),
             shop=data.get('shop'),
             location=data.get('location'),
+            url=data.get('url'),
             start_date=data.get('start_date') if data.get('start_date') else None,
             end_date=data.get('end_date') if data.get('end_date') else None,
             notes=data.get('notes'),
+            rating=data.get('rating') if data.get('rating') else None,
             created_by=request.user if request.user.is_authenticated else None,
             guest_created_by=guest_name if not request.user.is_authenticated else None
         )
@@ -164,7 +241,7 @@ class AddItemView(View):
         if request.htmx:
             return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
-
+ 
 class EditItemView(View):
     def post(self, request, item_id):
         item = get_object_or_404(ListItem, id=item_id)
@@ -174,7 +251,7 @@ class EditItemView(View):
                   (bucket.is_public and bucket.allow_public_edit)
         if not can_edit:
             return HttpResponseForbidden()
-
+ 
         data = request.POST
         item.title = data.get('title')
         item.amount = data.get('amount')
@@ -182,9 +259,11 @@ class EditItemView(View):
         item.brand = data.get('brand')
         item.shop = data.get('shop')
         item.location = data.get('location')
+        item.url = data.get('url')
         item.start_date = data.get('start_date') if data.get('start_date') else None
         item.end_date = data.get('end_date') if data.get('end_date') else None
         item.notes = data.get('notes')
+        item.rating = data.get('rating') if data.get('rating') else None
         
         if request.user.is_authenticated:
             item.updated_by = request.user
@@ -263,26 +342,127 @@ class ShareToggleView(LoginRequiredMixin, View):
                 bucket.allow_public_edit = False
         elif action == 'toggle_edit':
             bucket.allow_public_edit = not bucket.allow_public_edit
+        elif action == 'toggle_secret_santa':
+            bucket.is_secret_santa = not bucket.is_secret_santa
+        elif action == 'set_beneficiary':
+            beneficiary_id = request.POST.get('beneficiary_id')
+            if beneficiary_id:
+                bucket.beneficiary_id = beneficiary_id
+            else:
+                bucket.beneficiary = None
+        elif action == 'add_participant':
+            person_id = request.POST.get('person_id')
+            new_person_name = request.POST.get('new_person_name')
+            if person_id:
+                person = get_object_or_404(Person, id=person_id)
+                ListParticipant.objects.get_or_create(bucket_list=bucket, person=person)
+            elif new_person_name:
+                person = Person.objects.create(name=new_person_name.strip())
+                ListParticipant.objects.create(bucket_list=bucket, person=person)
+        elif action == 'remove_participant':
+            participant_id = request.POST.get('participant_id')
+            if participant_id:
+                participant = get_object_or_404(ListParticipant, id=participant_id, bucket_list=bucket)
+                participant.delete()
+        elif action == 'toggle_participant_sent':
+            participant_id = request.POST.get('participant_id')
+            if participant_id:
+                participant = get_object_or_404(ListParticipant, id=participant_id, bucket_list=bucket)
+                participant.link_sent = not participant.link_sent
+                participant.save()
             
         bucket.save()
-        return render(request, 'core/partials/share_controls.html', {'bucket': bucket})
+        people = Person.objects.all()
+        return render(request, 'core/partials/share_controls.html', {
+            'bucket': bucket,
+            'people': people
+        })
 
 class CyclePersonRoleView(View):
     def post(self, request, role_id):
         role = get_object_or_404(ItemPersonRole, id=role_id)
         bucket = role.item.bucket_list
+        
+        current_person_id = request.session.get('person_id')
+        is_own_role = current_person_id and role.person_id == current_person_id
+        
         can_edit = bucket.owner == request.user or \
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (bucket.is_secret_santa and is_own_role)
+                  
         if not can_edit:
             return HttpResponseForbidden()
             
-        choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
-        current_index = choices.index(role.role)
-        next_index = (current_index + 1) % len(choices)
-        role.role = choices[next_index]
-        role.save()
+        if bucket.is_secret_santa:
+            if role.role == 'reserved':
+                role.role = 'fulfilled'
+                role.save()
+                role.item.is_completed = True
+                role.item.save()
+            else:
+                role.delete()
+                other_fulfilled = role.item.person_roles.filter(role='fulfilled').exclude(id=role.id).exists()
+                if not other_fulfilled:
+                    role.item.is_completed = False
+                    role.item.save()
+        else:
+            choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
+            current_index = choices.index(role.role)
+            next_index = (current_index + 1) % len(choices)
+            role.role = choices[next_index]
+            role.save()
+            
+            # If the role is now 'fulfilled', mark the list item completed
+            if role.role == 'fulfilled':
+                role.item.is_completed = True
+                role.item.save()
+            else:
+                # If it transitioned away from fulfilled, make sure it's marked active
+                # (only if no other person role is currently 'fulfilled' on this item)
+                other_fulfilled = role.item.person_roles.filter(role='fulfilled').exclude(id=role.id).exists()
+                if not other_fulfilled:
+                    role.item.is_completed = False
+                    role.item.save()
         
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)
+
+class ToggleReservationView(View):
+    def post(self, request, item_id):
+        item = get_object_or_404(ListItem, id=item_id)
+        bucket = item.bucket_list
+        
+        person_id = request.session.get('person_id')
+        if not person_id and request.user.is_authenticated:
+            try:
+                person = request.user.person_profile
+                person_id = person.id
+            except Person.DoesNotExist:
+                pass
+                
+        if not person_id:
+            return HttpResponseForbidden("Kein Teilnehmer-Profil gefunden.")
+            
+        person = get_object_or_404(Person, id=person_id)
+        
+        # Toggle the reservation:
+        role, created = ItemPersonRole.objects.get_or_create(item=item, person=person)
+        if not created:
+            if role.role == 'reserved':
+                role.role = 'fulfilled'
+                role.save()
+                item.is_completed = True
+                item.save()
+            else:
+                role.delete()
+                item.is_completed = False
+                item.save()
+        else:
+            role.role = 'reserved'
+            role.save()
+            
         if request.htmx:
             return render_item_list(request, bucket, True)
         return HttpResponse(status=204)

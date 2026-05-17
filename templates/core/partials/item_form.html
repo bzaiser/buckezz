@@ -51,6 +51,34 @@
             </div>
             {% endif %}
 
+            {% if bucket.category.template.use_url %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Link zum Produkt (URL)</label>
+                <input type="url" name="url" value="{{ item.url|default:'' }}" placeholder="https://..." class="glass">
+            </div>
+            {% endif %}
+
+            {% if bucket.category.template.use_rating %}
+            <div class="form-group" x-data="{ rating: {{ item.rating|default:0 }}, hoverRating: 0 }">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Bewertung</label>
+                <input type="hidden" name="rating" :value="rating">
+                <div style="display: flex; gap: 8px; font-size: 1.8rem; line-height: 1;">
+                    <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                        <span @click="rating = (rating === star) ? 0 : star"
+                              @mouseenter="hoverRating = star"
+                              @mouseleave="hoverRating = 0"
+                              style="cursor: pointer; transition: transform 0.1s ease, color 0.15s ease; user-select: none;"
+                              :style="{ 
+                                  color: (hoverRating > 0 ? star <= hoverRating : star <= rating) ? 'var(--accent)' : 'rgba(255,255,255,0.15)',
+                                  transform: hoverRating === star ? 'scale(1.25)' : 'scale(1)'
+                              }">
+                            ★
+                        </span>
+                    </template>
+                </div>
+            </div>
+            {% endif %}
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_start_date %}
                 <div class="form-group">

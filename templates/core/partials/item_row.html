@@ -1,5 +1,6 @@
-<div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
+<div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
     <div>
+        {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 
                {% if item.is_completed %}checked{% endif %} 
                {% if not can_edit %}disabled{% endif %}
@@ -9,30 +10,61 @@
                hx-target="#item-list"
                hx-swap="innerHTML"
                {% endif %}>
+        {% else %}
+        <span style="font-size: 1.1rem; opacity: 0.3;">📌</span>
+        {% endif %}
     </div>
-    <div style="{% if item.is_completed %}text-decoration: line-through; opacity: 0.5;{% endif %}">
+    <div style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.5;{% endif %}">
         <strong>{{ item.title }}</strong>
         {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block;">{{ item.brand }}</span>{% endif %}
         
-        {% if item.person_roles.exists %}
-        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px;">
+        <!-- Product Link -->
+        {% if item.url %}
+        <div style="margin-top: 4px;">
+            <a href="{{ item.url }}" target="_blank" class="glass" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.75rem; color: var(--primary); text-decoration: none; padding: 2px 6px; border-radius: 4px; border: 1px solid var(--primary); font-weight: 500;">
+                🛒 Zum Produkt
+            </a>
+        </div>
+        {% endif %}
+        
+        <!-- Secret Santa Action Button -->
+        {% if bucket.is_secret_santa and not is_beneficiary and not item.person_roles.exists and current_person %}
+        <div style="margin-top: 6px;">
+            <button type="button" class="glass" style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; color: var(--primary); font-weight: bold; cursor: pointer; border: 1px solid var(--primary);"
+                    hx-post="{% url 'core:toggle_reservation' item.id %}"
+                    hx-target="#item-list"
+                    hx-swap="innerHTML">
+                🎁 Schenken!
+            </button>
+        </div>
+        {% endif %}
+        
+        <!-- Badges/Roles (hidden from beneficiary) -->
+        {% if item.person_roles.exists and not is_beneficiary %}
+        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">
             <style>
                 .role-assigned { background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); }
                 .role-invited { background: color-mix(in srgb, #ffab00 20%, transparent); color: #ffab00; }
                 .role-attending { background: color-mix(in srgb, #00e676 20%, transparent); color: #00e676; }
                 .role-declined { background: color-mix(in srgb, #ff1744 20%, transparent); color: #ff1744; }
                 .role-maybe { background: color-mix(in srgb, #9e9e9e 20%, transparent); color: #9e9e9e; }
+                .role-reserved { background: color-mix(in srgb, #29b6f6 20%, transparent); color: #29b6f6; }
+                .role-fulfilled { background: color-mix(in srgb, #66bb6a 20%, transparent); color: #66bb6a; }
             </style>
             {% for role in item.person_roles.all %}
-                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; {% if can_edit %}cursor: pointer;{% endif %}"
-                      title="Klicken um Status zu ändern"
-                      {% if can_edit %}
+                {% with is_own_role=current_person and role.person_id == current_person.id %}
+                {% with can_cycle=bucket.owner == request.user or is_own_role %}
+                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; {% if can_cycle %}cursor: pointer;{% endif %}"
+                      title="{% if can_cycle %}Klicken um Status zu ändern{% else %}Reserviert von {{ role.person.name }}{% endif %}"
+                      {% if can_cycle %}
                       hx-post="{% url 'core:cycle_person_role' role.id %}" 
                       hx-target="#item-list" 
                       hx-swap="innerHTML"
                       {% endif %}>
                     {{ role.person.name }} ({{ role.get_role_display }})
                 </span>
+                {% endwith %}
+                {% endwith %}
             {% endfor %}
         </div>
         {% endif %}
@@ -56,6 +88,17 @@
     {% endif %}
     {% if bucket.category.template.use_price %}
         <div class="text-muted">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
+    {% endif %}
+    {% if bucket.category.template.use_rating %}
+        <div style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
+            {% if item.rating %}
+                {% for i in "12345" %}
+                    {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
+                {% endfor %}
+            {% else %}
+                <span style="opacity: 0.15;">-</span>
+            {% endif %}
+        </div>
     {% endif %}
     <div style="display: flex; gap: var(--spacing-sm);">
         {% if can_edit %}

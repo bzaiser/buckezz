@@ -78,6 +78,21 @@ templates_data = [
             'use_start_date': False,
             'use_end_date': False,
             'use_persons': True,
+            'use_rating': False,
+        }
+    },
+    {
+        'name': '🏆 Winliste',
+        'fields': {
+            'use_amount': False,
+            'use_brand': False,
+            'use_shop': False,
+            'use_price': False,
+            'use_location': False,
+            'use_start_date': False,
+            'use_end_date': False,
+            'use_persons': True,
+            'use_rating': True,
         }
     }
 ]

@@ -77,6 +77,7 @@
                 {% if template_config.use_brand %}<th>Marke</th>{% endif %}
                 {% if template_config.use_shop %}<th>Shop</th>{% endif %}
                 {% if template_config.use_price %}<th>Preis</th>{% endif %}
+                {% if template_config.use_rating %}<th>Bewertung</th>{% endif %}
             </tr>
         </thead>
         <tbody>
@@ -91,6 +92,17 @@
                 {% if template_config.use_brand %}<td>{{ item.brand|default:"-" }}</td>{% endif %}
                 {% if template_config.use_shop %}<td>{{ item.shop|default:"-" }}</td>{% endif %}
                 {% if template_config.use_price %}<td>{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</td>{% endif %}
+                {% if template_config.use_rating %}
+                <td>
+                    {% if item.rating %}
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                {% endif %}
             </tr>
             {% empty %}
             <tr>

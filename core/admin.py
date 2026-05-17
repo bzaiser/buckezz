@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -20,19 +20,23 @@ class UserSettingAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'user')
+    list_display = ('name', 'email', 'user', 'access_token')
     search_fields = ('name', 'email')
 
 class ListItemInline(admin.TabularInline):
     model = ListItem
     extra = 1
 
+class ListParticipantInline(admin.TabularInline):
+    model = ListParticipant
+    extra = 1
+
 @admin.register(BucketList)
 class BucketListAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'owner', 'created_at')
-    list_filter = ('category', 'owner')
+    list_display = ('title', 'category', 'owner', 'created_at', 'is_secret_santa', 'beneficiary')
+    list_filter = ('category', 'owner', 'is_secret_santa')
     search_fields = ('title',)
-    inlines = [ListItemInline]
+    inlines = [ListItemInline, ListParticipantInline]
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
@@ -62,3 +66,8 @@ class ListItemAdmin(admin.ModelAdmin):
         if request.user.is_superuser:
             return qs
         return qs.filter(bucket_list__owner=request.user)
+
+@admin.register(ListParticipant)
+class ListParticipantAdmin(admin.ModelAdmin):
+    list_display = ('bucket_list', 'person', 'link_sent')
+    list_filter = ('link_sent', 'bucket_list')
