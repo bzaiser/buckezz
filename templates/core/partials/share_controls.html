@@ -53,9 +53,11 @@
             </div>
         {% endif %}
 
-        <!-- Secret Santa configurations -->
-        {% if bucket.is_secret_santa %}
+        <!-- Secret Santa configurations / Participant management -->
+        {% if bucket.is_secret_santa or bucket.category.template.use_persons %}
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-md);">
+            
+            {% if bucket.is_secret_santa %}
             <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem;">🎅 Wichtel-Optionen</h4>
             
             <!-- Beneficiary Selection -->
@@ -76,11 +78,12 @@
                     {% endfor %}
                 </select>
             </div>
+            {% endif %}
 
             <!-- Manage participants -->
             <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-sm); border-radius: var(--radius-md);">
                 <label style="font-size: 0.85rem; font-weight: bold; display: block; margin-bottom: var(--spacing-sm);">
-                    Wichtel-Teilnehmer (Schenkende)
+                    {% if bucket.is_secret_santa %}🎅 Wichtel-Teilnehmer (Schenkende){% else %}👥 Listen-Teilnehmer (Eingeladene Personen){% endif %}
                 </label>
                 
                 <!-- Quick add/select participant -->
@@ -122,7 +125,7 @@
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     {% if not bucket.participants.exists %}
                         <div style="text-align: center; color: var(--text-muted); font-size: 0.8rem; padding: 12px 0;">
-                            Noch keine Wichtel-Teilnehmer hinzugefügt.
+                            Noch keine Teilnehmer hinzugefügt.
                         </div>
                     {% endif %}
                     
@@ -140,7 +143,7 @@
                                         {{ participant.person.name }}
                                     </span>
                                 </label>
-                                {% if participant.person == bucket.beneficiary %}
+                                {% if bucket.is_secret_santa and participant.person == bucket.beneficiary %}
                                     <span style="font-size: 0.7rem; background: var(--accent); color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: bold;">Beschenkt</span>
                                 {% endif %}
                             </div>
@@ -152,7 +155,7 @@
                                     <span x-show="copied" style="color: #4ade80;">✓</span>
                                 </button>
                                 
-                                <a href="mailto:?subject=Einladung%20zur%20Wunschliste%20{{ bucket.title|urlencode }}&body=Hallo%20{{ participant.person.name|urlencode }},%0A%0Ahier%20ist%20dein%20pers%C3%B6nlicher%20Link%20zur%20Wunschliste%20'{{ bucket.title|urlencode }}':%0A{{ request.scheme }}%3A%2F%2F{{ request.get_host }}{{ list_url }}%3Fp%3D{{ participant.person.access_token }}%0A%0ALiebe%20Gr%C3%BC%C3%9Fe!" 
+                                <a href="mailto:?subject=Einladung%20zur%20Liste%20{{ bucket.title|urlencode }}&body=Hallo%20{{ participant.person.name|urlencode }},%0A%0Ahier%20ist%20dein%20pers%C3%B6nlicher%20Link%20zur%20Liste%20'{{ bucket.title|urlencode }}':%0A{{ request.scheme }}%3A%2F%2F{{ request.get_host }}{{ list_url }}%3Fp%3D{{ participant.person.access_token }}%0A%0ALiebe%20Gr%C3%BC%C3%9Fe!" 
                                    class="glass" style="padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; color: #fff; text-decoration: none; display: inline-flex; align-items: center;">
                                     ✉ Mail
                                 </a>
