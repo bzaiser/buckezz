@@ -141,7 +141,61 @@
             {% endif %}
 
             {% if bucket.category.template.use_persons %}
-            <div class="form-group" x-data="window.initPersonSelector([{% for p in people %}{id: {{ p.id }}, name: '{{ p.name|escapejs }}'},{% endfor %}], [{% if item %}{% for role in item.person_roles.all %}{{ role.person.id }},{% endfor %}{% endif %}])">
+            <div class="form-group" x-data='{
+                search: "",
+                allPersons: [{% for p in people %}{id: {{ p.id }}, name: "{{ p.name|escapejs }}"},{% endfor %}],
+                selectedIds: [{% if item %}{% for role in item.person_roles.all %}{{ role.person.id }},{% endfor %}{% endif %}],
+                
+                get selectedPersons() {
+                    return this.allPersons.filter(p => this.selectedIds.includes(p.id));
+                },
+                
+                get filteredPersons() {
+                    if (this.search.trim() === "") return this.allPersons.filter(p => !this.selectedIds.includes(p.id)).slice(0, 8);
+                    return this.allPersons.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()) && !this.selectedIds.includes(p.id)).slice(0, 15);
+                },
+                
+                get showAddButton() {
+                    if (this.search.trim() === "") return false;
+                    return !this.allPersons.some(p => p.name.toLowerCase() === this.search.trim().toLowerCase());
+                },
+                
+                togglePerson(id) {
+                    if (this.selectedIds.includes(id)) {
+                        this.selectedIds = this.selectedIds.filter(i => i !== id);
+                    } else {
+                        this.selectedIds.push(id);
+                        this.search = "";
+                    }
+                },
+                
+                async addNewPerson() {
+                    const name = this.search.trim();
+                    if (!name) return;
+                    
+                    try {
+                        const formData = new FormData();
+                        formData.append("name", name);
+                        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+                        
+                        const response = await fetch("/api/person/add/", {
+                            method: "POST",
+                            body: formData,
+                            headers: {
+                                "X-CSRFToken": csrfToken
+                            }
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            this.allPersons.push({ id: data.id, name: data.name });
+                            this.selectedIds.push(data.id);
+                            this.search = "";
+                        }
+                    } catch (e) {
+                        console.error("Error adding person:", e);
+                    }
+                }
+            }'>
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Beteiligte Personen</label>
                 
                 <!-- Hidden inputs for form submission -->
