@@ -87,7 +87,7 @@
                 </label>
                 
                 <!-- Quick add/select participant -->
-                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); flex-wrap: wrap; align-items: stretch;">
+                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); flex-wrap: wrap; align-items: stretch; position: relative; z-index: 100;">
                     
                     <!-- Beautiful Custom Dropdown Selection -->
                     <div x-data="{ 
@@ -113,10 +113,10 @@
                         <!-- Trigger Box -->
                         <div @click="open = !open" 
                              class="glass input" 
-                             style="width: 100%; border-radius: 8px; padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px; border: 1px solid rgba(255, 255, 255, 0.15); box-sizing: border-box;">
+                             style="width: 100%; border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--input-text); box-sizing: border-box;">
                             <span x-text="selectedName || 'Aus vorhandenen wählen...'" 
                                   style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 20px);"
-                                  :style="selectedName ? 'color: var(--text-color);' : 'color: var(--text-muted);'">
+                                  :style="selectedName ? 'color: var(--input-text);' : 'color: var(--text-muted);'">
                             </span>
                             <span style="font-size: 0.75rem; opacity: 0.7;">▼</span>
                         </div>
@@ -127,7 +127,7 @@
                         <!-- Glassmorphic Searchable Dropdown Panel -->
                         <div x-show="open" 
                              @click.away="open = false" 
-                             style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: rgba(10, 14, 20, 0.95); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border: 1px solid var(--accent); border-radius: 12px; z-index: 1000; padding: 8px; display: flex; flex-direction: column; gap: 8px; max-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
+                             style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-accent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--accent); border-radius: var(--radius-md); z-index: 1000; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); max-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
                              @click.stop>
                              
                             <!-- Search Field -->
@@ -135,7 +135,7 @@
                                    x-model="search" 
                                    placeholder="Suchen..." 
                                    class="glass input" 
-                                   style="width: 100%; border-radius: 6px; padding: 6px 10px; font-size: 0.85rem; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);"
+                                   style="width: 100%; border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.85rem; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--glass-border);"
                                    @click.stop>
                                    
                             <!-- Options List -->
@@ -143,9 +143,9 @@
                                 <template x-for="person in filtered" :key="person.id">
                                     <div @click="select(person)" 
                                          class="dropdown-item" 
-                                         style="padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; transition: all 0.15s; color: #fff;"
+                                         style="padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; color: var(--text-main);"
                                          onmouseover="this.style.background='var(--primary)'; this.style.color='#000'"
-                                         onmouseout="this.style.background='transparent'; this.style.color='#fff'"
+                                         onmouseout="this.style.background='transparent'; this.style.color='var(--text-main)'"
                                          x-text="person.name">
                                     </div>
                                 </template>
