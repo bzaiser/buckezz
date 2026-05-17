@@ -1,3 +1,4 @@
+{% url 'core:list_detail' bucket.id as list_url %}
 <div id="share-controls" class="card glass" style="margin-top: var(--spacing-md); padding: var(--spacing-md); border: 1px solid var(--accent);">
     <h3 style="font-size: 1.1rem; margin-bottom: var(--spacing-sm); display: flex; align-items: center; gap: 8px;">
         <span>🔗 Freigabe-Einstellungen</span>
@@ -126,7 +127,6 @@
                     {% endif %}
                     
                     {% for participant in bucket.participants.all %}
-                        {% with person_url=request.scheme|add:"://"|add:request.get_host|add:"/list/"|add:bucket.id|add:"/?p="|add:participant.person.access_token %}
                         <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.15); padding: 8px 12px; border-radius: 8px; gap: 8px; flex-wrap: wrap;">
                             <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 140px;">
                                 <label style="cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: 0.85rem;" title="Link gesendet?">
@@ -147,12 +147,12 @@
 
                             <div style="display: flex; align-items: center; gap: 4px;" x-data="{ copied: false }">
                                 <button type="button" class="glass" style="border: none; padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; color: var(--primary);"
-                                        @click="navigator.clipboard.writeText('{{ person_url }}'); copied = true; setTimeout(() => copied = false, 2000)">
+                                        @click="navigator.clipboard.writeText('{{ request.scheme }}://{{ request.get_host }}{{ list_url }}?p={{ participant.person.access_token }}'); copied = true; setTimeout(() => copied = false, 2000)">
                                     <span x-show="!copied">📋 Link</span>
                                     <span x-show="copied" style="color: #4ade80;">✓</span>
                                 </button>
                                 
-                                <a href="mailto:?subject=Einladung%20zur%20Wunschliste%20{{ bucket.title|urlencode }}&body=Hallo%20{{ participant.person.name|urlencode }},%0A%0Ahier%20ist%20dein%20pers%C3%B6nlicher%20Link%20zur%20Wunschliste%20'{{ bucket.title|urlencode }}':%0A{{ person_url|urlencode }}%0A%0ALiebe%20Gr%C3%BC%C3%9Fe!" 
+                                <a href="mailto:?subject=Einladung%20zur%20Wunschliste%20{{ bucket.title|urlencode }}&body=Hallo%20{{ participant.person.name|urlencode }},%0A%0Ahier%20ist%20dein%20pers%C3%B6nlicher%20Link%20zur%20Wunschliste%20'{{ bucket.title|urlencode }}':%0A{{ request.scheme }}%3A%2F%2F{{ request.get_host }}{{ list_url }}%3Fp%3D{{ participant.person.access_token }}%0A%0ALiebe%20Gr%C3%BC%C3%9Fe!" 
                                    class="glass" style="padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; color: #fff; text-decoration: none; display: inline-flex; align-items: center;">
                                     ✉ Mail
                                 </a>
@@ -166,7 +166,6 @@
                                 </button>
                             </div>
                         </div>
-                        {% endwith %}
                     {% endfor %}
                 </div>
             </div>
