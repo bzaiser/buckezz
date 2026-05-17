@@ -583,7 +583,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                     'title': f"{cat_icon} {item.title}",
                     'start': item.start_date.isoformat(),
                     'end': item.end_date.isoformat(),
-                    'allDay': True,
+                    'allDay': False,
                     'url': list_url,
                     'color': 'var(--primary)',
                     'extendedProps': {
@@ -599,7 +599,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'id': f"start-{item.id}",
                         'title': f"{cat_icon} {item.title} (Start)",
                         'start': item.start_date.isoformat(),
-                        'allDay': True,
+                        'allDay': False,
                         'url': list_url,
                         'color': 'rgba(255,255,255,0.15)',
                         'extendedProps': {
@@ -614,7 +614,7 @@ class CalendarView(LoginRequiredMixin, TemplateView):
                         'id': f"end-{item.id}",
                         'title': f"🏁 {cat_icon} {item.title}",
                         'start': item.end_date.isoformat(),
-                        'allDay': True,
+                        'allDay': False,
                         'url': list_url,
                         'color': 'var(--accent)' if not item.is_completed else 'var(--primary)',
                         'extendedProps': {

@@ -120,15 +120,15 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_start_date %}
                 <div class="form-group">
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Startdatum</label>
-                    <input type="date" name="start_date" value="{{ item.start_date|date:'Y-m-d'|default:'' }}" class="glass">
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Start</label>
+                    <input type="datetime-local" name="start_date" value="{{ item.start_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_end_date %}
                 <div class="form-group">
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Enddatum</label>
-                    <input type="date" name="end_date" value="{{ item.end_date|date:'Y-m-d'|default:'' }}" class="glass">
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ende</label>
+                    <input type="datetime-local" name="end_date" value="{{ item.end_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass">
                 </div>
                 {% endif %}
             </div>

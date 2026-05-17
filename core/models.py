@@ -112,8 +112,8 @@ class ListItem(models.Model):
     tracker_stock_min = models.IntegerField(null=True, blank=True, help_text=_("Warnschwelle für Nachbestellung"))
     tracker_dosage_per_take = models.FloatField(default=1.0, help_text=_("Verbrauch pro Abhaken"))
     
-    start_date = models.DateField(null=True, blank=True)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(null=True, blank=True)
+    end_date = models.DateTimeField(null=True, blank=True)
     reminder_at = models.DateTimeField(null=True, blank=True)
     reminder_sent = models.BooleanField(default=False)
     
