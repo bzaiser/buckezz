@@ -60,9 +60,111 @@
             border-top: 1px solid #eee;
             padding-top: 5px;
         }
+
+        /* Print and Screen Adaptations */
+        @media print {
+            .no-print {
+                display: none !important;
+            }
+            body {
+                background: white !important;
+                color: black !important;
+                padding-top: 0 !important;
+            }
+        }
+        
+        @media screen {
+            body {
+                background-color: #0a0e14;
+                color: #ffffff;
+                padding-top: 80px;
+                padding-left: 20px;
+                padding-right: 20px;
+                background-image: 
+                    radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.08) 0%, transparent 50%),
+                    radial-gradient(circle at 90% 80%, rgba(255, 171, 0, 0.06) 0%, transparent 50%);
+                background-attachment: fixed;
+            }
+            .header {
+                border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+            }
+            .subtitle {
+                color: #cbd5e0;
+            }
+            th {
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #cbd5e0;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            }
+            td {
+                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            }
+            .completed {
+                color: #718096;
+            }
+            .footer {
+                background-color: #0a0e14;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                color: #718096;
+            }
+            .control-bar {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: rgba(21, 27, 35, 0.85);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0 20px;
+                z-index: 9999;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            }
+            .control-bar .btn {
+                padding: 8px 16px;
+                border-radius: 8px;
+                font-weight: 600;
+                font-size: 0.9rem;
+                cursor: pointer;
+                border: 1px solid rgba(255, 255, 255, 0.15);
+                transition: all 0.2s ease;
+                color: #fff;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                text-decoration: none;
+            }
+            .control-bar .btn-close {
+                background: rgba(255, 255, 255, 0.08);
+            }
+            .control-bar .btn-close:hover {
+                background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-1px);
+                border-color: rgba(255, 255, 255, 0.3);
+            }
+            .control-bar .btn-print {
+                background: linear-gradient(135deg, #00d2ff, #ffab00);
+                border: none;
+                color: #000;
+                font-weight: 800;
+            }
+            .control-bar .btn-print:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3);
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="control-bar no-print">
+        <button onclick="goBackOrClose()" class="btn btn-close">❌ Zurück / Schließen</button>
+        <button onclick="window.print()" class="btn btn-print">🖨️ Drucken / PDF speichern</button>
+    </div>
+
     <div class="header">
         <h1 class="title">{{ bucket.title }}</h1>
         <div class="subtitle">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
@@ -115,5 +217,18 @@
     <div class="footer">
         Generiert mit buckezz am {{ now|date:"d.m.Y H:i" }}
     </div>
+    <script class="no-print">
+        function goBackOrClose() {
+            // Check if there is history to go back to, or if we can close the window
+            if (window.opener || window.history.length > 1) {
+                window.history.back();
+            }
+            window.close();
+            // Secure fallback redirect to the list view in PWA if close/back is blocked
+            setTimeout(function() {
+                window.location.href = "{% url 'core:list_detail' bucket.id %}";
+            }, 250);
+        }
+    </script>
 </body>
 </html>
