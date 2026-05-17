@@ -18,7 +18,7 @@
             <p class="text-muted">{{ bucket.category.name }}</p>
         </div>
         <div class="actions">
-            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass" title="PDF Export">🖨️ <span class="hide-mobile">PDF Export</span></a>
+            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></a>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
             {% endif %}
