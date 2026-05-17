@@ -154,7 +154,7 @@
 </div>
 {% else %}
 <div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
-    <div>
+    <div class="list-item-check">
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 
                {% if item.is_completed %}checked{% endif %} 
@@ -169,7 +169,7 @@
         <span style="font-size: 1.1rem; opacity: 0.3;">📌</span>
         {% endif %}
     </div>
-    <div>
+    <div class="list-item-content">
         <strong style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.title }}</strong>
         {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block; {% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.brand }}</span>{% endif %}
         
@@ -281,13 +281,13 @@
         </div>
     </div>
     {% if bucket.category.template.use_amount %}
-        <div class="text-muted">{{ item.amount|default:"-" }}</div>
+        <div class="text-muted list-item-amount">{{ item.amount|default:"-" }}</div>
     {% endif %}
     {% if bucket.category.template.use_price %}
-        <div class="text-muted">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
+        <div class="text-muted list-item-price">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
     {% endif %}
     {% if bucket.category.template.use_rating %}
-        <div style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
+        <div class="list-item-rating" style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
             {% if item.rating %}
                 {% for i in "12345" %}
                     {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
@@ -297,7 +297,7 @@
             {% endif %}
         </div>
     {% endif %}
-    <div style="display: flex; gap: var(--spacing-sm);">
+    <div class="list-item-actions" style="display: flex; gap: var(--spacing-sm);">
         {% if can_edit %}
         <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" 
                 hx-target="#form-insertion-point" 

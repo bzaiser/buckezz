@@ -98,13 +98,71 @@
         .hide-mobile {
             display: none;
         }
-        .items-table-container {
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
-            padding-bottom: var(--spacing-sm);
+        
+        /* Remove rigid horizontal scrolling rules */
+        .items-header {
+            display: none !important;
         }
-        .items-header, .list-item {
-            min-width: 500px; /* Ensures grid stays intact and scrolls */
+        .items-table-container {
+            overflow-x: visible !important;
+            padding-bottom: 0 !important;
+        }
+        
+        /* Fully responsive flex wrap rows on mobile */
+        .list-item {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: flex-start !important;
+            gap: var(--spacing-sm) !important;
+            padding: var(--spacing-md) 0 !important;
+            min-width: 0 !important;
+            border-bottom: 1px solid var(--glass-border) !important;
+        }
+        
+        .list-item-check {
+            order: 1 !important;
+            flex-shrink: 0 !important;
+            padding-top: 2px !important;
+        }
+        
+        .list-item-content {
+            order: 2 !important;
+            flex: 1 1 200px !important;
+            min-width: 0 !important;
+        }
+        
+        .list-item-actions {
+            order: 3 !important;
+            flex-shrink: 0 !important;
+            margin-left: auto !important;
+            align-self: start !important;
+        }
+        
+        /* Premium custom badges for metadata fields */
+        .list-item-amount,
+        .list-item-price,
+        .list-item-rating {
+            order: 4 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border: 1px solid var(--glass-border) !important;
+            padding: 4px 10px !important;
+            border-radius: 8px !important;
+            font-size: 0.8rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
+            margin-top: 4px !important;
+            flex-shrink: 0 !important;
+        }
+
+        .list-item-amount::before {
+            content: "📦 ";
+        }
+        .list-item-price::before {
+            content: "💰 ";
+        }
+        .list-item-rating {
+            background: rgba(255, 255, 255, 0.02) !important;
         }
     }
 
