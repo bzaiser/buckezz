@@ -11,7 +11,7 @@
             <p>Du hast aktuell {{ my_lists.count }} aktive Buckets.</p>
             <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
                 <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Zum Dashboard</a>
-                <a href="{% url 'admin:core_bucketlist_add' %}" class="btn glass">+ Neuen Bucket erstellen</a>
+                <a href="{% url 'core:dashboard' %}?create=1" class="btn glass">+ Neuen Bucket erstellen</a>
             </div>
         {% else %}
             <h2>Bereit für Ordnung?</h2>

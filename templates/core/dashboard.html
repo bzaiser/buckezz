@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-container" x-data="{ showCreateModal: false }">
+<div class="dashboard-container" x-data="{ showCreateModal: {% if request.GET.create %}true{% else %}false{% endif %} }">
     <div class="header-section">
         <h1>Meine Buckets</h1>
         <button class="btn btn-primary" @click="showCreateModal = true">+ Neuer Bucket</button>
