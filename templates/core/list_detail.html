@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="list-header" style="margin-bottom: 40px;" x-data="{ showShare: false }">
+<div class="list-header" style="margin-bottom: 40px;" x-data="{ showShare: false, showPrintModal: false }">
     <nav style="margin-bottom: var(--spacing-md);">
         {% if user.is_authenticated %}
             <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
@@ -18,7 +18,7 @@
             <p class="text-muted">{{ bucket.category.name }}</p>
         </div>
         <div class="actions">
-            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></a>
+            <button @click="showPrintModal = true" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></button>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
             {% endif %}
@@ -108,10 +108,105 @@
     }
 
     @media print {
-        header, .actions, form, nav { display: none !important; }
-        body { background: white !important; color: black !important; }
-        .card { border: none !important; box-shadow: none !important; }
-        .text-muted { color: #666 !important; }
+        /* Hide everything on page */
+        body * {
+            visibility: hidden !important;
+        }
+        /* Show print area and its children */
+        #print-area, #print-area * {
+            visibility: visible !important;
+        }
+        #print-area {
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            color: black !important;
+        }
     }
 </style>
+
+<!-- Print Preview Modal for Screen Mode -->
+<div x-show="showPrintModal" 
+     style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;"
+     class="no-print">
+    <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
+         @click.away="showPrintModal = false">
+        
+        <!-- Modal Header -->
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+            <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                📄 PDF / Druck-Vorschau
+            </h3>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button onclick="window.print()" class="btn" style="background: linear-gradient(135deg, #00d2ff, #ffab00); border: none; color: #000; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    🖨️ Drucken / PDF speichern
+                </button>
+                <button @click="showPrintModal = false" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    &times;
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal Body (Printable Sheet Preview) -->
+        <div id="print-area" style="padding: 40px; overflow-y: auto; flex: 1; background: #fff; color: #333; font-family: Helvetica, Arial, sans-serif; text-align: left;">
+            
+            <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+                <h1 style="font-size: 24pt; font-weight: bold; margin: 0; color: #333;">{{ bucket.title }}</h1>
+                <div style="font-size: 14pt; color: #666; margin-top: 5px;">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 20px; color: #333;">
+                <thead>
+                    <tr>
+                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="30">#</th>
+                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Bezeichnung</th>
+                        {% if bucket.category.template.use_amount %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Menge</th>{% endif %}
+                        {% if bucket.category.template.use_brand %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Marke</th>{% endif %}
+                        {% if bucket.category.template.use_shop %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Shop</th>{% endif %}
+                        {% if bucket.category.template.use_price %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Preis</th>{% endif %}
+                        {% if bucket.category.template.use_rating %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Bewertung</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in bucket.items.all %}
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{% if item.is_completed %}[X]{% else %}[ ]{% endif %}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                            <strong style="color: #333;">{{ item.title }}</strong>
+                            {% if item.notes %}<br/><small style="color: #666;">{{ item.notes }}</small>{% endif %}
+                        </td>
+                        {% if bucket.category.template.use_amount %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.amount|default:"-" }}</td>{% endif %}
+                        {% if bucket.category.template.use_brand %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.brand|default:"-" }}</td>{% endif %}
+                        {% if bucket.category.template.use_shop %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.shop|default:"-" }}</td>{% endif %}
+                        {% if bucket.category.template.use_price %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</td>{% endif %}
+                        {% if bucket.category.template.use_rating %}
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                            {% if item.rating %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 20px; color: #999;">Keine Einträge vorhanden.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div style="margin-top: 30px; text-align: center; font-size: 9pt; color: #999; border-top: 1px solid #eee; padding-top: 5px;">
+                Generiert mit buckezz am {% now "d.m.Y H:i" %}
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
