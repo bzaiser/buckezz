@@ -196,8 +196,30 @@
         </a>
     </div>
 
+    <!-- Glassmorphic Calendar Filters Bar -->
+    <div class="glass" style="margin-top: var(--spacing-md); padding: 14px var(--spacing-md); border-radius: var(--radius-md); border: 1px solid var(--glass-border); display: flex; flex-wrap: wrap; gap: var(--spacing-md); align-items: center; background: rgba(255, 255, 255, 0.02); animation: fadeIn 0.4s ease-out; box-shadow: var(--shadow-sm);">
+        <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.8px; display: inline-flex; align-items: center; gap: 6px;">
+            🔍 Filter:
+        </span>
+        
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
+            <input type="checkbox" id="filter-tracker" checked style="accent-color: #00e676; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <span>🐾 Routinen (Tracker)</span>
+        </label>
+        
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
+            <input type="checkbox" id="filter-reminder" checked style="accent-color: #ffab00; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <span>⏰ Erinnerungen</span>
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
+            <input type="checkbox" id="filter-completed" checked style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <span>✓ Erledigte Aufgaben</span>
+        </label>
+    </div>
+
     <!-- Calendar Card Container -->
-    <div class="calendar-card">
+    <div class="calendar-card" style="margin-top: var(--spacing-md);">
         <div id="calendar"></div>
     </div>
 </div>
@@ -207,6 +229,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var eventsData = JSON.parse('{{ events_json|safe }}');
+        
+        // Keep a copy of the master event list for filtering
+        var allEvents = [...eventsData];
         
         var calendarEl = document.getElementById('calendar');
         var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -224,7 +249,7 @@
                 week: 'Woche',
                 day: 'Tag'
             },
-            events: eventsData,
+            events: getFilteredEvents(),
             themeSystem: 'standard',
             eventDidMount: function(info) {
                 // Add tooltip with description if present
@@ -265,6 +290,44 @@
         });
         
         calendar.render();
+
+        // Client-side live filtering logic
+        function getFilteredEvents() {
+            var showTracker = document.getElementById('filter-tracker').checked;
+            var showReminder = document.getElementById('filter-reminder').checked;
+            var showCompleted = document.getElementById('filter-completed').checked;
+
+            return allEvents.filter(function(event) {
+                // 1. Filter out completed events if unchecked
+                if (!showCompleted && event.extendedProps && event.extendedProps.completed) {
+                    return false;
+                }
+
+                // 2. Filter out specific event types based on prefix
+                var isTracker = event.id && event.id.startsWith('tracker-');
+                var isReminder = event.id && event.id.startsWith('rem-');
+
+                if (isTracker && !showTracker) {
+                    return false;
+                }
+                if (isReminder && !showReminder) {
+                    return false;
+                }
+
+                return true;
+            });
+        }
+
+        // Live update handler
+        function updateCalendarEvents() {
+            calendar.removeAllEvents();
+            calendar.addEventSource(getFilteredEvents());
+        }
+
+        // Register change listeners for all checkboxes
+        document.getElementById('filter-tracker').addEventListener('change', updateCalendarEvents);
+        document.getElementById('filter-reminder').addEventListener('change', updateCalendarEvents);
+        document.getElementById('filter-completed').addEventListener('change', updateCalendarEvents);
     });
 </script>
 {% endblock %}
