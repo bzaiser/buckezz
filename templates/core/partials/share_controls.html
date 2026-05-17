@@ -112,11 +112,11 @@
                         
                         <!-- Trigger Box -->
                         <div @click="open = !open" 
-                             class="glass input" 
-                             style="width: 100%; border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px; border: 1px solid var(--glass-border); background: var(--input-bg); color: var(--input-text); box-sizing: border-box;">
+                             class="glass" 
+                             style="width: 100%; border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); box-sizing: border-box;">
                             <span x-text="selectedName || 'Aus vorhandenen wählen...'" 
                                   style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 20px);"
-                                  :style="selectedName ? 'color: var(--input-text);' : 'color: var(--text-muted);'">
+                                  :style="selectedName ? 'color: var(--text-main);' : 'color: var(--text-muted);'">
                             </span>
                             <span style="font-size: 0.75rem; opacity: 0.7;">▼</span>
                         </div>
@@ -127,7 +127,7 @@
                         <!-- Glassmorphic Searchable Dropdown Panel -->
                         <div x-show="open" 
                              @click.away="open = false" 
-                             style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-accent); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--accent); border-radius: var(--radius-md); z-index: 1000; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); max-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
+                             style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: color-mix(in srgb, var(--glass-bg) 85%, var(--bg-main) 15%); backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%); border: 1px solid var(--accent); border-radius: var(--radius-md); z-index: 1000; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); max-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
                              @click.stop>
                              
                             <!-- Search Field -->
