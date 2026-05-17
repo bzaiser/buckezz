@@ -540,3 +540,100 @@ class ToggleTrackerLogView(View):
         if request.htmx:
             return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
+
+
+from django.urls import reverse
+import json
+
+class CalendarView(LoginRequiredMixin, TemplateView):
+    template_name = 'core/calendar.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Fetch all lists where user is owner or shared_with
+        lists = BucketList.objects.filter(
+            models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)
+        ).distinct()
+
+        # Fetch all items with dates from these lists
+        items = ListItem.objects.filter(
+            bucket_list__in=lists
+        ).filter(
+            models.Q(start_date__isnull=False) |
+            models.Q(end_date__isnull=False) |
+            models.Q(reminder_at__isnull=False)
+        ).select_related('bucket_list', 'bucket_list__category')
+
+        events = []
+        for item in items:
+            list_url = reverse('core:list_detail', args=[item.bucket_list.id])
+            cat_icon = item.bucket_list.category.icon if item.bucket_list.category else "📌"
+            
+            # Use distinct ids so FullCalendar doesn't complain about duplicates
+            # 1. Start date & End date range
+            if item.start_date and item.end_date:
+                events.append({
+                    'id': f"range-{item.id}",
+                    'title': f"{cat_icon} {item.title}",
+                    'start': item.start_date.isoformat(),
+                    'end': item.end_date.isoformat(),
+                    'allDay': True,
+                    'url': list_url,
+                    'color': 'var(--primary)',
+                    'extendedProps': {
+                        'listName': item.bucket_list.title,
+                        'notes': item.notes,
+                        'completed': item.is_completed
+                    }
+                })
+            else:
+                # 2. Only Start date
+                if item.start_date:
+                    events.append({
+                        'id': f"start-{item.id}",
+                        'title': f"{cat_icon} {item.title} (Start)",
+                        'start': item.start_date.isoformat(),
+                        'allDay': True,
+                        'url': list_url,
+                        'color': 'rgba(255,255,255,0.15)',
+                        'extendedProps': {
+                            'listName': item.bucket_list.title,
+                            'notes': item.notes,
+                            'completed': item.is_completed
+                        }
+                    })
+                # 3. Only End date (due)
+                if item.end_date:
+                    events.append({
+                        'id': f"end-{item.id}",
+                        'title': f"🏁 {cat_icon} {item.title}",
+                        'start': item.end_date.isoformat(),
+                        'allDay': True,
+                        'url': list_url,
+                        'color': 'var(--accent)' if not item.is_completed else 'var(--primary)',
+                        'extendedProps': {
+                            'listName': item.bucket_list.title,
+                            'notes': item.notes,
+                            'completed': item.is_completed
+                        }
+                    })
+
+            # 4. Reminder date and time
+            if item.reminder_at:
+                events.append({
+                    'id': f"rem-{item.id}",
+                    'title': f"⏰ {item.title} (Erinnerung)",
+                    'start': item.reminder_at.isoformat(),
+                    'allDay': False,
+                    'url': list_url,
+                    'color': '#ffab00',
+                    'extendedProps': {
+                        'listName': item.bucket_list.title,
+                        'notes': item.notes,
+                        'completed': item.is_completed
+                    }
+                })
+
+        context['events_json'] = json.dumps(events)
+        return context
+

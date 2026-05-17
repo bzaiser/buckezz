@@ -271,6 +271,7 @@
                     {% if user.is_staff %}
                         <a href="{% url 'admin:index' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">⚙️ Admin</a>
                     {% endif %}
+                    <a href="{% url 'core:calendar' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">📅 Kalender</a>
                     <a href="{% url 'core:settings' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🎨 Design</a>
                     <form action="{% url 'core:logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}

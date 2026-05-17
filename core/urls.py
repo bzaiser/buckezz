@@ -31,4 +31,5 @@ urlpatterns = [
     path('item/<int:item_id>/toggle-tracker/', views.ToggleTrackerLogView.as_view(), name='toggle_tracker_log'),
     path('list/<uuid:pk>/share-toggle/', views.ShareToggleView.as_view(), name='share_toggle'),
     path('settings/', views.ThemeSettingsView.as_view(), name='settings'),
+    path('calendar/', views.CalendarView.as_view(), name='calendar'),
 ]

@@ -1,0 +1,270 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<!-- FullCalendar 6.1.11 Open-Source Bundle -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<style>
+    /* Premium Glassmorphic Calendar Card */
+    .calendar-card {
+        padding: var(--spacing-lg);
+        margin-top: var(--spacing-lg);
+        margin-bottom: var(--spacing-xl);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--glass-border);
+        box-shadow: var(--shadow-lg);
+        background: var(--bg-card);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Custom overrides for FullCalendar to integrate with Theme */
+    .fc {
+        --fc-border-color: var(--glass-border);
+        --fc-button-text-color: var(--text-color);
+        --fc-button-bg-color: rgba(255, 255, 255, 0.05);
+        --fc-button-border-color: var(--glass-border);
+        --fc-button-hover-bg-color: rgba(255, 255, 255, 0.12);
+        --fc-button-hover-border-color: rgba(255, 255, 255, 0.2);
+        --fc-button-active-bg-color: var(--primary);
+        --fc-button-active-border-color: var(--primary);
+        --fc-event-bg-color: var(--primary);
+        --fc-event-border-color: var(--primary);
+        
+        font-family: inherit;
+        color: var(--text-color);
+    }
+
+    /* Header Toolbar styling */
+    .fc-header-toolbar {
+        margin-bottom: var(--spacing-lg) !important;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .fc-toolbar-title {
+        font-size: 1.4rem !important;
+        font-weight: 800 !important;
+        letter-spacing: -0.5px;
+        color: var(--text-color);
+        text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Premium glass buttons */
+    .fc-button {
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        padding: 8px 16px !important;
+        border-radius: var(--radius-md) !important;
+        transition: all 0.2s !important;
+        text-transform: capitalize !important;
+        box-shadow: var(--shadow-sm) !important;
+        backdrop-filter: blur(5px);
+    }
+
+    .fc-button-primary:not(:disabled).fc-button-active,
+    .fc-button-primary:not(:disabled):active {
+        background-color: var(--primary) !important;
+        border-color: var(--primary) !important;
+        color: #fff !important;
+        box-shadow: 0 0 15px rgba(0, 230, 118, 0.4) !important;
+    }
+
+    .fc-button-primary:disabled {
+        opacity: 0.4 !important;
+        background: transparent !important;
+    }
+
+    /* Grid layout styling */
+    .fc-theme-standard td, .fc-theme-standard th {
+        border-color: var(--glass-border) !important;
+    }
+
+    .fc-col-header-cell {
+        background: rgba(0, 0, 0, 0.15) !important;
+        padding: 10px 0 !important;
+        color: var(--text-muted) !important;
+        font-size: 0.8rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .fc-daygrid-day {
+        transition: background-color 0.2s;
+    }
+
+    .fc-daygrid-day:hover {
+        background-color: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    .fc-day-today {
+        background: color-mix(in srgb, var(--primary) 6%, transparent) !important;
+    }
+
+    .fc-daygrid-day-number {
+        color: var(--text-color) !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        padding: 8px !important;
+        opacity: 0.9;
+    }
+
+    .fc-daygrid-day-top {
+        flex-direction: row !important;
+    }
+
+    /* Premium glassmorphic event pills */
+    .fc-event {
+        border-radius: 6px !important;
+        padding: 3px 6px !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        margin: 2px 4px !important;
+        display: block !important;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .fc-event:hover {
+        transform: scale(1.03) translateY(-1px);
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.25) !important;
+        filter: brightness(1.1);
+    }
+
+    /* Event color scheme classes */
+    .fc-event-title {
+        font-weight: 600 !important;
+    }
+
+    /* List Name indicator in popover / week-view */
+    .fc-event-list-indicator {
+        font-size: 0.65rem;
+        opacity: 0.7;
+        display: block;
+        font-weight: 400;
+        margin-top: 2px;
+    }
+
+    /* Responsive adjusts */
+    @media (max-width: 768px) {
+        .calendar-card {
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-sm);
+        }
+        .fc-header-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        .fc-toolbar-title {
+            text-align: center;
+            font-size: 1.2rem !important;
+        }
+        .fc-button {
+            padding: 6px 12px !important;
+            font-size: 0.8rem !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="calendar-container" style="max-width: 1100px; margin: 0 auto;">
+    <!-- Premium Header -->
+    <div style="margin-top: var(--spacing-lg); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md);">
+        <div>
+            <h1 style="margin: 0; font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--text-color) 30%, var(--primary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Dein persönlicher Kalender
+            </h1>
+            <p class="text-muted" style="margin: 4px 0 0 0; font-size: 0.9rem;">
+                Alle wichtigen Aufgaben, Termine und Erinnerungen aus deinen Listen auf einen Blick.
+            </p>
+        </div>
+        <a href="{% url 'core:dashboard' %}" class="btn glass" style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none;">
+            &larr; Zum Dashboard
+        </a>
+    </div>
+
+    <!-- Calendar Card Container -->
+    <div class="calendar-card">
+        <div id="calendar"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var eventsData = JSON.parse('{{ events_json|safe }}');
+        
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'de',
+            firstDay: 1, // Start week on Monday
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            buttonText: {
+                today: 'Heute',
+                month: 'Monat',
+                week: 'Woche',
+                day: 'Tag'
+            },
+            events: eventsData,
+            themeSystem: 'standard',
+            eventDidMount: function(info) {
+                // Add tooltip with description if present
+                var tooltipText = info.event.title;
+                if (info.event.extendedProps.listName) {
+                    tooltipText += ' \nListe: ' + info.event.extendedProps.listName;
+                }
+                if (info.event.extendedProps.notes) {
+                    tooltipText += ' \nInfo: ' + info.event.extendedProps.notes;
+                }
+                info.el.setAttribute('title', tooltipText);
+                
+                // Strike through completed tasks
+                if (info.event.extendedProps.completed) {
+                    var titleEl = info.el.querySelector('.fc-event-title');
+                    if (titleEl) {
+                        titleEl.style.textDecoration = 'line-through';
+                        titleEl.style.opacity = '0.6';
+                    }
+                    info.el.style.opacity = '0.7';
+                }
+
+                // Add small sub-label for list name in day/week views
+                var titleContainer = info.el.querySelector('.fc-event-title-container');
+                if (titleContainer && info.event.extendedProps.listName) {
+                    var listIndicator = document.createElement('span');
+                    listIndicator.className = 'fc-event-list-indicator';
+                    listIndicator.innerText = info.event.extendedProps.listName;
+                    titleContainer.appendChild(listIndicator);
+                }
+            },
+            eventClick: function(info) {
+                if (info.event.url) {
+                    window.location.href = info.event.url;
+                    info.jsEvent.preventDefault(); // Don't follow direct browser link immediately
+                }
+            }
+        });
+        
+        calendar.render();
+    });
+</script>
+{% endblock %}
