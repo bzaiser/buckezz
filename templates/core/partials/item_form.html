@@ -11,21 +11,21 @@
             <!-- Title is always required -->
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Titel / Bezeichnung</label>
-                <input type="text" name="title" value="{{ item.title|default:'' }}" required class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                <input type="text" name="title" value="{{ item.title|default:'' }}" required class="glass">
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_amount %}
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Menge / Anzahl</label>
-                    <input type="text" name="amount" value="{{ item.amount|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                    <input type="text" name="amount" value="{{ item.amount|default:'' }}" class="glass">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_price %}
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Preis (€)</label>
-                    <input type="number" step="0.01" name="price" value="{{ item.price|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                    <input type="number" step="0.01" name="price" value="{{ item.price|default:'' }}" class="glass">
                 </div>
                 {% endif %}
             </div>
@@ -33,21 +33,21 @@
             {% if bucket.category.template.use_brand %}
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Marke</label>
-                <input type="text" name="brand" value="{{ item.brand|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                <input type="text" name="brand" value="{{ item.brand|default:'' }}" class="glass">
             </div>
             {% endif %}
 
             {% if bucket.category.template.use_shop %}
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Laden / Shop</label>
-                <input type="text" name="shop" value="{{ item.shop|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                <input type="text" name="shop" value="{{ item.shop|default:'' }}" class="glass">
             </div>
             {% endif %}
 
             {% if bucket.category.template.use_location %}
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ort</label>
-                <input type="text" name="location" value="{{ item.location|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                <input type="text" name="location" value="{{ item.location|default:'' }}" class="glass">
             </div>
             {% endif %}
 
@@ -55,14 +55,14 @@
                 {% if bucket.category.template.use_start_date %}
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Startdatum</label>
-                    <input type="date" name="start_date" value="{{ item.start_date|date:'Y-m-d'|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                    <input type="date" name="start_date" value="{{ item.start_date|date:'Y-m-d'|default:'' }}" class="glass">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_end_date %}
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Enddatum</label>
-                    <input type="date" name="end_date" value="{{ item.end_date|date:'Y-m-d'|default:'' }}" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05);">
+                    <input type="date" name="end_date" value="{{ item.end_date|date:'Y-m-d'|default:'' }}" class="glass">
                 </div>
                 {% endif %}
             </div>
@@ -83,7 +83,7 @@
 
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Notizen</label>
-                <textarea name="notes" class="glass" style="width: 100%; padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); color: var(--text-main); background: rgba(255,255,255,0.05); min-height: 80px;">{{ item.notes|default:'' }}</textarea>
+                <textarea name="notes" class="glass" style="min-height: 80px;">{{ item.notes|default:'' }}</textarea>
             </div>
         </div>
 
