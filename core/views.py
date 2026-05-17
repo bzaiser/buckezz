@@ -233,6 +233,11 @@ class AddItemView(View):
             end_date=data.get('end_date') if data.get('end_date') else None,
             notes=data.get('notes'),
             rating=data.get('rating') if data.get('rating') else None,
+            tracker_unit=data.get('tracker_unit'),
+            tracker_times=data.get('tracker_times'),
+            tracker_stock_total=int(data.get('tracker_stock_total')) if data.get('tracker_stock_total') else None,
+            tracker_stock_min=int(data.get('tracker_stock_min')) if data.get('tracker_stock_min') else None,
+            tracker_dosage_per_take=float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0,
             created_by=request.user if request.user.is_authenticated else None,
             guest_created_by=guest_name if not request.user.is_authenticated else None
         )
@@ -269,6 +274,11 @@ class EditItemView(View):
         item.end_date = data.get('end_date') if data.get('end_date') else None
         item.notes = data.get('notes')
         item.rating = data.get('rating') if data.get('rating') else None
+        item.tracker_unit = data.get('tracker_unit')
+        item.tracker_times = data.get('tracker_times')
+        item.tracker_stock_total = int(data.get('tracker_stock_total')) if data.get('tracker_stock_total') else None
+        item.tracker_stock_min = int(data.get('tracker_stock_min')) if data.get('tracker_stock_min') else None
+        item.tracker_dosage_per_take = float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0
         
         if request.user.is_authenticated:
             item.updated_by = request.user
@@ -488,3 +498,43 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.save()
         return redirect('core:dashboard')
+
+class ToggleTrackerLogView(View):
+    def post(self, request, item_id):
+        item = get_object_or_404(ListItem, id=item_id)
+        bucket = item.bucket_list
+        can_edit = bucket.owner == request.user or \
+                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.session.get('person_id') is not None)
+        if not can_edit:
+            return HttpResponseForbidden()
+
+        scheduled_time = request.POST.get('scheduled_time')
+        if not scheduled_time:
+            return HttpResponse(status=400)
+
+        # Get today's date in local timezone
+        from django.utils import timezone
+        today = timezone.localdate()
+
+        # Check if already completed
+        from core.models import ItemTrackerLog
+        log = ItemTrackerLog.objects.filter(item=item, date=today, scheduled_time=scheduled_time).first()
+
+        if log:
+            # Toggle off: delete log, restore inventory
+            log.delete()
+            if item.tracker_stock_total is not None:
+                item.tracker_stock_total += int(item.tracker_dosage_per_take)
+                item.save()
+        else:
+            # Toggle on: create log, subtract from inventory
+            ItemTrackerLog.objects.create(item=item, scheduled_time=scheduled_time)
+            if item.tracker_stock_total is not None:
+                item.tracker_stock_total = max(0, item.tracker_stock_total - int(item.tracker_dosage_per_take))
+                item.save()
+
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)

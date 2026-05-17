@@ -57,6 +57,7 @@ class ListTemplate(models.Model):
     use_url = models.BooleanField(default=False)
     use_status = models.BooleanField(default=True)
     use_rating = models.BooleanField(default=False)
+    use_tracker = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Template für {self.category.name}"
@@ -105,6 +106,12 @@ class ListItem(models.Model):
     url = models.URLField(max_length=1000, null=True, blank=True)
     rating = models.PositiveSmallIntegerField(null=True, blank=True)
     
+    tracker_unit = models.CharField(max_length=100, null=True, blank=True, help_text=_("Einheit, z.B. Tablette, Portion, ml"))
+    tracker_times = models.CharField(max_length=255, null=True, blank=True, help_text=_("Komma-separierte Uhrzeiten, z.B. 08:00, 18:00"))
+    tracker_stock_total = models.IntegerField(null=True, blank=True, help_text=_("Aktueller Gesamtbestand im Kasten/Packung"))
+    tracker_stock_min = models.IntegerField(null=True, blank=True, help_text=_("Warnschwelle für Nachbestellung"))
+    tracker_dosage_per_take = models.FloatField(default=1.0, help_text=_("Verbrauch pro Abhaken"))
+    
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
     reminder_at = models.DateTimeField(null=True, blank=True)
@@ -136,6 +143,18 @@ class ListItem(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def completed_tracker_times_today(self):
+        from django.utils import timezone
+        today = timezone.localdate()
+        return list(self.tracker_logs.filter(date=today).values_list('scheduled_time', flat=True))
+
+    @property
+    def tracker_times_list(self):
+        if not self.tracker_times:
+            return []
+        return [t.strip() for t in self.tracker_times.split(',') if t.strip()]
+
     class Meta:
         ordering = ['order', '-created_at']
         verbose_name = _("Listen-Eintrag")
@@ -159,3 +178,18 @@ class ItemPersonRole(models.Model):
         unique_together = ('item', 'person')
         verbose_name = _("Personen-Zuordnung")
         verbose_name_plural = _("Personen-Zuordnungen")
+
+class ItemTrackerLog(models.Model):
+    item = models.ForeignKey(ListItem, on_delete=models.CASCADE, related_name='tracker_logs')
+    date = models.DateField(auto_now_add=True)
+    scheduled_time = models.CharField(max_length=5) # z.B. "08:00"
+    completed = models.BooleanField(default=True)
+    completed_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('item', 'date', 'scheduled_time')
+        verbose_name = _("Tracker-Protokoll")
+        verbose_name_plural = _("Tracker-Protokolle")
+
+    def __str__(self):
+        return f"{self.item.title} am {self.date} um {self.scheduled_time}"

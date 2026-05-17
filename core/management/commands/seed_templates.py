@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 'old_name': '💊 Medikamentenplan',
                 'name': 'Medikamentenplan',
                 'icon': '💊',
-                'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True}
+                'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True, 'use_tracker': True}
             },
             {
                 'old_name': '🎬 Wunschliste',
@@ -49,6 +49,18 @@ class Command(BaseCommand):
                 'name': 'Winliste',
                 'icon': '🏆',
                 'fields': {'use_rating': True, 'use_persons': True}
+            },
+            {
+                'old_name': '🐾 Haustier-Planer',
+                'name': 'Haustier-Planer',
+                'icon': '🐾',
+                'fields': {'use_persons': True, 'use_tracker': True}
+            },
+            {
+                'old_name': '🪴 Pflanzen-Pflege',
+                'name': 'Pflanzen-Pflege',
+                'icon': '🪴',
+                'fields': {'use_tracker': True}
             }
         ]
 
@@ -68,7 +80,7 @@ class Command(BaseCommand):
                     'use_amount': False, 'use_brand': False, 'use_shop': False,
                     'use_price': False, 'use_location': False, 'use_start_date': False,
                     'use_end_date': False, 'use_persons': False, 'use_reminder': False,
-                    'use_rating': False
+                    'use_rating': False, 'use_tracker': False
                 }
                 full_fields.update(data['fields'])
                 

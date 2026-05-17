@@ -1,3 +1,138 @@
+{% if bucket.category.template.use_tracker %}
+<style>
+    .tracker-card {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .tracker-card:hover {
+        border-color: var(--primary) !important;
+        transform: translateY(-3px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3) !important;
+    }
+    .tracker-badge {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    }
+    .tracker-badge:hover {
+        transform: scale(1.05) translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+    }
+    .tracker-badge.done:hover {
+        box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
+    }
+</style>
+<div class="card glass tracker-card" id="item-{{ item.id }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-sm); border: 1px solid var(--glass-border); border-radius: var(--radius-md); transition: all 0.2s;">
+    <!-- Top Row: Title & Actions -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-md);">
+        <div>
+            <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-color);">{{ item.title }}</h3>
+            {% if item.brand %}
+            <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 2px;">{{ item.brand }}</span>
+            {% endif %}
+        </div>
+        
+        <!-- Controls (Edit/Delete) -->
+        <div style="display: flex; gap: 8px;">
+            {% if can_edit %}
+            <button class="btn-icon" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.95rem; transition: color 0.15s;"
+                    hx-get="{% url 'core:get_edit_form' bucket.id item.id %}"
+                    hx-target="#form-insertion-point"
+                    hx-swap="innerHTML"
+                    title="Bearbeiten">
+                ✏️
+            </button>
+            <button class="btn-icon" style="background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 0.95rem; transition: color 0.15s;"
+                    hx-delete="{% url 'core:delete_item' item.id %}"
+                    hx-target="#item-list"
+                    hx-swap="innerHTML"
+                    hx-confirm="Diesen Eintrag wirklich löschen?"
+                    title="Löschen">
+                🗑️
+            </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Times Timeline / Daily Tracker Badges -->
+    {% if item.tracker_times_list %}
+    <div style="margin-top: var(--spacing-xs);">
+        <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-bottom: 6px;">📅 HEUTIGER STATUS:</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            {% for t in item.tracker_times_list %}
+                {% with is_done=t in item.completed_tracker_times_today %}
+                <button type="button" 
+                        class="tracker-badge {% if is_done %}done{% endif %}" 
+                        style="border: none; padding: 6px 12px; border-radius: var(--radius-md); font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.2s;
+                               {% if is_done %}
+                                   background: color-mix(in srgb, #00e676 20%, transparent); color: #00e676; border: 1px solid #00e676;
+                               {% else %}
+                                   background: rgba(255,255,255,0.05); color: var(--text-color); border: 1px solid var(--glass-border);
+                               {% endif %}"
+                        hx-post="{% url 'core:toggle_tracker_log' item.id %}"
+                        hx-target="#item-list"
+                        hx-swap="innerHTML"
+                        hx-vals='{"scheduled_time": "{{ t }}"}'>
+                    <span>{% if is_done %}✓{% else %}🔔{% endif %}</span>
+                    <span>{{ t }} Uhr</span>
+                </button>
+                {% endwith %}
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Inventory / Stock Progress Section -->
+    {% if item.tracker_stock_total is not None %}
+    <div style="margin-top: var(--spacing-xs); background: rgba(0,0,0,0.15); padding: var(--spacing-sm); border-radius: var(--radius-sm); border: 1px solid var(--glass-border);">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 6px;">
+            <span class="text-muted">📦 Vorrat:</span>
+            <strong style="color: var(--primary);">{{ item.tracker_stock_total }} / {% if item.tracker_stock_min %}{{ item.tracker_stock_min }}{% else %}-{% endif %} {{ item.tracker_unit|default:"Einheiten" }}</strong>
+        </div>
+        
+        <!-- Stock Progress Bar -->
+        <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
+            <div style="height: 100%; width: {% if item.tracker_stock_min and item.tracker_stock_total <= item.tracker_stock_min %}30{% else %}100{% endif %}%; 
+                        background: {% if item.tracker_stock_min and item.tracker_stock_total <= item.tracker_stock_min %}var(--accent){% else %}var(--primary){% endif %}; 
+                        transition: width 0.3s ease;">
+            </div>
+        </div>
+
+        <!-- Low Stock Warning Badge -->
+        {% if item.tracker_stock_min is not None and item.tracker_stock_total <= item.tracker_stock_min %}
+        <div style="margin-top: 8px; display: inline-flex; align-items: center; gap: 6px; background: color-mix(in srgb, var(--accent) 15%, transparent); border: 1px solid var(--accent); color: var(--accent); font-size: 0.75rem; font-weight: bold; padding: 4px 8px; border-radius: 6px;">
+            <span>⚠️</span>
+            <span>NUR NOCH {{ item.tracker_stock_total }} {{ item.tracker_unit|default:"Einheiten" }} VORRÄTIG!</span>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Notes & Meta info -->
+    {% if item.notes or item.created_by or item.guest_created_by %}
+    <div style="display: flex; flex-direction: column; gap: 4px; margin-top: var(--spacing-xs);">
+        {% if item.notes %}
+        <p class="text-muted" style="margin: 0; font-size: 0.8rem; font-style: italic;">
+            {{ item.notes }}
+        </p>
+        {% endif %}
+        
+        <div style="font-size: 0.65rem; color: var(--text-muted); opacity: 0.8;">
+            {% if item.created_by %}
+                Erstellt von {{ item.created_by.username }}
+            {% elif item.guest_created_by %}
+                Erstellt von {{ item.guest_created_by }} (Gast)
+            {% endif %}
+            
+            {% if item.updated_by and item.updated_by != item.created_by %}
+                | Zuletzt geändert von {{ item.updated_by.username }}
+            {% elif item.guest_updated_by and item.guest_updated_by != item.guest_created_by %}
+                | Zuletzt geändert von {{ item.guest_updated_by }} (Gast)
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% else %}
 <div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
     <div>
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
@@ -116,3 +251,4 @@
         {% endif %}
     </div>
 </div>
+{% endif %}

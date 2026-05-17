@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -71,3 +71,8 @@ class ListItemAdmin(admin.ModelAdmin):
 class ListParticipantAdmin(admin.ModelAdmin):
     list_display = ('bucket_list', 'person', 'link_sent')
     list_filter = ('link_sent', 'bucket_list')
+
+@admin.register(ItemTrackerLog)
+class ItemTrackerLogAdmin(admin.ModelAdmin):
+    list_display = ('item', 'date', 'scheduled_time', 'completed', 'completed_at')
+    list_filter = ('date', 'scheduled_time', 'completed')

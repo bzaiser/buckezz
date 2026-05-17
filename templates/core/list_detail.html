@@ -35,6 +35,7 @@
 
 <div class="card glass">
     <div class="items-table-container">
+        {% if not bucket.category.template.use_tracker %}
         <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
             <div>Status</div>
             <div>Bezeichnung</div>
@@ -43,6 +44,7 @@
             {% if bucket.category.template.use_rating %}<div>Bewertung</div>{% endif %}
             <div>Aktion</div>
         </div>
+        {% endif %}
 
         <div id="item-list">
             {% include 'core/partials/item_list.html' %}
