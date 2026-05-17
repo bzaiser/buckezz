@@ -261,12 +261,12 @@
                         <a href="{% url 'admin:index' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">⚙️ Admin</a>
                     {% endif %}
                     <a href="{% url 'core:settings' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🎨 Design</a>
-                    <form action="{% url 'admin:logout' %}" method="post" style="display: inline;">
+                    <form action="{% url 'core:logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
                         <button type="submit" style="background: none; border: none; color: var(--primary); font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0;">🚪 Logout</button>
                     </form>
                 {% else %}
-                    <a href="{% url 'admin:login' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🔑 Anmelden</a>
+                    <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🔑 Anmelden</a>
                 {% endif %}
             </nav>
         </div>

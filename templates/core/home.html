@@ -17,7 +17,7 @@
             <h2>Bereit für Ordnung?</h2>
             <p>Erstelle deine erste Liste oder trete einer gemeinsamen Liste bei.</p>
             <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
-                <a href="{% url 'admin:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt starten</a>
+                <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt anmelden</a>
             </div>
         {% endif %}
     </div>
