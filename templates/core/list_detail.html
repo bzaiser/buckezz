@@ -3,7 +3,11 @@
 {% block content %}
 <div class="list-header" style="margin-bottom: var(--spacing-xl);">
     <nav style="margin-bottom: var(--spacing-md);">
-        <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
+        {% else %}
+            <a href="{% url 'core:home' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zur Startseite</a>
+        {% endif %}
     </nav>
     <div class="detail-header">
         <div>
@@ -13,16 +17,14 @@
             </div>
             <p class="text-muted">{{ bucket.category.name }}</p>
         </div>
-        <div class="actions" x-data="{ showShare: false }">
-            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass">🖨️ PDF Export</a>
-            {% if bucket.owner == user %}
-                <button class="btn btn-glass" @click="showShare = !showShare">🔗 Teilen</button>
-                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass">⚙️ Einstellungen</a>
+        <div class="actions">
+            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn btn-glass" title="PDF Export">🖨️ <span class="hide-mobile">PDF Export</span></a>
+            {% if bucket.owner == user and bucket.is_public %}
+                <a href="mailto:?subject=Listen-Freigabe:%20{{ bucket.title|urlencode }}&body=Hier%20ist%20der%20Link%20zu%20meiner%20Liste:%0A{{ request.scheme }}://{{ request.get_host }}{% url 'core:list_detail' bucket.id %}" class="btn btn-glass" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></a>
             {% endif %}
-            
-            <template x-if="showShare">
-                {% include 'core/partials/share_controls.html' %}
-            </template>
+            {% if bucket.owner == user %}
+                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass" title="Einstellungen">⚙️ <span class="hide-mobile">Einstellungen</span></a>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -67,6 +69,11 @@
         justify-content: space-between;
         align-items: flex-start;
     }
+    .detail-header .actions {
+        display: flex;
+        gap: var(--spacing-sm);
+        align-items: center;
+    }
 
     @media (max-width: 768px) {
         .detail-header {
@@ -75,13 +82,17 @@
         }
         .detail-header .actions {
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             width: 100%;
             gap: var(--spacing-sm);
         }
         .detail-header .actions .btn {
-            width: 100%;
+            flex: 1;
             justify-content: center;
+            font-size: 1.1rem;
+        }
+        .hide-mobile {
+            display: none;
         }
         .items-table-container {
             overflow-x: auto;

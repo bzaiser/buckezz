@@ -106,6 +106,8 @@ class ListItem(models.Model):
     order = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_items')
     updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='updated_items')
+    guest_created_by = models.CharField(max_length=100, blank=True, null=True)
+    guest_updated_by = models.CharField(max_length=100, blank=True, null=True)
     
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

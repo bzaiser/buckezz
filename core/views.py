@@ -62,6 +62,19 @@ class BucketListDetailView(DetailView):
             raise PermissionDenied("Zugriff verweigert.")
         return obj
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not request.user.is_authenticated and not request.session.get('guest_name'):
+            return render(request, 'core/guest_login.html', {'bucket': self.object})
+        context = self.get_context_data(object=self.object)
+        return self.render_to_response(context)
+
+    def post(self, request, *args, **kwargs):
+        guest_name = request.POST.get('guest_name')
+        if guest_name:
+            request.session['guest_name'] = guest_name.strip()
+        return redirect('core:list_detail', pk=self.kwargs['pk'])
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         bucket = self.get_object()
@@ -99,6 +112,7 @@ class AddItemView(View):
             return HttpResponseForbidden()
 
         data = request.POST
+        guest_name = request.session.get('guest_name')
         item = ListItem.objects.create(
             bucket_list=bucket,
             title=data.get('title'),
@@ -110,7 +124,8 @@ class AddItemView(View):
             start_date=data.get('start_date') if data.get('start_date') else None,
             end_date=data.get('end_date') if data.get('end_date') else None,
             notes=data.get('notes'),
-            created_by=request.user if request.user.is_authenticated else None
+            created_by=request.user if request.user.is_authenticated else None,
+            guest_created_by=guest_name if not request.user.is_authenticated else None
         )
         
         # Handle persons
@@ -142,7 +157,14 @@ class EditItemView(View):
         item.start_date = data.get('start_date') if data.get('start_date') else None
         item.end_date = data.get('end_date') if data.get('end_date') else None
         item.notes = data.get('notes')
-        item.updated_by = request.user if request.user.is_authenticated else None
+        
+        if request.user.is_authenticated:
+            item.updated_by = request.user
+            item.guest_updated_by = None
+        else:
+            item.updated_by = None
+            item.guest_updated_by = request.session.get('guest_name')
+            
         item.save()
         
         # Handle persons
@@ -168,7 +190,14 @@ class ToggleItemView(View):
         
         item.is_completed = not item.is_completed
         item.status = 'done' if item.is_completed else 'active'
-        item.updated_by = request.user if request.user.is_authenticated else None
+        
+        if request.user.is_authenticated:
+            item.updated_by = request.user
+            item.guest_updated_by = None
+        else:
+            item.updated_by = None
+            item.guest_updated_by = request.session.get('guest_name')
+            
         item.save()
         
         if request.htmx:

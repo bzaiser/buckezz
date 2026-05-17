@@ -25,9 +25,14 @@
         <div style="font-size: 0.65rem; color: var(--text-muted); margin-top: 4px; opacity: 0.9;">
             {% if item.created_by %}
                 Erstellt von {{ item.created_by.username }}
+            {% elif item.guest_created_by %}
+                Erstellt von {{ item.guest_created_by }} (Gast)
             {% endif %}
+            
             {% if item.updated_by and item.updated_by != item.created_by %}
                 | Zuletzt geändert von {{ item.updated_by.username }}
+            {% elif item.guest_updated_by and item.guest_updated_by != item.guest_created_by %}
+                | Zuletzt geändert von {{ item.guest_updated_by }} (Gast)
             {% endif %}
         </div>
     </div>

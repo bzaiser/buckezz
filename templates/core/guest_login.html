@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card glass" style="max-width: 500px; margin: var(--spacing-xl) auto; text-align: center; padding: var(--spacing-xl) var(--spacing-lg);">
+    <div style="font-size: 3rem; margin-bottom: var(--spacing-md);">{{ bucket.category.icon }}</div>
+    <h2>Willkommen zur Liste</h2>
+    <h3 style="color: var(--primary); margin-bottom: var(--spacing-md);">{{ bucket.title }}</h3>
+    <p class="text-muted" style="margin-bottom: var(--spacing-lg);">Bitte gib deinen Namen ein, bevor du auf die Liste zugreifst.</p>
+    
+    <form method="POST">
+        {% csrf_token %}
+        <input type="text" name="guest_name" class="glass" placeholder="Dein Name" required style="font-size: 1.1rem; padding: 12px; margin-bottom: var(--spacing-lg);">
+        <button type="submit" class="btn btn-primary" style="width: 100%; font-size: 1.1rem; padding: 12px;">Zur Liste gehen</button>
+    </form>
+</div>
+{% endblock %}
