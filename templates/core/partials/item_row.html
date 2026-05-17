@@ -14,9 +14,9 @@
         <span style="font-size: 1.1rem; opacity: 0.3;">📌</span>
         {% endif %}
     </div>
-    <div style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.5;{% endif %}">
-        <strong>{{ item.title }}</strong>
-        {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block;">{{ item.brand }}</span>{% endif %}
+    <div>
+        <strong style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.title }}</strong>
+        {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block; {% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.brand }}</span>{% endif %}
         
         <!-- Product Link -->
         {% if item.url %}
