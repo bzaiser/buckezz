@@ -238,6 +238,7 @@ class AddItemView(View):
             tracker_stock_total=int(data.get('tracker_stock_total')) if data.get('tracker_stock_total') else None,
             tracker_stock_min=int(data.get('tracker_stock_min')) if data.get('tracker_stock_min') else None,
             tracker_dosage_per_take=float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0,
+            reminder_at=data.get('reminder_at') if data.get('reminder_at') else None,
             created_by=request.user if request.user.is_authenticated else None,
             guest_created_by=guest_name if not request.user.is_authenticated else None
         )
@@ -279,6 +280,7 @@ class EditItemView(View):
         item.tracker_stock_total = int(data.get('tracker_stock_total')) if data.get('tracker_stock_total') else None
         item.tracker_stock_min = int(data.get('tracker_stock_min')) if data.get('tracker_stock_min') else None
         item.tracker_dosage_per_take = float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0
+        item.reminder_at = data.get('reminder_at') if data.get('reminder_at') else None
         
         if request.user.is_authenticated:
             item.updated_by = request.user

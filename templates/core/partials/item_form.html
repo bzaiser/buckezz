@@ -132,6 +132,13 @@
                 {% endif %}
             </div>
 
+            {% if bucket.category.template.use_reminder %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">⏰ Erinnerung am (Datum & Uhrzeit)</label>
+                <input type="datetime-local" name="reminder_at" value="{{ item.reminder_at|date:'Y-m-d\TH:i'|default:'' }}" class="glass">
+            </div>
+            {% endif %}
+
             {% if bucket.category.template.use_persons %}
             <div class="form-group" x-data="window.initPersonSelector([{% for p in people %}{id: {{ p.id }}, name: '{{ p.name|escapejs }}'},{% endfor %}], [{% if item %}{% for role in item.person_roles.all %}{{ role.person.id }},{% endfor %}{% endif %}])">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Beteiligte Personen</label>

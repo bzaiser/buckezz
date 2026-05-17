@@ -18,7 +18,7 @@ class Command(BaseCommand):
                 'old_name': '✅ To-Do Liste',
                 'name': 'To-Do Liste',
                 'icon': '✅',
-                'fields': {'use_end_date': True, 'use_persons': True}
+                'fields': {'use_end_date': True, 'use_persons': True, 'use_reminder': True}
             },
             {
                 'old_name': '🍷 Weinvorrat',
@@ -36,7 +36,7 @@ class Command(BaseCommand):
                 'old_name': '💊 Medikamentenplan',
                 'name': 'Medikamentenplan',
                 'icon': '💊',
-                'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True, 'use_tracker': True}
+                'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True, 'use_tracker': True, 'use_reminder': True}
             },
             {
                 'old_name': '🎬 Wunschliste',
@@ -54,13 +54,13 @@ class Command(BaseCommand):
                 'old_name': '🐾 Haustier-Planer',
                 'name': 'Haustier-Planer',
                 'icon': '🐾',
-                'fields': {'use_persons': True, 'use_tracker': True}
+                'fields': {'use_persons': True, 'use_tracker': True, 'use_reminder': True}
             },
             {
                 'old_name': '🪴 Pflanzen-Pflege',
                 'name': 'Pflanzen-Pflege',
                 'icon': '🪴',
-                'fields': {'use_tracker': True}
+                'fields': {'use_tracker': True, 'use_reminder': True}
             }
         ]
 
