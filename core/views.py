@@ -94,7 +94,23 @@ class BucketListDetailView(DetailView):
                   (self.request.user.is_authenticated and self.request.user in bucket.shared_with.all()) or \
                   (bucket.is_public and bucket.allow_public_edit)
         context['can_edit'] = can_edit
+        
+        items = bucket.items.all()
+        context['active_items'] = [i for i in items if not i.is_completed]
+        context['completed_items'] = [i for i in items if i.is_completed]
+        
         return context
+
+def render_item_list(request, bucket, can_edit):
+    items = bucket.items.all()
+    active_items = [i for i in items if not i.is_completed]
+    completed_items = [i for i in items if i.is_completed]
+    return render(request, 'core/partials/item_list.html', {
+        'bucket': bucket,
+        'active_items': active_items,
+        'completed_items': completed_items,
+        'can_edit': can_edit
+    })
 
 class GetItemFormView(View):
     def get(self, request, bucket_id, item_id=None):
@@ -145,7 +161,7 @@ class AddItemView(View):
             item.involved_persons.set(person_ids)
         
         if request.htmx:
-            return render(request, 'core/partials/item_row.html', {'item': item, 'bucket': bucket, 'can_edit': True})
+            return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
 
 class EditItemView(View):
@@ -186,7 +202,7 @@ class EditItemView(View):
             item.involved_persons.clear()
         
         if request.htmx:
-            return render(request, 'core/partials/item_row.html', {'item': item, 'bucket': bucket, 'can_edit': True})
+            return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
 
 class ToggleItemView(View):
@@ -212,7 +228,7 @@ class ToggleItemView(View):
         item.save()
         
         if request.htmx:
-            return render(request, 'core/partials/item_row.html', {'item': item, 'bucket': bucket, 'can_edit': True})
+            return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
 
 class DeleteItemView(View):
@@ -223,6 +239,8 @@ class DeleteItemView(View):
             return HttpResponseForbidden()
             
         item.delete()
+        if request.htmx:
+            return render_item_list(request, bucket, True)
         return HttpResponse("")
 
 class ShareToggleView(LoginRequiredMixin, View):

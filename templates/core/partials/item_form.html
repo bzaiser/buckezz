@@ -3,8 +3,8 @@
     
     <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
           hx-target="#item-list" 
-          hx-swap="{% if item %}outerHTML:#item-{{ item.id }}{% else %}beforeend{% endif %}"
-          hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); document.getElementById('no-items')?.remove(); }">
+          hx-swap="innerHTML"
+          hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); }">
         {% csrf_token %}
         
         <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-md);">

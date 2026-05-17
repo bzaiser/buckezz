@@ -55,11 +55,7 @@
         </div>
 
         <div id="item-list">
-            {% for item in bucket.items.all %}
-                {% include 'core/partials/item_row.html' with can_edit=can_edit %}
-            {% empty %}
-                <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Noch keine Einträge vorhanden.</p>
-            {% endfor %}
+            {% include 'core/partials/item_list.html' %}
         </div>
 
         <div id="form-insertion-point"></div>

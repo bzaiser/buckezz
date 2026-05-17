@@ -6,8 +6,8 @@
                class="status-check"
                {% if can_edit %}
                hx-post="{% url 'core:toggle_item' item.id %}"
-               hx-target="#item-{{ item.id }}"
-               hx-swap="outerHTML"
+               hx-target="#item-list"
+               hx-swap="innerHTML"
                {% endif %}>
     </div>
     <div style="{% if item.is_completed %}text-decoration: line-through; opacity: 0.5;{% endif %}">
@@ -51,8 +51,8 @@
         
         <button hx-delete="{% url 'core:delete_item' item.id %}" 
                 hx-confirm="Diesen Eintrag wirklich löschen?"
-                hx-target="#item-{{ item.id }}"
-                hx-swap="delete"
+                hx-target="#item-list"
+                hx-swap="innerHTML"
                 class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;">🗑️</button>
         {% endif %}
     </div>
