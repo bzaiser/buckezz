@@ -28,6 +28,10 @@ CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 # Trust the reverse proxy to determine the scheme (http vs https)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Authentication Redirects
+LOGIN_URL = '/admin/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+
 
 # Application definition
 
