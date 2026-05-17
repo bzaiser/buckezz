@@ -108,51 +108,53 @@
             padding-bottom: 0 !important;
         }
         
-        /* Fully responsive flex wrap rows on mobile */
+        /* Fully responsive block card with absolute side controls on mobile */
         .list-item {
-            display: flex !important;
-            flex-wrap: wrap !important;
-            align-items: flex-start !important;
-            gap: var(--spacing-sm) !important;
+            display: block !important;
+            position: relative !important;
             padding: var(--spacing-md) 0 !important;
+            padding-left: 32px !important; /* Space for checkbox */
+            padding-right: 64px !important; /* Space for actions */
             min-width: 0 !important;
             border-bottom: 1px solid var(--glass-border) !important;
         }
         
         .list-item-check {
-            order: 1 !important;
-            flex-shrink: 0 !important;
-            padding-top: 2px !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 20px !important;
+            display: block !important;
         }
         
         .list-item-content {
-            order: 2 !important;
-            flex: 1 1 200px !important;
+            display: block !important;
+            margin-bottom: 8px !important;
             min-width: 0 !important;
         }
         
         .list-item-actions {
-            order: 3 !important;
-            flex-shrink: 0 !important;
-            margin-left: auto !important;
-            align-self: start !important;
+            position: absolute !important;
+            right: 0 !important;
+            top: 18px !important;
+            display: flex !important;
+            gap: 12px !important;
         }
         
-        /* Premium custom badges for metadata fields */
+        /* Premium custom inline badges for metadata fields */
         .list-item-amount,
         .list-item-price,
         .list-item-rating {
-            order: 4 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            gap: 6px !important;
             background: rgba(255, 255, 255, 0.05) !important;
             border: 1px solid var(--glass-border) !important;
             padding: 4px 10px !important;
             border-radius: 8px !important;
             font-size: 0.8rem !important;
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            margin-top: 4px !important;
-            flex-shrink: 0 !important;
+            margin-top: 6px !important;
+            margin-right: 8px !important;
+            vertical-align: middle !important;
         }
 
         .list-item-amount::before {
