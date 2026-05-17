@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from django.http import JsonResponse, HttpResponse, HttpResponseForbidden
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from .models import BucketList, ListItem
+from .models import BucketList, ListItem, Person
 import environ
 from django.utils import timezone
 
@@ -69,3 +69,11 @@ class ICalExportView(View):
         response = HttpResponse('\r\n'.join(lines), content_type='text/calendar')
         response['Content-Disposition'] = f'attachment; filename="{bucket.title}.ics"'
         return response
+
+class QuickAddPersonView(View):
+    def post(self, request):
+        name = request.POST.get('name')
+        if not name:
+            return JsonResponse({'error': 'Name is required'}, status=400)
+        person = Person.objects.create(name=name)
+        return JsonResponse({'id': person.id, 'name': person.name})

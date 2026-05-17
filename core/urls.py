@@ -10,6 +10,7 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(next_page='core:home'), name='logout'),
     
     path('api/add/', api_views.AlexaAddItemView.as_view(), name='alexa_add'),
+    path('api/person/add/', api_views.QuickAddPersonView.as_view(), name='quick_add_person'),
     path('', views.HomeView.as_view(), name='home'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
     path('list/create/', views.CreateBucketView.as_view(), name='list_create'),
