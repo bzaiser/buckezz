@@ -424,11 +424,16 @@ class CyclePersonRoleView(View):
                     role.item.is_completed = False
                     role.item.save()
         else:
-            choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
-            current_index = choices.index(role.role)
-            next_index = (current_index + 1) % len(choices)
-            role.role = choices[next_index]
-            role.save()
+            new_role = request.POST.get('role')
+            if new_role and new_role in [c[0] for c in ItemPersonRole.STATUS_CHOICES]:
+                role.role = new_role
+                role.save()
+            else:
+                choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
+                current_index = choices.index(role.role)
+                next_index = (current_index + 1) % len(choices)
+                role.role = choices[next_index]
+                role.save()
             
             # If the role is now 'fulfilled', mark the list item completed
             if role.role == 'fulfilled':

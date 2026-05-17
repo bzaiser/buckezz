@@ -232,16 +232,33 @@
             </style>
             {% for role in item.person_roles.all %}
                 {% if bucket.owner == request.user or current_person and role.person_id == current_person.id %}
-                <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; cursor: pointer;"
-                      title="Klicken um Status zu ändern"
-                      hx-post="{% url 'core:cycle_person_role' role.id %}" 
-                      hx-target="#item-list" 
-                      hx-swap="innerHTML">
-                    {{ role.person.name }} ({{ role.get_role_display }})
-                </span>
+                    {% if not bucket.is_secret_santa %}
+                    <select name="role"
+                            hx-post="{% url 'core:cycle_person_role' role.id %}"
+                            hx-target="#item-list"
+                            hx-swap="innerHTML"
+                            class="role-{{ role.role }}"
+                            style="font-size: 0.7rem; padding: 2px 8px 2px 6px; border-radius: 8px; border: 1px solid currentColor; background: transparent; color: inherit; font-weight: bold; cursor: pointer; outline: none; display: inline-block;">
+                        <option value="assigned" {% if role.role == 'assigned' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Zuständig)</option>
+                        <option value="invited" {% if role.role == 'invited' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Eingeladen)</option>
+                        <option value="attending" {% if role.role == 'attending' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Zugesagt)</option>
+                        <option value="declined" {% if role.role == 'declined' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Abgesagt)</option>
+                        <option value="maybe" {% if role.role == 'maybe' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Vielleicht)</option>
+                        <option value="reserved" {% if role.role == 'reserved' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Reserviert)</option>
+                        <option value="fulfilled" {% if role.role == 'fulfilled' %}selected{% endif %} style="background: var(--bg-card); color: var(--text-color);">{{ role.person.name }} (Wunsch erfüllt)</option>
+                    </select>
+                    {% else %}
+                    <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; cursor: pointer;"
+                          title="Klicken um Status zu ändern"
+                          hx-post="{% url 'core:cycle_person_role' role.id %}" 
+                          hx-target="#item-list" 
+                          hx-swap="innerHTML">
+                        {{ role.person.name }} ({{ role.get_role_display }})
+                    </span>
+                    {% endif %}
                 {% else %}
                 <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor;"
-                      title="Reserviert von {{ role.person.name }}">
+                      title="Status: {{ role.get_role_display }}">
                     {{ role.person.name }} ({{ role.get_role_display }})
                 </span>
                 {% endif %}
