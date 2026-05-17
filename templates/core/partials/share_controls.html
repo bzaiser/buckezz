@@ -86,37 +86,64 @@
                     {% if bucket.is_secret_santa %}🎅 Wichtel-Teilnehmer (Schenkende){% else %}👥 Listen-Teilnehmer (Eingeladene Personen){% endif %}
                 </label>
                 
-                <!-- Quick add/select participant -->
-                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 180px;">
-                        <select id="select-participant" class="glass input" style="width: 100%; border-radius: 8px; padding: 6px 12px;">
-                            <option value="">Aus vorhandenen wählen...</option>
-                            {% for person in people %}
-                                <option value="{{ person.id }}">{{ person.name }}</option>
-                            {% endfor %}
-                        </select>
+                <!-- Quick add/select participant with Instant Search -->
+                <div x-data='{
+                    search: "",
+                    allPersons: [{% for p in people %}{id: {{ p.id }}, name: "{{ p.name|escapejs }}"},{% endfor %}],
+                    existingParticipantIds: [{% for participant in bucket.participants.all %}{{ participant.person.id }},{% endfor %}],
+                    
+                    get filteredPersons() {
+                        if (this.search.trim() === "") return [];
+                        return this.allPersons.filter(p => 
+                            p.name.toLowerCase().includes(this.search.toLowerCase()) && 
+                            !this.existingParticipantIds.includes(p.id)
+                        ).slice(0, 5);
+                    },
+                    
+                    get showAddButton() {
+                        if (this.search.trim() === "") return false;
+                        const query = this.search.trim().toLowerCase();
+                        return !this.allPersons.some(p => p.name.toLowerCase() === query);
+                    },
+                    
+                    addExisting(personId) {
+                        htmx.ajax("POST", "{% url 'core:share_toggle' bucket.id %}", {
+                            target: "#share-controls",
+                            values: { action: "add_participant", person_id: personId }
+                        });
+                    },
+                    
+                    addNew(name) {
+                        htmx.ajax("POST", "{% url 'core:share_toggle' bucket.id %}", {
+                            target: "#share-controls",
+                            values: { action: "add_participant", new_person_name: name }
+                        });
+                    }
+                }' style="margin-bottom: var(--spacing-md);">
+                    
+                    <!-- Search Input -->
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" 
+                               x-model="search" 
+                               placeholder="Name suchen oder neu eintippen..." 
+                               class="glass input" 
+                               style="flex: 1; border-radius: 8px; padding: 8px 12px;">
                     </div>
-                    <div style="flex: 1.2; min-width: 200px; display: flex; gap: 4px;">
-                        <input type="text" id="new-participant-name" class="glass input" placeholder="Oder neuer Name..." style="flex: 1; border-radius: 8px; padding: 6px 12px;">
-                        <button type="button" class="glass" style="background: var(--primary); color: #000; font-weight: bold; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer;"
-                                onclick="
-                                    const select = document.getElementById('select-participant');
-                                    const input = document.getElementById('new-participant-name');
-                                    const val = select.value;
-                                    const name = input.value;
-                                    if(val) {
-                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
-                                            target: '#share-controls',
-                                            values: { action: 'add_participant', person_id: val }
-                                        });
-                                    } else if(name) {
-                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
-                                            target: '#share-controls',
-                                            values: { action: 'add_participant', new_person_name: name }
-                                        });
-                                    }
-                                ">
-                            + Hinzufügen
+
+                    <!-- Matching Suggestions -->
+                    <div x-show="filteredPersons.length > 0" style="display: none; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px;">
+                        <span style="font-size: 0.75rem; color: var(--text-muted); width: 100%;">Bestehende Personen gefunden:</span>
+                        <template x-for="person in filteredPersons" :key="person.id">
+                            <button type="button" @click="addExisting(person.id)" class="glass" style="font-size: 0.8rem; border: 1px solid var(--primary); padding: 4px 10px; border-radius: 12px; cursor: pointer; color: var(--primary); background: transparent; transition: all 0.2s;" onmouseover="this.style.background='var(--primary)'; this.style.color='#000'" onmouseout="this.style.background='transparent'; this.style.color='var(--primary)'">
+                                👤 <span x-text="person.name"></span>
+                            </button>
+                        </template>
+                    </div>
+
+                    <!-- Quick Add Button -->
+                    <div x-show="showAddButton" style="display: none; margin-top: 10px;">
+                        <button type="button" @click="addNew(search)" class="glass" style="background: var(--primary); color: #000; font-weight: bold; border-radius: 8px; border: none; padding: 8px 16px; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px;">
+                            ➕ Neue Person "<span x-text="search"></span>" erstellen & hinzufügen
                         </button>
                     </div>
                 </div>
