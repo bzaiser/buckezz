@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -10,6 +10,13 @@ class ListCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'icon')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ListTemplateInline]
+
+from .models import UserSetting
+
+@admin.register(UserSetting)
+class UserSettingAdmin(admin.ModelAdmin):
+    list_display = ('user', 'primary_color', 'bg_color')
+    search_fields = ('user__username',)
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
@@ -37,6 +44,12 @@ class BucketListAdmin(admin.ModelAdmin):
         if not obj.pk:
             obj.owner = request.user
         super().save_model(request, obj, form, change)
+
+@admin.register(ItemPersonRole)
+class ItemPersonRoleAdmin(admin.ModelAdmin):
+    list_display = ('item', 'person', 'role')
+    list_filter = ('role', 'person')
+
 
 @admin.register(ListItem)
 class ListItemAdmin(admin.ModelAdmin):
