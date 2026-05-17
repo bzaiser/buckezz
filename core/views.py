@@ -11,8 +11,19 @@ class HomeView(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            context['my_lists'] = BucketList.objects.filter(owner=self.request.user)
+        user = self.request.user
+        
+        if user.is_authenticated:
+            context['my_lists'] = BucketList.objects.filter(owner=user)
+            allowed_lists = BucketList.objects.filter(
+                models.Q(owner=user) | models.Q(shared_with=user) | models.Q(is_public=True)
+            ).distinct()
+        else:
+            allowed_lists = BucketList.objects.filter(is_public=True)
+            
+        context['categories'] = ListCategory.objects.prefetch_related(
+            models.Prefetch('lists', queryset=allowed_lists, to_attr='visible_lists')
+        )
         return context
 
 class DashboardView(LoginRequiredMixin, ListView):

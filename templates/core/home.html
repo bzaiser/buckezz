@@ -24,20 +24,24 @@
 </section>
 
 <section style="margin-top: var(--spacing-xl);">
-    <h3>Beispiele für deine Buckets:</h3>
+    <h3>Unsere Bucket-Typen:</h3>
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-md);">
+        {% for category in categories %}
         <div class="card glass">
-            <h4>🍷 Weinliste</h4>
-            <p class="text-muted">Behalte den Überblick über deine Bestände und Favoriten.</p>
+            <h4>{{ category.icon }} {{ category.name }}</h4>
+            <ul style="list-style: none; padding: 0; margin-top: var(--spacing-sm);">
+                {% for bucket in category.visible_lists %}
+                    <li style="margin-bottom: 8px;">
+                        <a href="{% url 'core:list_detail' bucket.id %}" style="text-decoration: none; color: var(--text-color); font-weight: 500; display: block; padding: 4px 8px; background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: var(--radius-sm);">
+                            {{ bucket.title }}
+                        </a>
+                    </li>
+                {% empty %}
+                    <li class="text-muted" style="font-size: 0.9rem; padding: 4px 8px;">Noch keine freigegebenen Listen</li>
+                {% endfor %}
+            </ul>
         </div>
-        <div class="card glass">
-            <h4>🛒 Einkauf</h4>
-            <p class="text-muted">Gemeinsame Listen für den Haushalt, synchronisiert in Echtzeit.</p>
-        </div>
-        <div class="card glass">
-            <h4>✅ To-Do</h4>
-            <p class="text-muted">Aufgaben planen, priorisieren und gemeinsam erledigen.</p>
-        </div>
+        {% endfor %}
     </div>
 </section>
 {% endblock %}
