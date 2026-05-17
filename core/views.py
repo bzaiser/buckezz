@@ -12,14 +12,19 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        person_id = self.request.session.get('person_id')
         
         if user.is_authenticated:
             context['my_lists'] = BucketList.objects.filter(owner=user)
             allowed_lists = BucketList.objects.filter(
-                models.Q(owner=user) | models.Q(shared_with=user) | models.Q(is_public=True)
+                models.Q(owner=user) | models.Q(shared_with=user) | models.Q(participants__person__user=user)
+            ).distinct()
+        elif person_id:
+            allowed_lists = BucketList.objects.filter(
+                participants__person_id=person_id
             ).distinct()
         else:
-            allowed_lists = BucketList.objects.filter(is_public=True)
+            allowed_lists = BucketList.objects.none()
             
         context['categories'] = ListCategory.objects.prefetch_related(
             models.Prefetch('lists', queryset=allowed_lists, to_attr='visible_lists')
