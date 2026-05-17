@@ -9,6 +9,8 @@ class UserSetting(models.Model):
     accent_color = models.CharField(max_length=7, default='#ffab00')
     bg_color = models.CharField(max_length=7, default='#0a0e14')
     text_color = models.CharField(max_length=7, default='#ffffff')
+    input_bg_color = models.CharField(max_length=7, default='#000000')
+    input_text_color = models.CharField(max_length=7, default='#ffffff')
     glass_opacity = models.DecimalField(max_digits=3, decimal_places=2, default=0.15)
 
     def __str__(self):

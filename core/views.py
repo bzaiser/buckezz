@@ -254,6 +254,8 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.accent_color = request.POST.get('accent_color')
         settings.bg_color = request.POST.get('bg_color')
         settings.text_color = request.POST.get('text_color')
+        settings.input_bg_color = request.POST.get('input_bg_color', '#000000')
+        settings.input_text_color = request.POST.get('input_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.save()
         return redirect('core:dashboard')

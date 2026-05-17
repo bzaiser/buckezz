@@ -23,6 +23,8 @@
             --accent: {{ user_settings.accent_color|default:"#ffab00" }};
             --text-main: {{ user_settings.text_color|default:"#ffffff" }};
             --text-muted: #cbd5e0;
+            --input-bg: {{ user_settings.input_bg_color|default:"rgba(0, 0, 0, 0.4)" }};
+            --input-text: {{ user_settings.input_text_color|default:"#ffffff" }};
             --glass-bg: rgba(255, 255, 255, {{ user_settings.glass_opacity|default:0.15|unlocalize }});
             --glass-border: rgba(255, 255, 255, 0.15);
             --spacing-xs: 4px;
@@ -155,16 +157,15 @@
             width: 100%;
             padding: var(--spacing-sm) var(--spacing-md);
             border-radius: var(--radius-sm);
-            color: var(--text-main);
+            color: var(--input-text);
             margin-bottom: var(--spacing-sm);
             outline: none;
-            background: rgba(0, 0, 0, 0.25);
+            background: var(--input-bg);
             border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.2s ease;
         }
         
         input.glass:focus {
-            background: rgba(0, 0, 0, 0.35);
             border-color: var(--primary);
         }
 
