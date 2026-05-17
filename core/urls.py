@@ -25,6 +25,7 @@ urlpatterns = [
     path('item/<int:item_id>/edit/', views.EditItemView.as_view(), name='edit_item'),
     path('item/<int:pk>/toggle/', views.ToggleItemView.as_view(), name='toggle_item'),
     path('item/<int:pk>/delete/', views.DeleteItemView.as_view(), name='delete_item'),
+    path('role/<int:role_id>/cycle/', views.CyclePersonRoleView.as_view(), name='cycle_person_role'),
     path('list/<uuid:pk>/share-toggle/', views.ShareToggleView.as_view(), name='share_toggle'),
     path('settings/', views.ThemeSettingsView.as_view(), name='settings'),
 ]

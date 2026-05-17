@@ -101,7 +101,7 @@ class ListItem(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     
-    involved_persons = models.ManyToManyField(Person, related_name='items', blank=True)
+    involved_persons = models.ManyToManyField(Person, through='ItemPersonRole', related_name='items', blank=True)
     notes = models.TextField(blank=True)
     
     is_completed = models.BooleanField(default=False)
@@ -121,3 +121,20 @@ class ListItem(models.Model):
         ordering = ['order', '-created_at']
         verbose_name = _("Listen-Eintrag")
         verbose_name_plural = _("Listen-Einträge")
+
+class ItemPersonRole(models.Model):
+    STATUS_CHOICES = [
+        ('assigned', _('Zuständig')),
+        ('invited', _('Eingeladen')),
+        ('attending', _('Zugesagt')),
+        ('declined', _('Abgesagt')),
+        ('maybe', _('Vielleicht'))
+    ]
+    item = models.ForeignKey(ListItem, on_delete=models.CASCADE, related_name='person_roles')
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='item_roles')
+    role = models.CharField(max_length=20, choices=STATUS_CHOICES, default='assigned')
+
+    class Meta:
+        unique_together = ('item', 'person')
+        verbose_name = _("Personen-Zuordnung")
+        verbose_name_plural = _("Personen-Zuordnungen")

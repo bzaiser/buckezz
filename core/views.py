@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render, redirect
 from django.http import HttpResponse, HttpResponseForbidden
 from django.core.exceptions import PermissionDenied
-from .models import BucketList, ListItem, ListCategory, UserSetting, Person
+from .models import BucketList, ListItem, ListCategory, UserSetting, Person, ItemPersonRole
 
 class HomeView(TemplateView):
     template_name = 'core/home.html'
@@ -158,7 +158,8 @@ class AddItemView(View):
         # Handle persons
         person_ids = request.POST.getlist('persons')
         if person_ids:
-            item.involved_persons.set(person_ids)
+            for pid in person_ids:
+                ItemPersonRole.objects.create(item=item, person_id=pid)
         
         if request.htmx:
             return render_item_list(request, bucket, True)
@@ -196,10 +197,15 @@ class EditItemView(View):
         
         # Handle persons
         person_ids = request.POST.getlist('persons')
-        if person_ids:
-            item.involved_persons.set(person_ids)
-        else:
-            item.involved_persons.clear()
+        new_pids = set(int(p) for p in person_ids)
+        current_pids = set(item.person_roles.values_list('person_id', flat=True))
+        
+        # Remove persons not in the new list
+        ItemPersonRole.objects.filter(item=item, person_id__in=current_pids - new_pids).delete()
+        
+        # Add new persons
+        for pid in new_pids - current_pids:
+            ItemPersonRole.objects.create(item=item, person_id=pid)
         
         if request.htmx:
             return render_item_list(request, bucket, True)
@@ -260,6 +266,26 @@ class ShareToggleView(LoginRequiredMixin, View):
             
         bucket.save()
         return render(request, 'core/partials/share_controls.html', {'bucket': bucket})
+
+class CyclePersonRoleView(View):
+    def post(self, request, role_id):
+        role = get_object_or_404(ItemPersonRole, id=role_id)
+        bucket = role.item.bucket_list
+        can_edit = bucket.owner == request.user or \
+                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                  (bucket.is_public and bucket.allow_public_edit)
+        if not can_edit:
+            return HttpResponseForbidden()
+            
+        choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
+        current_index = choices.index(role.role)
+        next_index = (current_index + 1) % len(choices)
+        role.role = choices[next_index]
+        role.save()
+        
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)
 
 class ThemeSettingsView(LoginRequiredMixin, View):
     def get(self, request):
