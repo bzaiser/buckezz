@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="dashboard-container" x-data="{ showCreateModal: {% if request.GET.create %}true{% else %}false{% endif %} }">
+<div class="dashboard-container" x-data="{ showCreateModal: {% if request.GET.create %}true{% else %}false{% endif %}, showTemplateHelp: false, helpTemplateSlug: '' }">
     <div class="header-section">
         <h1>Meine Buckets</h1>
         <button class="btn btn-primary" @click="showCreateModal = true">+ Neuer Bucket</button>
@@ -39,12 +39,25 @@
                     </div>
                     
                     <div class="form-group">
-                        <label>Vorlage auswählen</label>
+                        <label style="display: flex; align-items: center; justify-content: space-between;">
+                            <span>Vorlage auswählen</span>
+                            <span class="text-muted" style="font-size: 0.75rem; font-weight: normal;">Klicke auf das ❓ einer Vorlage für Beispiele & Infos</span>
+                        </label>
                         <div class="template-selector">
                             {% for cat in categories %}
                                 <label class="template-option">
                                     <input type="radio" name="category_id" value="{{ cat.id }}" required>
-                                    <div class="template-card glass">
+                                    <div class="template-card glass" style="position: relative;">
+                                        <!-- Help Button in Corner -->
+                                        <button type="button" 
+                                                @click.stop.prevent="helpTemplateSlug = '{{ cat.slug }}'; showTemplateHelp = true"
+                                                class="glass" 
+                                                style="position: absolute; top: 6px; right: 6px; border: none; background: rgba(255,255,255,0.08); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; cursor: pointer; color: var(--primary); transition: all 0.2s;"
+                                                onmouseover="this.style.background='rgba(255,255,255,0.18)'"
+                                                onmouseout="this.style.background='rgba(255,255,255,0.08)'"
+                                                title="Vorlage-Anleitung anzeigen">
+                                            ❓
+                                        </button>
                                         <span class="template-icon">{{ cat.icon }}</span>
                                         <span class="template-name">{{ cat.name }}</span>
                                     </div>
@@ -58,6 +71,263 @@
                         <button type="submit" class="btn btn-primary">Erstellen</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- Help / Template Instructions Modal -->
+    <template x-if="showTemplateHelp">
+        <div class="modal-overlay" @click.self="showTemplateHelp = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2200; backdrop-filter: blur(10px);">
+            <div class="modal-content glass card" style="width: 100%; max-width: 550px; padding: var(--spacing-lg); border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: var(--spacing-md); position: relative;">
+                
+                <!-- Close Button -->
+                <button type="button" @click="showTemplateHelp = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+                
+                <!-- Dynamic Header and Content based on selected slug -->
+                <!-- Einkaufsliste -->
+                <div x-show="helpTemplateSlug === 'einkaufsliste'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🛒</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Einkaufsliste</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Einkaufsartikel strukturiert verwalten</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Perfekt für deinen Wocheneinkauf, Vorratsbestellungen oder Besorgungen.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong> Wenn du diese Liste wählst, stehen dir folgende nützliche Felder zur Verfügung:</p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Menge:</strong> z.B. <em>"3"</em> oder <em>"1 Packung"</em>.</li>
+                            <li><strong>Marke:</strong> z.B. <em>"Oatly"</em> oder <em>"Coca Cola"</em>.</li>
+                            <li><strong>Geschäft:</strong> z.B. <em>"Rewe"</em> oder <em>"Aldi"</em>.</li>
+                            <li><strong>Preis:</strong> Der geschätzte oder genaue Einzelpreis.</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Kaffeebohnen" | <em>Menge:</em> "2 Packungen" | <em>Marke:</em> "Tchibo" | <em>Geschäft:</em> "Edeka" | <em>Preis:</em> "8.99 €". Im Supermarkt hakst du den Kaffee einfach ab!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- To-Do Liste -->
+                <div x-show="helpTemplateSlug === 'to-do-liste'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">✅</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: To-Do Liste</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Aufgaben & Termine organisieren</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Strukturierte Erfassung all deiner privaten und beruflichen Aufgaben.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Fälligkeitsdatum:</strong> Wann die Aufgabe erledigt sein muss.</li>
+                            <li><strong>Erinnerung:</strong> Stelle Erinnerungen ein, um Fristen nicht zu verpassen.</li>
+                            <li><strong>Personen:</strong> Weise Aufgaben deinen Freunden oder Familienmitgliedern zu!</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Wohnzimmer streichen" | <em>Fälligkeit:</em> "Sonntag" | <em>Beteiligt:</em> "Jonas, Papa". Alle Beteiligten sehen die Aufgabe in ihrer Liste!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Weinvorrat -->
+                <div x-show="helpTemplateSlug === 'weinvorrat'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🍷</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Weinvorrat</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Flaschen-Bestände verwalten</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Perfekt, um die Übersicht über deinen Weinkeller, Gin-Regale oder deine Hausbar zu behalten.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Menge:</strong> Aktuelle Anzahl an Flaschen. Kann in der Liste direkt per Klick editiert werden!</li>
+                            <li><strong>Winzer/Marke:</strong> Name des Herstellers oder Weinguts.</li>
+                            <li><strong>Lagerort:</strong> Wo genau die Flasche liegt (z.B. <em>"Kellerregal 3, Fach B"</em>).</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Cabernet Sauvignon 2019" | <em>Menge:</em> "4 Flaschen" | <em>Winzer:</em> "Château Margaux" | <em>Ort:</em> "Fach 5A".
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Veranstaltungsplaner -->
+                <div x-show="helpTemplateSlug === 'veranstaltungsplaner'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🗓️</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Veranstaltungsplaner</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Partys, Treffen & Feiern koordinieren</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Perfekt für Geburtstage, Ausflüge, Grillfeste oder Business-Events.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Ort:</strong> Wo die Feier stattfindet.</li>
+                            <li><strong>Start & Ende:</strong> Genaue Veranstaltungszeiträume.</li>
+                            <li><strong>Beteiligte Personen:</strong> Ordne Aufgaben oder Rollen (z.B. "Salat mitbringen") Personen zu.</li>
+                            <li><strong>Kosten/Budget:</strong> Kalkulierte Preise pro Planungs-Posten.</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Getränke holen" | <em>Ort:</em> "Getränkemarkt Müller" | <em>Start:</em> "18.06.2026 15:00" | <em>Zuständig:</em> "Felix" | <em>Preis:</em> "60.00 €".
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medikamentenplan -->
+                <div x-show="helpTemplateSlug === 'medikamentenplan'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">💊</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Medikamentenplan</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Einnahmen verlässlich protokollieren</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Verlässliche Erinnerung und Dokumentation deiner täglichen Medikamente.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Dosierung/Menge:</strong> z.B. <em>"1 Tablette"</em> oder <em>"15 Tropfen"</em>.</li>
+                            <li><strong>Startdatum:</strong> Wann die Einnahme-Phase beginnt.</li>
+                            <li><strong>Erinnerung:</strong> Stelle tägliche oder wöchentliche Wecker ein.</li>
+                            <li><strong>Einnahme-Tracker:</strong> Protokolliere Einnahmen minutengenau im Kalender!</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Magnesium 400" | <em>Dosis:</em> "1 Kapsel" | <em>Uhrzeit:</em> "20:00 Uhr". Nach dem Schlucken klickst du in der Liste einfach auf "Eingenommen", um es zu protokollieren!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wunschliste -->
+                <div x-show="helpTemplateSlug === 'wunschliste'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🎬</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Wunschliste</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Geschenkideen & Wünsche festhalten</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Geschenkideen für Geburtstage, Weihnachten oder Hochzeiten sammeln und verteilen.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Geschäft/Link:</strong> Wo man den Wunsch kaufen kann.</li>
+                            <li><strong>Wünschende Person:</strong> Wessen Wunsch es ist.</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Acoustic Guitar" | <em>Shop:</em> "Thomann.de" | <em>Wunsch von:</em> "Sarah". Andere Gruppenmitglieder sehen sofort, was geschenkt werden kann!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Winliste -->
+                <div x-show="helpTemplateSlug === 'winliste'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🏆</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Winliste</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Erfolge & Glücksmomente sammeln</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Positive Erlebnisse, bestandene Prüfungen oder sportliche Meilensteine als Motivation sammeln.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Bedeutung (Bewertung):</strong> Bewerte das Erlebnis von 1-5 Sternen.</li>
+                            <li><strong>Geteilt mit:</strong> Wer war an diesem glücklichen Tag dabei?</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Bachelorarbeit bestanden (1.3)" | <em>Bedeutung:</em> "⭐⭐⭐⭐⭐" | <em>Dabei:</em> "Familie, Freunde".
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bucket List -->
+                <div x-show="helpTemplateSlug === 'bucket-list'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🎯</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Bucket List</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Deine großen Lebensziele</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Träume, Abenteuer und Lebensziele planen und festhalten.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Lebensabschnitt (Milestone):</strong> Wann willst du es erreichen? (z.B. "vor 30", "vor 60").</li>
+                            <li><strong>Wichtigkeit:</strong> Wichtigkeit von 1-5 Sternen.</li>
+                            <li><strong>Inspirations-Link:</strong> URL mit Reiseinfos oder Bildern.</li>
+                            <li><strong>Erreicht am:</strong> Das Erreicht-am-Datum ist nach dem Abhaken jederzeit nachträglich editierbar, um alte Abenteuer nachzupflegen!</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Fallschirmsprung machen" | <em>Milestone:</em> "vor 40" | <em>Wichtigkeit:</em> "⭐⭐⭐⭐⭐" | <em>Link:</em> "skydiving-school.de".
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Haustier-Planer -->
+                <div x-show="helpTemplateSlug === 'haustier-planer'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🐾</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Haustier-Planer</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Tierpflege optimal organisieren</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Perfekt, um die Versorgung von Hund, Katze, Vögeln oder Pferd im Haushalt abzustimmen.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Zuständigkeit:</strong> Wer füttert das Tier oder geht Gassi?</li>
+                            <li><strong>Erinnerung:</strong> Tägliche oder wöchentliche Wecker für Medizin, Bürsten, etc.</li>
+                            <li><strong>Pflege-Tracker:</strong> Logge jede Aktion minutengenau, um Doppel-Fütterungen auszuschließen!</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Katze Futter geben" | <em>Zuständig:</em> "Sarah" | <em>Uhrzeit:</em> "07:30 Uhr". Nach dem Füttern loggst du es im Tracker ein.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pflanzen-Pflege -->
+                <div x-show="helpTemplateSlug === 'pflanzen-pflege'">
+                    <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: var(--spacing-md);">
+                        <span style="font-size: 2.2rem;">🪴</span>
+                        <div>
+                            <h2 style="margin: 0; font-size: 1.3rem; color: var(--primary);">Vorlage: Pflanzen-Pflege</h2>
+                            <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Monstera & Co. nie wieder vergessen</p>
+                        </div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px; line-height: 1.5; font-size: 0.92rem;">
+                        <p><strong>💡 Zweck:</strong> Perfekt, um das Gießen, Düngen und Umtopfen deiner Zimmerpflanzen strukturiert im Griff zu behalten.</p>
+                        <p><strong>🛠️ Erstellung & Felder:</strong></p>
+                        <ul style="padding-left: 20px; margin: 4px 0;">
+                            <li><strong>Gieß-Intervall (Erinnerung):</strong> Alle wie viele Tage gegossen wird (z.B. alle 7 Tage).</li>
+                            <li><strong>Gieß-Tracker:</strong> Logge das Gießen im Live-Tracker, um Staunässe sicher zu verhindern.</li>
+                        </ul>
+                        <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                            <strong style="color: var(--primary);">📝 Praxis-Beispiel:</strong><br>
+                            <em>Bezeichnung:</em> "Monstera gießen" | <em>Erinnerung:</em> "Alle 8 Tage" | <em>Tracker:</em> Aktiviert. Sobald du mit der Gießkanne herumgehst, loggst du es ein!
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: var(--spacing-md); display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" @click="showTemplateHelp = false" style="min-width: 100px;">Verstanden</button>
+                </div>
             </div>
         </div>
     </template>
