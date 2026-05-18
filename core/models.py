@@ -85,6 +85,11 @@ class ListTemplate(models.Model):
     use_tracker = models.BooleanField(default=False)
     use_milestone = models.BooleanField(default=False)
 
+    # Customizable help guidelines
+    help_purpose = models.TextField(blank=True, null=True, help_text="💡 Zweck der Vorlage (z.B. Ideal für den Wocheneinkauf)")
+    help_fields = models.TextField(blank=True, null=True, help_text="🛠️ Welche Felder aktiv sind und wie man sie nutzt")
+    help_example = models.TextField(blank=True, null=True, help_text="📝 Praxis-Beispiel für einen Eintrag")
+
     def __str__(self):
         return f"Template für {self.category.name}"
 

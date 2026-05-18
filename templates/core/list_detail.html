@@ -331,10 +331,16 @@
                 
                 <!-- Header -->
                 <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
-                    <span style="font-size: 2.2rem;">💡</span>
+                    <span style="font-size: 2.2rem;">{{ bucket.category.icon }}</span>
                     <div>
-                        <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Anleitung: {{ bucket.category.icon }} {{ bucket.category.name }}</h2>
-                        <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.85rem;">Schritt-für-Schritt Anleitung & Beispiele</p>
+                        <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Anleitung: {{ bucket.category.name }}</h2>
+                        <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.85rem;">
+                            {% if bucket.category.template.help_purpose %}
+                                {{ bucket.category.template.help_purpose }}
+                            {% else %}
+                                Schritt-für-Schritt Anleitung & Beispiele
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
 
@@ -363,62 +369,24 @@
                             <span>⚙️</span> 2. So benutzt du diese Liste
                         </h3>
                         <div style="font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px;">
-                            {% if bucket.category.slug == 'einkaufsliste' %}
-                                <p style="margin: 0;">🛒 <strong>Einkaufsliste:</strong> Ideal für den Wocheneinkauf oder Besorgungen. Hake Artikel ab, sobald du sie im Korb hast. Die Gesamtsumme der abgehakten Artikel wird automatisch berechnet.</p>
-                            {% elif bucket.category.slug == 'to-do-liste' %}
-                                <p style="margin: 0;">✅ <strong>To-Do Liste:</strong> Organisiere deine Aufgaben. Nutze das Fälligkeitsdatum, um Fristen im Auge zu behalten, und weise Personen zu, um Zuständigkeiten klar zu regeln.</p>
-                            {% elif bucket.category.slug == 'weinvorrat' %}
-                                <p style="margin: 0;">🍷 <strong>Weinvorrat:</strong> Behalte den Überblick über deinen Keller. Reduziere oder erhöhe die Menge direkt beim Klick auf die Menge, um den Bestand aktuell zu halten.</p>
-                            {% elif bucket.category.slug == 'veranstaltungsplaner' %}
-                                <p style="margin: 0;">🗓️ <strong>Veranstaltungsplaner:</strong> Perfekt für Geburtstage oder Meetings. Halte Ort, Start/Ende und Budget fest. Weise Aufgaben oder Speisen bestimmten Personen zu.</p>
-                            {% elif bucket.category.slug == 'medikamentenplan' %}
-                                <p style="margin: 0;">💊 <strong>Medikamentenplan:</strong> Trage deine Dosis und Einnahmeuhrzeiten ein. Nutze den praktischen Einnahme-Tracker (Protokoll), um jede eingenommene Dosis mit einem Klick zu protokollieren!</p>
-                            {% elif bucket.category.slug == 'wunschliste' %}
-                                <p style="margin: 0;">🎬 <strong>Wunschliste:</strong> Halte Geschenkideen fest. Trage den Shop/Ort ein, an dem der Wunsch zu finden ist, und wer sich den Eintrag wünscht.</p>
-                            {% elif bucket.category.slug == 'winliste' %}
-                                <p style="margin: 0;">🏆 <strong>Winliste:</strong> Halte deine Erfolge fest! Bewerte die Bedeutung mit Sternen (1-5) und halte fest, wer diesen besonderen Moment mit dir gefeiert hat.</p>
-                            {% elif bucket.category.slug == 'bucket-list' %}
-                                <p style="margin: 0;">🎯 <strong>Bucket List:</strong> Plane deine Lebensziele! Weise jedes Ziel einem Meilenstein (z.B. "vor 30", "vor 60") zu. Nach dem Abhaken kannst du das Erreicht-am-Datum nachträglich anpassen, um alte Erfolge nachzuerfassen.</p>
-                            {% elif bucket.category.slug == 'haustier-planer' %}
-                                <p style="margin: 0;">🐾 <strong>Haustier-Planer:</strong> Plane Futterzeiten, Gassi-Runden oder Tierarzt-Besuche. Protokolliere Pflegeaktionen über das Aktivitäts-Protokoll (Tracker) in Echtzeit.</p>
-                            {% elif bucket.category.slug == 'pflanzen-pflege' %}
-                                <p style="margin: 0;">🪴 <strong>Pflanzen-Pflege:</strong> Gießen und Düngen leicht gemacht! Nutze das Protokoll, um das Gießen deiner Pflanzen minutengenau zu tracken und eine Überwässerung zu verhindern.</p>
+                            {% if bucket.category.template.help_fields %}
+                                <div style="white-space: pre-line;">{{ bucket.category.template.help_fields }}</div>
                             {% else %}
                                 <p style="margin: 0;">📋 Behalte deine Einträge im Blick, weise bei Bedarf Personen zu und hake erledigte Dinge einfach ab, um den Fortschritt zu sehen.</p>
                             {% endif %}
                         </div>
                     </div>
 
+                    {% if bucket.category.template.help_example %}
                     <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
                         <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
                             <span>📝</span> Praxis-Beispiel
                         </h3>
                         <div style="font-size: 0.88rem; font-style: italic; color: var(--text-muted);">
-                            {% if bucket.category.slug == 'einkaufsliste' %}
-                                "Ich trage als Bezeichnung <strong>'Bio-Eier'</strong> ein, setze die Menge auf <strong>'1 Packung'</strong>, trage als Geschäft <strong>'Rewe'</strong> und als Preis <strong>'2.99 €'</strong> ein. Im Laden hake ich es einfach ab."
-                            {% elif bucket.category.slug == 'to-do-liste' %}
-                                "Aufgabe <strong>'Steuererklärung abgeben'</strong>, Fälligkeitsdatum <strong>'31.05.2026'</strong>, zugewiesen an <strong>'Bernd'</strong> mit einer aktiven Erinnerung 3 Tage vorher."
-                            {% elif bucket.category.slug == 'weinvorrat' %}
-                                "Eintrag <strong>'Chardonnay Reserve 2020'</strong>, Menge <strong>'6 Flaschen'</strong>, Marke <strong>'Weingut Huber'</strong>, Lagerort <strong>'Regal B, Fach 3'</strong>."
-                            {% elif bucket.category.slug == 'veranstaltungsplaner' %}
-                                "Eintrag <strong>'Getränke kaufen'</strong>, Ort <strong>'Metro'</strong>, Start <strong>'12.06.2026 14:00'</strong>, zugewiesen an <strong>'Felix'</strong> mit Kosten von <strong>'80.00 €'</strong>."
-                            {% elif bucket.category.slug == 'medikamentenplan' %}
-                                "Medikament <strong>'L-Thyroxin 50'</strong>, Menge <strong>'1 Tablette'</strong>, Start <strong>'Morgen früh'</strong>. Nach der morgendlichen Einnahme klicke ich im Tracker einfach auf <strong>'Eingenommen'</strong>."
-                            {% elif bucket.category.slug == 'wunschliste' %}
-                                "Geschenkidee <strong>'Ledergeldbörse'</strong>, Ort/Shop <strong>'Herrenausstatter Schmidt'</strong>, Wunsch für <strong>'Opa Hans'</strong>."
-                            {% elif bucket.category.slug == 'winliste' %}
-                                "Erfolg <strong>'Beförderung zum Teamleiter'</strong>, Bedeutung <strong>⭐⭐⭐⭐⭐</strong>, gefeiert mit <strong>'Kollegen, Familie'</strong>."
-                            {% elif bucket.category.slug == 'bucket-list' %}
-                                "Traum <strong>'Reise nach Island'</strong>, Milestone <strong>'vor 40'</strong>, Wichtigkeit <strong>⭐⭐⭐⭐⭐</strong>, Link <strong>'island-tipps.de'</strong>."
-                            {% elif bucket.category.slug == 'haustier-planer' %}
-                                "Aktion <strong>'Hund bürsten & Krallen pflegen'</strong>, zugewiesen an <strong>'Sarah'</strong>. Der Pflegeschritt wird nach Durchführung im Tracker als erledigt geloggt."
-                            {% elif bucket.category.slug == 'pflanzen-pflege' %}
-                                "Pflanze <strong>'Bogenhanf gießen'</strong>. Alle 14 Tage werde ich erinnert, gieße sie und logge dies mit einem Klick auf den Tracker."
-                            {% else %}
-                                "Eintrag <strong>'Projekt abschließen'</strong>, Wichtigkeit hoch, zugewiesen an deine Projektpartner."
-                            {% endif %}
+                            "{{ bucket.category.template.help_example }}"
                         </div>
                     </div>
+                    {% endif %}
 
                     <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
                         <span>🛡️ Deine Berechtigung:</span>
