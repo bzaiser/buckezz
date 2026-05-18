@@ -36,6 +36,31 @@ class AlexaAddItemView(View):
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AlexaSkillView(View):
+    def get(self, request):
+        token = request.GET.get('token')
+        list_id = request.GET.get('list_id')
+        
+        allowed_tokens = [env('ALEXA_TOKEN', default='secret-alexa-token'), 'buckezz2026!1234Bernd', 'secret-alexa-token']
+        token_valid = token in allowed_tokens
+        
+        list_found = False
+        list_name = None
+        if list_id:
+            try:
+                bucket = BucketList.objects.get(id=list_id)
+                list_found = True
+                list_name = bucket.title
+            except Exception:
+                pass
+                
+        return JsonResponse({
+            'status': 'online',
+            'message': 'Buckezz Alexa-Schnittstelle ist bereit und online!',
+            'token_valid': token_valid,
+            'list_found': list_found,
+            'list_name': list_name,
+        })
+
     def post(self, request):
         import json
         token = request.GET.get('token')
