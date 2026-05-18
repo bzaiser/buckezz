@@ -20,7 +20,7 @@ class UserSettingAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'user', 'access_token')
+    list_display = ('name', 'birth_date', 'email', 'user', 'access_token')
     search_fields = ('name', 'email')
 
 class ListItemInline(admin.TabularInline):
@@ -57,8 +57,8 @@ class ItemPersonRoleAdmin(admin.ModelAdmin):
 
 @admin.register(ListItem)
 class ListItemAdmin(admin.ModelAdmin):
-    list_display = ('title', 'bucket_list', 'status', 'is_completed')
-    list_filter = ('status', 'is_completed', 'bucket_list')
+    list_display = ('title', 'bucket_list', 'status', 'is_completed', 'target_milestone', 'completed_at')
+    list_filter = ('status', 'is_completed', 'bucket_list', 'target_milestone')
     search_fields = ('title', 'notes')
 
     def get_queryset(self, request):
