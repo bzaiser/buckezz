@@ -87,6 +87,15 @@ class PersonalICalFeedView(View):
         if not user:
             return HttpResponse("Kein Benutzer mit dieser Person verknüpft.", status=400, content_type="text/plain")
 
+        # Die Heimat-Zeitzone des Benutzers für den iCal-Export aktivieren
+        import zoneinfo
+        from django.utils import timezone
+        if hasattr(user, 'settings'):
+            try:
+                timezone.activate(zoneinfo.ZoneInfo(user.settings.timezone))
+            except Exception:
+                pass
+
         lists = BucketList.objects.filter(
             models.Q(owner=user) | models.Q(shared_with=user)
         ).distinct()

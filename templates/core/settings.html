@@ -92,13 +92,72 @@
             </div>
 
             <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
-                <h3 style="color: var(--primary); margin-bottom: 4px;">👤 Profil-Daten</h3>
-                <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Diese Daten werden für altersbasierte Meilensteine in deiner Bucket List genutzt.</p>
+                <h3 style="color: var(--primary); margin-bottom: 4px;">👤 Profil-Daten & Region</h3>
+                <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Diese Daten werden für Zeitzonen-Erinnerungen und altersbasierte Meilensteine genutzt.</p>
+                
                 <div class="control-group">
                     <label>Dein Geburtsdatum</label>
                     <input type="date" name="birth_date" class="glass input" value="{{ person.birth_date|date:'Y-m-d' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
                 </div>
+
+                <div class="control-group" style="margin-top: 15px;">
+                    <label>Heimat-Zeitzone (für Outlook & Kalender-Sync)</label>
+                    <div style="display: flex; gap: var(--spacing-sm); align-items: stretch; flex-wrap: wrap;">
+                        <select name="timezone" id="tz-select" class="glass select" style="flex: 1; min-width: 200px; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer;">
+                            <option value="Europe/Athens" {% if settings.timezone == 'Europe/Athens' %}selected{% endif %}>Griechenland (Europe/Athens)</option>
+                            <option value="Europe/Berlin" {% if settings.timezone == 'Europe/Berlin' %}selected{% endif %}>Deutschland / Berlin (Europe/Berlin)</option>
+                            <option value="Europe/London" {% if settings.timezone == 'Europe/London' %}selected{% endif %}>Großbritannien / London (Europe/London)</option>
+                            <option value="Europe/Zurich" {% if settings.timezone == 'Europe/Zurich' %}selected{% endif %}>Schweiz / Zürich (Europe/Zurich)</option>
+                            <option value="Europe/Vienna" {% if settings.timezone == 'Europe/Vienna' %}selected{% endif %}>Österreich / Wien (Europe/Vienna)</option>
+                            <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>Koordinierte Weltzeit (UTC)</option>
+                        </select>
+                        <button type="button" onclick="detectBrowserTimezone()" class="btn btn-glass" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;" title="Erkennt die lokale Zeitzone deines aktuellen Webbrowsers">
+                            🌍 Auto-Erkennung
+                        </button>
+                    </div>
+                    <p id="tz-detect-msg" style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--primary); font-weight: bold; display: none;">
+                        ✓ Zeitzone erkannt und ausgewählt!
+                    </p>
+                </div>
             </div>
+            
+            <script>
+                function detectBrowserTimezone() {
+                    try {
+                        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                        if (tz) {
+                            const select = document.getElementById('tz-select');
+                            
+                            // Check if option already exists
+                            let optionExists = false;
+                            for (let i = 0; i < select.options.length; i++) {
+                                if (select.options[i].value === tz) {
+                                    select.selectedIndex = i;
+                                    optionExists = true;
+                                    break;
+                                }
+                            }
+                            
+                            // If timezone not in default list, dynamically add it
+                            if (!optionExists) {
+                                const newOpt = document.createElement('option');
+                                newOpt.value = tz;
+                                newOpt.text = tz + " (Erkannt)";
+                                newOpt.selected = true;
+                                select.add(newOpt);
+                            }
+                            
+                            // Show success message
+                            const msg = document.getElementById('tz-detect-msg');
+                            msg.innerText = "✓ Zeitzone '" + tz + "' erkannt und ausgewählt!";
+                            msg.style.display = "block";
+                            setTimeout(() => { msg.style.display = "none"; }, 4000);
+                        }
+                    } catch (e) {
+                        alert("Automatische Zeitzonen-Erkennung wird von diesem Browser nicht unterstützt.");
+                    }
+                }
+            </script>
 
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary">Einstellungen speichern</button>

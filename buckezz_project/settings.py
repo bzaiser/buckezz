@@ -62,6 +62,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',
+    'core.middleware.TimezoneMiddleware',
 ]
 
 ROOT_URLCONF = 'buckezz_project.urls'

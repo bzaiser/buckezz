@@ -594,6 +594,7 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.input_bg_color = request.POST.get('input_bg_color', '#000000')
         settings.input_text_color = request.POST.get('input_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
+        settings.timezone = request.POST.get('timezone', 'Europe/Berlin')
         settings.save()
         
         # Save birth date
