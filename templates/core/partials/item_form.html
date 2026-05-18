@@ -59,6 +59,19 @@
             </div>
             {% endif %}
 
+            {% if bucket.category.template.use_milestone %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">🎯 Ziel-Meilenstein</label>
+                <select name="target_milestone" class="glass" style="width: 100%; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 14px;">
+                    <option value="" {% if not item.target_milestone %}selected{% endif %}>-- Kein Meilenstein --</option>
+                    <option value="before_30" {% if item.target_milestone == 'before_30' %}selected{% endif %}>Vor 30</option>
+                    <option value="before_40" {% if item.target_milestone == 'before_40' %}selected{% endif %}>Vor 40</option>
+                    <option value="before_50" {% if item.target_milestone == 'before_50' %}selected{% endif %}>Vor 50</option>
+                    <option value="before_die" {% if item.target_milestone == 'before_die' %}selected{% endif %}>Bevor ich sterbe</option>
+                </select>
+            </div>
+            {% endif %}
+
             {% if bucket.category.template.use_rating %}
             <div class="form-group" x-data="{ rating: {{ item.rating|default:0 }}, hoverRating: 0 }">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Bewertung</label>

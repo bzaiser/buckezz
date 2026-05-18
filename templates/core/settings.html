@@ -91,8 +91,17 @@
                 </div>
             </div>
 
+            <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
+                <h3 style="color: var(--primary); margin-bottom: 4px;">👤 Profil-Daten</h3>
+                <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Diese Daten werden für altersbasierte Meilensteine in deiner Bucket List genutzt.</p>
+                <div class="control-group">
+                    <label>Dein Geburtsdatum</label>
+                    <input type="date" name="birth_date" class="glass input" value="{{ person.birth_date|date:'Y-m-d' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                </div>
+            </div>
+
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary">Design speichern</button>
+                <button type="submit" class="btn btn-primary">Einstellungen speichern</button>
                 <a href="{% url 'core:dashboard' %}" class="btn btn-glass">Abbrechen</a>
             </div>
         </form>

@@ -90,6 +90,64 @@ def get_list_items_for_user(request, bucket):
         
     return active_items, completed_items, is_beneficiary, current_person
 
+def group_items_by_milestone(active_items, completed_items, beneficiary):
+    milestones_cfg = [
+        ('before_30', 'Vor 30'),
+        ('before_40', 'Vor 40'),
+        ('before_50', 'Vor 50'),
+        ('before_die', 'Bevor ich sterbe'),
+        ('', 'Ohne Meilenstein')
+    ]
+    
+    active_focus = beneficiary.active_milestone if beneficiary else None
+    
+    grouped_active = []
+    for slug, label in milestones_cfg:
+        m_items = [i for i in active_items if (i.target_milestone or '') == slug]
+        if m_items:
+            grouped_active.append({
+                'slug': slug,
+                'label': label,
+                'items': m_items,
+                'is_current': slug == active_focus
+            })
+            
+    grouped_completed = []
+    for slug, label in milestones_cfg:
+        m_items = [i for i in completed_items if (i.target_milestone or '') == slug]
+        if m_items:
+            grouped_completed.append({
+                'slug': slug,
+                'label': label,
+                'items': m_items
+            })
+            
+    if active_focus:
+        milestone_order = ['before_30', 'before_40', 'before_50', 'before_die', '']
+        try:
+            focus_idx = milestone_order.index(active_focus)
+        except ValueError:
+            focus_idx = 0
+            
+        def sort_weight(group):
+            slug = group['slug']
+            if slug == active_focus:
+                return 0
+            if not slug:
+                return 100
+            try:
+                idx = milestone_order.index(slug)
+            except ValueError:
+                idx = 99
+            if idx > focus_idx:
+                return idx
+            else:
+                return 50 + idx
+                
+        grouped_active.sort(key=sort_weight)
+        
+    return grouped_active, grouped_completed, active_focus
+
 class BucketListDetailView(DetailView):
     template_name = 'core/list_detail.html'
     context_object_name = 'bucket'
@@ -155,6 +213,12 @@ class BucketListDetailView(DetailView):
         
         active_items, completed_items, is_beneficiary, current_person = get_list_items_for_user(self.request, bucket)
         
+        grouped_active = None
+        grouped_completed = None
+        if bucket.category.template.use_milestone:
+            beneficiary = bucket.beneficiary_person
+            grouped_active, grouped_completed, _ = group_items_by_milestone(active_items, completed_items, beneficiary)
+        
         is_owner = bucket.owner == self.request.user
         if bucket.is_secret_santa:
             can_edit = is_owner or is_beneficiary
@@ -166,6 +230,8 @@ class BucketListDetailView(DetailView):
         context['can_edit'] = can_edit
         context['active_items'] = active_items
         context['completed_items'] = completed_items
+        context['grouped_active'] = grouped_active
+        context['grouped_completed'] = grouped_completed
         context['is_beneficiary'] = is_beneficiary
         context['current_person'] = current_person
         context['people'] = Person.objects.all()
@@ -175,6 +241,12 @@ class BucketListDetailView(DetailView):
 def render_item_list(request, bucket, can_edit):
     active_items, completed_items, is_beneficiary, current_person = get_list_items_for_user(request, bucket)
     
+    grouped_active = None
+    grouped_completed = None
+    if bucket.category.template.use_milestone:
+        beneficiary = bucket.beneficiary_person
+        grouped_active, grouped_completed, _ = group_items_by_milestone(active_items, completed_items, beneficiary)
+        
     is_owner = bucket.owner == request.user
     if bucket.is_secret_santa:
         can_edit = is_owner or is_beneficiary
@@ -187,6 +259,8 @@ def render_item_list(request, bucket, can_edit):
         'bucket': bucket,
         'active_items': active_items,
         'completed_items': completed_items,
+        'grouped_active': grouped_active,
+        'grouped_completed': grouped_completed,
         'can_edit': can_edit,
         'is_beneficiary': is_beneficiary,
         'current_person': current_person
@@ -232,6 +306,7 @@ class AddItemView(View):
             start_date=data.get('start_date') if data.get('start_date') else None,
             end_date=data.get('end_date') if data.get('end_date') else None,
             notes=data.get('notes'),
+            target_milestone=data.get('target_milestone') if data.get('target_milestone') else None,
             rating=data.get('rating') if data.get('rating') else None,
             tracker_unit=data.get('tracker_unit'),
             tracker_times=data.get('tracker_times'),
@@ -274,6 +349,7 @@ class EditItemView(View):
         item.start_date = data.get('start_date') if data.get('start_date') else None
         item.end_date = data.get('end_date') if data.get('end_date') else None
         item.notes = data.get('notes')
+        item.target_milestone = data.get('target_milestone') if data.get('target_milestone') else None
         item.rating = data.get('rating') if data.get('rating') else None
         item.tracker_unit = data.get('tracker_unit')
         item.tracker_times = data.get('tracker_times')
@@ -492,7 +568,9 @@ class ToggleReservationView(View):
 class ThemeSettingsView(LoginRequiredMixin, View):
     def get(self, request):
         settings, _ = UserSetting.objects.get_or_create(user=request.user)
-        return render(request, 'core/settings.html', {'settings': settings})
+        from core.models import Person
+        person, _ = Person.objects.get_or_create(user=request.user, defaults={'name': request.user.username})
+        return render(request, 'core/settings.html', {'settings': settings, 'person': person})
 
     def post(self, request):
         settings, _ = UserSetting.objects.get_or_create(user=request.user)
@@ -504,6 +582,17 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.input_text_color = request.POST.get('input_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.save()
+        
+        # Save birth date
+        birth_date = request.POST.get('birth_date')
+        from core.models import Person
+        person, _ = Person.objects.get_or_create(user=request.user, defaults={'name': request.user.username})
+        if birth_date:
+            person.birth_date = birth_date
+        else:
+            person.birth_date = None
+        person.save()
+        
         return redirect('core:dashboard')
 
 class ToggleTrackerLogView(View):

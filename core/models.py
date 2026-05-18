@@ -21,6 +21,29 @@ class Person(models.Model):
     email = models.EmailField(blank=True, null=True)
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='person_profile')
     access_token = models.UUIDField(default=uuid.uuid4, unique=True)
+    birth_date = models.DateField(null=True, blank=True)
+
+    @property
+    def age(self):
+        if not self.birth_date:
+            return None
+        from django.utils import timezone
+        today = timezone.localdate()
+        return today.year - self.birth_date.year - ((today.month, today.day) < (self.birth_date.month, self.birth_date.day))
+
+    @property
+    def active_milestone(self):
+        current_age = self.age
+        if current_age is None:
+            return None
+        if current_age < 30:
+            return 'before_30'
+        elif current_age < 40:
+            return 'before_40'
+        elif current_age < 50:
+            return 'before_50'
+        else:
+            return 'before_die'
 
     def __str__(self):
         return self.name
@@ -58,6 +81,7 @@ class ListTemplate(models.Model):
     use_status = models.BooleanField(default=True)
     use_rating = models.BooleanField(default=False)
     use_tracker = models.BooleanField(default=False)
+    use_milestone = models.BooleanField(default=False)
 
     def __str__(self):
         return f"Template für {self.category.name}"
@@ -79,6 +103,14 @@ class BucketList(models.Model):
 
     def __str__(self):
         return self.title
+
+    @property
+    def beneficiary_person(self):
+        if self.beneficiary:
+            return self.beneficiary
+        # Find if the owner user has a Person profile
+        from core.models import Person
+        return Person.objects.filter(user=self.owner).first()
 
     class Meta:
         verbose_name = _("Liste")
@@ -127,6 +159,24 @@ class ListItem(models.Model):
     ]
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     
+    MILESTONE_CHOICES = [
+        ('before_30', _('Vor 30')),
+        ('before_40', _('Vor 40')),
+        ('before_50', _('Vor 50')),
+        ('before_die', _('Bevor ich sterbe')),
+    ]
+    target_milestone = models.CharField(max_length=20, choices=MILESTONE_CHOICES, null=True, blank=True)
+    completed_at = models.DateTimeField(null=True, blank=True)
+
+    @property
+    def age_at_completion(self):
+        beneficiary = self.bucket_list.beneficiary_person
+        if not self.completed_at or not beneficiary or not beneficiary.birth_date:
+            return None
+        birth = beneficiary.birth_date
+        comp = self.completed_at.date()
+        return comp.year - birth.year - ((comp.month, comp.day) < (birth.month, birth.day))
+    
     involved_persons = models.ManyToManyField(Person, through='ItemPersonRole', related_name='items', blank=True)
     notes = models.TextField(blank=True)
     
@@ -142,6 +192,15 @@ class ListItem(models.Model):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        if self.is_completed:
+            if not self.completed_at:
+                from django.utils import timezone
+                self.completed_at = timezone.now()
+        else:
+            self.completed_at = None
+        super().save(*args, **kwargs)
 
     @property
     def completed_tracker_times_today(self):

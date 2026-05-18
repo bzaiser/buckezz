@@ -14,9 +14,27 @@
         <div>
             <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                 <span style="font-size: 2rem;">{{ bucket.category.icon }}</span>
-                <h1>{{ bucket.title }}</h1>
+                <h1 style="margin: 0; font-size: 1.8rem;">{{ bucket.title }}</h1>
             </div>
-            <p class="text-muted">{{ bucket.category.name }}</p>
+            <p class="text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
+            
+            {% if bucket.category.template.use_milestone and bucket.beneficiary_person %}
+                <div style="margin-top: 12px; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; color: var(--text-color);">
+                    <span>👤</span>
+                    <strong>{{ bucket.beneficiary_person.name }}</strong>
+                    {% if bucket.beneficiary_person.birth_date %}
+                        <span style="opacity: 0.4;">|</span>
+                        <span>🎂 {{ bucket.beneficiary_person.birth_date|date:"d.m.Y" }}</span>
+                        <span style="opacity: 0.4;">|</span>
+                        <span style="color: var(--primary); font-weight: bold;">Alter: {{ bucket.beneficiary_person.age }} Jahre</span>
+                    {% else %}
+                        <span style="opacity: 0.4;">|</span>
+                        <a href="{% url 'core:settings' %}" style="color: var(--accent); text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
+                            🎂 Geburtsdatum eintragen
+                        </a>
+                    {% endif %}
+                </div>
+            {% endif %}
         </div>
         <div class="actions">
             <button @click="showPrintModal = true" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></button>

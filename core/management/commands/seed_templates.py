@@ -51,6 +51,12 @@ class Command(BaseCommand):
                 'fields': {'use_rating': True, 'use_persons': True}
             },
             {
+                'old_name': '🎯 Bucket List',
+                'name': 'Bucket List',
+                'icon': '🎯',
+                'fields': {'use_milestone': True, 'use_url': True, 'use_rating': True}
+            },
+            {
                 'old_name': '🐾 Haustier-Planer',
                 'name': 'Haustier-Planer',
                 'icon': '🐾',
@@ -80,7 +86,8 @@ class Command(BaseCommand):
                     'use_amount': False, 'use_brand': False, 'use_shop': False,
                     'use_price': False, 'use_location': False, 'use_start_date': False,
                     'use_end_date': False, 'use_persons': False, 'use_reminder': False,
-                    'use_rating': False, 'use_tracker': False
+                    'use_rating': False, 'use_tracker': False, 'use_milestone': False,
+                    'use_url': False
                 }
                 full_fields.update(data['fields'])
                 
