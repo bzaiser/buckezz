@@ -37,6 +37,74 @@ class BucketListAdmin(admin.ModelAdmin):
     list_filter = ('category', 'owner', 'is_secret_santa')
     search_fields = ('title',)
     inlines = [ListItemInline, ListParticipantInline]
+    actions = ['duplicate_bucket_lists']
+
+    @admin.action(description="Ausgewählte Listen duplizieren (Kopieren)")
+    def duplicate_bucket_lists(self, request, queryset):
+        from core.models import ListParticipant, ListItem, ItemPersonRole
+        
+        count = 0
+        for old_bucket in queryset:
+            # 1. Duplicate BucketList
+            new_bucket = BucketList.objects.create(
+                title=f"{old_bucket.title} (Kopie)",
+                category=old_bucket.category,
+                owner=old_bucket.owner,
+                is_public=old_bucket.is_public,
+                allow_public_edit=old_bucket.allow_public_edit,
+                beneficiary=old_bucket.beneficiary,
+                is_secret_santa=old_bucket.is_secret_santa
+            )
+            
+            # 2. Copy shared_with
+            new_bucket.shared_with.set(old_bucket.shared_with.all())
+            
+            # 3. Copy ListParticipant
+            for part in old_bucket.participants.all():
+                ListParticipant.objects.create(
+                    bucket_list=new_bucket,
+                    person=part.person,
+                    link_sent=part.link_sent
+                )
+                
+            # 4. Copy ListItem
+            for item in old_bucket.items.all():
+                new_item = ListItem.objects.create(
+                    bucket_list=new_bucket,
+                    title=item.title,
+                    price=item.price,
+                    amount=item.amount,
+                    brand=item.brand,
+                    shop=item.shop,
+                    url=item.url,
+                    rating=item.rating,
+                    tracker_unit=item.tracker_unit,
+                    tracker_times=item.tracker_times,
+                    tracker_stock_total=item.tracker_stock_total,
+                    tracker_stock_min=item.tracker_stock_min,
+                    tracker_dosage_per_take=item.tracker_dosage_per_take,
+                    start_date=item.start_date,
+                    end_date=item.end_date,
+                    reminder_at=item.reminder_at,
+                    reminder_sent=False,
+                    location=item.location,
+                    status='active',
+                    target_milestone=item.target_milestone,
+                    notes=item.notes,
+                    is_completed=False,
+                    order=item.order,
+                    created_by=item.created_by
+                )
+                # Copy involved persons (ItemPersonRole):
+                for role_entry in item.person_roles.all():
+                    ItemPersonRole.objects.create(
+                        item=new_item,
+                        person=role_entry.person,
+                        role=role_entry.role
+                    )
+            count += 1
+            
+        self.message_user(request, f"{count} Liste(n) wurde(n) erfolgreich dupliziert (Einträge zurückgesetzt).")
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)
