@@ -95,6 +95,7 @@ def group_items_by_milestone(active_items, completed_items, beneficiary):
         ('before_30', 'Vor 30'),
         ('before_40', 'Vor 40'),
         ('before_50', 'Vor 50'),
+        ('before_60', 'Vor 60'),
         ('before_die', 'Bevor ich sterbe'),
         ('', 'Ohne Meilenstein')
     ]
@@ -123,7 +124,7 @@ def group_items_by_milestone(active_items, completed_items, beneficiary):
             })
             
     if active_focus:
-        milestone_order = ['before_30', 'before_40', 'before_50', 'before_die', '']
+        milestone_order = ['before_30', 'before_40', 'before_50', 'before_60', 'before_die', '']
         try:
             focus_idx = milestone_order.index(active_focus)
         except ValueError:

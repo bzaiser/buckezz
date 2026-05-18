@@ -42,6 +42,8 @@ class Person(models.Model):
             return 'before_40'
         elif current_age < 50:
             return 'before_50'
+        elif current_age < 60:
+            return 'before_60'
         else:
             return 'before_die'
 
@@ -163,6 +165,7 @@ class ListItem(models.Model):
         ('before_30', _('Vor 30')),
         ('before_40', _('Vor 40')),
         ('before_50', _('Vor 50')),
+        ('before_60', _('Vor 60')),
         ('before_die', _('Bevor ich sterbe')),
     ]
     target_milestone = models.CharField(max_length=20, choices=MILESTONE_CHOICES, null=True, blank=True)
