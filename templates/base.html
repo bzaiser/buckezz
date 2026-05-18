@@ -280,7 +280,7 @@
         }
 
         /* Custom Tom Select Glassmorphism Overrides */
-        .ts-wrapper.multi .ts-control {
+        .ts-wrapper .ts-control {
             background: var(--input-bg) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;
             color: var(--input-text) !important;
@@ -290,6 +290,7 @@
             display: flex !important;
             flex-wrap: wrap !important;
             gap: 4px !important;
+            align-items: center !important;
         }
         .ts-wrapper .ts-control input {
             color: var(--input-text) !important;
@@ -297,6 +298,16 @@
         .ts-wrapper .ts-control input::placeholder {
             color: var(--text-muted) !important;
             opacity: 0.6 !important;
+        }
+        .ts-wrapper.single .ts-control::after {
+            border-color: var(--text-muted) transparent transparent transparent !important;
+        }
+        .ts-wrapper.single.open .ts-control::after {
+            border-color: transparent transparent var(--text-muted) transparent !important;
+        }
+        .ts-wrapper.single .ts-control .item,
+        .ts-wrapper.single .ts-control > div {
+            color: var(--input-text) !important;
         }
         .ts-dropdown {
             background: #151b23 !important;
