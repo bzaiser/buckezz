@@ -657,6 +657,18 @@ class CalendarView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        # Get or lazily create Person profile for secure calendar feed token
+        from core.models import Person
+        person = Person.objects.filter(user=self.request.user).first()
+        if not person and self.request.user.is_authenticated:
+            person = Person.objects.create(
+                user=self.request.user,
+                name=self.request.user.get_full_name() or self.request.user.username,
+                email=self.request.user.email
+            )
+        context['person'] = person
+
         # Fetch all lists where user is owner or shared_with
         lists = BucketList.objects.filter(
             models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)

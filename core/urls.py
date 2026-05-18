@@ -32,4 +32,5 @@ urlpatterns = [
     path('list/<uuid:pk>/share-toggle/', views.ShareToggleView.as_view(), name='share_toggle'),
     path('settings/', views.ThemeSettingsView.as_view(), name='settings'),
     path('calendar/', views.CalendarView.as_view(), name='calendar'),
+    path('calendar/feed/<uuid:token>/calendar.ics', api_views.PersonalICalFeedView.as_view(), name='list_ical_feed'),
 ]

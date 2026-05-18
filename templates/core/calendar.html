@@ -222,6 +222,53 @@
     <div class="calendar-card" style="margin-top: var(--spacing-md);">
         <div id="calendar"></div>
     </div>
+
+    <!-- Calendar Sync / ICS Feed Subscription Card -->
+    {% if person %}
+    <div class="glass card" style="margin-top: var(--spacing-lg); padding: var(--spacing-lg); border: 1px solid var(--glass-border); border-radius: var(--radius-lg); background: rgba(255, 255, 255, 0.01); display: flex; flex-direction: column; gap: var(--spacing-sm); animation: fadeIn 0.4s ease-out; box-shadow: var(--shadow-sm); margin-bottom: var(--spacing-xl);">
+        <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px; flex-wrap: wrap;">
+            <span style="font-size: 1.8rem;">📅</span>
+            <div>
+                <h3 style="margin: 0; font-size: 1.1rem; color: var(--primary);">Mit Outlook, Google Calendar oder Apple Calendar synchronisieren</h3>
+                <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.82rem;">Abonniere deinen persönlichen Buckezz-Kalenderfeed, damit neue Termine und Erinnerungen vollautomatisch in deinem privaten Kalender erscheinen.</p>
+            </div>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-xs); margin-top: var(--spacing-xs);">
+            <p style="margin: 0; font-size: 0.88rem; font-weight: 600; color: #fff;">Dein persönlicher Kalender-Link (ICS-Feed):</p>
+            <div style="display: flex; gap: var(--spacing-xs); align-items: stretch; flex-wrap: wrap;">
+                <input type="text" readonly id="ics-feed-url" value="{{ request.scheme }}://{{ request.get_host }}{% url 'core:list_ical_feed' person.access_token %}" 
+                       style="flex: 1; min-width: 250px; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--glass-border); padding: 10px 14px; border-radius: var(--radius-md); font-family: monospace; font-size: 0.85rem; color: var(--text-color);">
+                <button type="button" onclick="copyIcsUrl()" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                    <span>📋</span> Link kopieren
+                </button>
+            </div>
+            <p id="copy-success-msg" style="margin: 4px 0 0 0; font-size: 0.8rem; color: var(--primary); font-weight: bold; display: none; transition: opacity 0.2s;">
+                ✓ Link erfolgreich in die Zwischenablage kopiert!
+            </p>
+        </div>
+
+        <div style="background: rgba(255, 255, 255, 0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05); margin-top: var(--spacing-xs); font-size: 0.82rem; line-height: 1.5; color: var(--text-muted);">
+            <strong>ℹ️ Anleitung für Outlook / Google:</strong><br>
+            • <strong>Outlook:</strong> Öffne deinen Kalender, klicke auf "Kalender hinzufügen" &rarr; "Aus dem Internet abonnieren", füge den kopierten Link ein und gib dem Kalender einen Namen (z. B. "Buckezz").<br>
+            • <strong>Google Kalender:</strong> Klicke links neben "Weitere Kalender" auf das "+", wähle "Per URL" und füge den Link ein.
+        </div>
+    </div>
+    <script>
+        function copyIcsUrl() {
+            var copyText = document.getElementById("ics-feed-url");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(copyText.value);
+            
+            var msg = document.getElementById("copy-success-msg");
+            msg.style.display = "block";
+            setTimeout(function() {
+                msg.style.display = "none";
+            }, 3000);
+        }
+    </script>
+    {% endif %}
 </div>
 {% endblock %}
 
