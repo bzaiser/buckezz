@@ -11,6 +11,7 @@ urlpatterns = [
     
     path('api/add/', api_views.AlexaAddItemView.as_view(), name='alexa_add'),
     path('api/alexa-skill/', api_views.AlexaSkillView.as_view(), name='alexa_skill'),
+    path('api/alexa-skill', api_views.AlexaSkillView.as_view(), name='alexa_skill_no_slash'),
     path('api/person/add/', api_views.QuickAddPersonView.as_view(), name='quick_add_person'),
     path('', views.HomeView.as_view(), name='home'),
     path('dashboard/', views.DashboardView.as_view(), name='dashboard'),
