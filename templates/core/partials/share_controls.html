@@ -87,101 +87,60 @@
                 </label>
                 
                 <!-- Quick add/select participant -->
-                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); flex-wrap: wrap; align-items: stretch; position: relative; z-index: 100;">
-                    
-                    <!-- Beautiful Custom Dropdown Selection -->
-                    <div x-data="{ 
-                        open: false, 
-                        search: '', 
-                        selectedName: '', 
-                        selectedId: '', 
-                        allPersons: [{% for p in people %}{id: '{{ p.id }}', name: '{{ p.name|escapejs }}'},{% endfor %}],
-                        
-                        get filtered() {
-                            if (this.search.trim() === '') return this.allPersons;
-                            return this.allPersons.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()));
-                        },
-                        
-                        select(person) {
-                            this.selectedName = person.name;
-                            this.selectedId = person.id;
-                            this.open = false;
-                            this.search = '';
-                        }
-                    }" style="position: relative; flex: 1; min-width: 180px;">
-                        
-                        <!-- Trigger Box -->
-                        <div @click="open = !open" 
-                             class="glass" 
-                             style="width: 100%; border-radius: var(--radius-sm); padding: 8px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; min-height: 38px; border: 1px solid var(--glass-border); background: var(--glass-bg); color: var(--text-main); box-sizing: border-box;">
-                            <span x-text="selectedName || 'Aus vorhandenen wählen...'" 
-                                  style="font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: calc(100% - 20px);"
-                                  :style="selectedName ? 'color: var(--text-main);' : 'color: var(--text-muted);'">
-                            </span>
-                            <span style="font-size: 0.75rem; opacity: 0.7;">▼</span>
-                        </div>
-
-                        <!-- Hidden input to hold selected ID -->
-                        <input type="hidden" id="select-participant" :value="selectedId">
-
-                        <!-- Glassmorphic Searchable Dropdown Panel -->
-                        <div x-show="open" 
-                             @click.away="open = false" 
-                             style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: var(--bg-main); border: 1px solid var(--accent); border-radius: var(--radius-md); z-index: 1000; padding: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-sm); max-height: 250px; box-shadow: 0 10px 30px rgba(0,0,0,0.6);"
-                             @click.stop>
-                             
-                            <!-- Search Field -->
-                            <input type="text" 
-                                   x-model="search" 
-                                   placeholder="Suchen..." 
-                                   class="glass input" 
-                                   style="width: 100%; border-radius: var(--radius-sm); padding: 6px 10px; font-size: 0.85rem; background: var(--input-bg); color: var(--input-text); border: 1px solid var(--glass-border);"
-                                   @click.stop>
-                                   
-                            <!-- Options List -->
-                            <div style="overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 2px;">
-                                <template x-for="person in filtered" :key="person.id">
-                                    <div @click="select(person)" 
-                                         class="dropdown-item" 
-                                         style="padding: 8px 12px; border-radius: var(--radius-sm); cursor: pointer; font-size: 0.9rem; transition: all 0.15s; color: var(--text-main);"
-                                         onmouseover="this.style.background='var(--primary)'; this.style.color='#000'"
-                                         onmouseout="this.style.background='transparent'; this.style.color='var(--text-main)'"
-                                         x-text="person.name">
-                                    </div>
-                                </template>
-                                <div x-show="filtered.length === 0" style="padding: 8px 12px; color: var(--text-muted); font-size: 0.85rem; text-align: center;">
-                                    Keine Person gefunden
-                                </div>
-                            </div>
-                        </div>
+                <div style="display: flex; gap: 8px; margin-bottom: var(--spacing-md); align-items: center; justify-content: stretch; z-index: 1000;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <select id="select-participant" placeholder="Person auswählen oder neu..." autocomplete="off">
+                            <option value="">-- Person auswählen oder neu eintippen --</option>
+                            {% for p in people %}
+                                <option value="{{ p.id }}">{{ p.name }}</option>
+                            {% endfor %}
+                        </select>
                     </div>
-
-                    <!-- Right Column: New Person Name Input -->
-                    <div style="flex: 1.2; min-width: 200px; display: flex; gap: 4px;">
-                        <input type="text" id="new-participant-name" class="glass input" placeholder="Oder neuer Name..." style="flex: 1; border-radius: 8px; padding: 6px 12px;">
-                        <button type="button" class="glass" style="background: var(--primary); color: #000; font-weight: bold; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer; min-height: 38px;"
-                                onclick="
-                                    const selectEl = document.getElementById('select-participant');
-                                    const inputEl = document.getElementById('new-participant-name');
-                                    const personId = selectEl.value;
-                                    const inputVal = inputEl.value.trim();
-                                    
-                                    if(personId) {
-                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
-                                            target: '#share-controls',
-                                            values: { action: 'add_participant', person_id: personId }
-                                        });
-                                    } else if(inputVal) {
-                                        htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
-                                            target: '#share-controls',
-                                            values: { action: 'add_participant', new_person_name: inputVal }
-                                        });
-                                    }
-                                ">
-                            + Hinzufügen
-                        </button>
-                    </div>
+                    <button type="button" class="glass" style="background: var(--primary); color: #000; font-weight: bold; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer; min-height: 42px; display: inline-flex; align-items: center;"
+                            onclick="
+                                const selectEl = document.getElementById('select-participant');
+                                const val = selectEl.value;
+                                if (val) {
+                                    htmx.ajax('POST', '{% url \'core:share_toggle\' bucket.id %}', {
+                                        target: '#share-controls',
+                                        values: { action: 'add_participant', person_id: val }
+                                    });
+                                }
+                            ">
+                        + Hinzufügen
+                    </button>
                 </div>
+                <script>
+                    (function() {
+                        new TomSelect('#select-participant', {
+                            create: async function(input, callback) {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('name', input);
+                                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                                    const response = await fetch('/api/person/add/', {
+                                        method: 'POST',
+                                        body: formData,
+                                        headers: {
+                                            'X-CSRFToken': csrfToken
+                                        }
+                                    });
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        callback({value: data.id, text: data.name});
+                                    } else {
+                                        callback(false);
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    callback(false);
+                                }
+                            },
+                            persist: false,
+                            placeholder: 'Person auswählen oder neu...'
+                        });
+                    })();
+                </script>
 
                 <!-- Participant list -->
                 <div style="display: flex; flex-direction: column; gap: 8px;">
