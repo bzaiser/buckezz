@@ -53,6 +53,35 @@
             </div>
         {% endif %}
 
+        <!-- Microsoft To-Do Sync Settings -->
+        <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-xs);">
+            <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
+                <span>🔄 Realtime-Sync (z.B. Alexa & Microsoft To-Do)</span>
+            </h4>
+            <p style="font-size: 0.75rem; color: var(--text-muted); margin: 0;">
+                Füge hier den iCal-Link (.ics) deiner Einkaufsliste aus Microsoft To-Do / Outlook ein. Buckezz aktualisiert sich dann automatisch beim Öffnen der App!
+            </p>
+            <div style="display: flex; gap: 8px; align-items: center; margin-top: 4px;">
+                <input type="url" 
+                       id="todo-sync-url-input"
+                       name="todo_sync_url"
+                       class="glass input" 
+                       style="flex: 1; border-radius: 8px; min-height: 38px; padding: 0 12px; font-size: 0.85rem;"
+                       placeholder="https://outlook.live.com/owa/calendar/..."
+                       value="{% if bucket.todo_sync_url %}{{ bucket.todo_sync_url }}{% endif %}">
+                <button type="button" 
+                        class="glass" 
+                        style="background: var(--accent); color: #fff; border-radius: 8px; border: none; padding: 0 16px; cursor: pointer; min-height: 38px; font-size: 0.85rem; font-weight: bold;"
+                        hx-post="{% url 'core:share_toggle' bucket.id %}"
+                        hx-include="#todo-sync-url-input"
+                        hx-vals='{"action": "set_todo_sync_url"}'
+                        hx-target="#share-controls"
+                        hx-swap="outerHTML">
+                    Speichern
+                </button>
+            </div>
+        </div>
+
         <!-- Secret Santa configurations / Participant management -->
         {% if bucket.is_secret_santa or bucket.category.template.use_persons %}
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-md);">

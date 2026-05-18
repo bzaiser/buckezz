@@ -199,6 +199,16 @@ class BucketListDetailView(DetailView):
         elif not request.user.is_authenticated and not request.session.get('guest_name'):
             return render(request, 'core/guest_login.html', {'bucket': self.object})
             
+        # Trigger Edeka Microsoft To-Do real-time sync (throttled to once every 10 seconds per session)
+        if self.object.todo_sync_url:
+            import time
+            session_key = f'last_todo_sync_{self.object.id}'
+            last_sync = request.session.get(session_key, 0)
+            now = time.time()
+            if now - last_sync > 10:
+                sync_microsoft_todo(self.object)
+                request.session[session_key] = now
+
         context = self.get_context_data(object=self.object)
         return self.render_to_response(context)
 
@@ -456,6 +466,9 @@ class ShareToggleView(LoginRequiredMixin, View):
                 bucket.beneficiary_id = beneficiary_id
             else:
                 bucket.beneficiary = None
+        elif action == 'set_todo_sync_url':
+            todo_sync_url = request.POST.get('todo_sync_url', '').strip()
+            bucket.todo_sync_url = todo_sync_url if todo_sync_url else None
         elif action == 'add_participant':
             person_id = request.POST.get('person_id')
             new_person_name = request.POST.get('new_person_name')
@@ -792,4 +805,52 @@ class CalendarView(LoginRequiredMixin, TemplateView):
 
         context['events_json'] = json.dumps(events)
         return context
+
+
+def sync_microsoft_todo(bucket_list):
+    if not bucket_list.todo_sync_url:
+        return
+        
+    import urllib.request
+    import re
+    from core.models import ListItem
+    
+    try:
+        # Fetch the ICS content with a timeout of 3 seconds and a custom User-Agent
+        req = urllib.request.Request(
+            bucket_list.todo_sync_url, 
+            headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Buckezz/1.0'}
+        )
+        with urllib.request.urlopen(req, timeout=3) as response:
+            content = response.read().decode('utf-8')
+            
+        # Parse VTODO blocks in the ICS feed
+        vtodo_blocks = re.findall(r'BEGIN:VTODO(.*?)END:VTODO', content, re.DOTALL)
+        
+        for block in vtodo_blocks:
+            # Extract SUMMARY (the item text)
+            summary_match = re.search(r'SUMMARY:(.*?)[\r\n]', block)
+            status_match = re.search(r'STATUS:(.*?)[\r\n]', block)
+            
+            if summary_match:
+                title = summary_match.group(1).strip()
+                # Clean up standard ICS escapes (like \,)
+                title = title.replace(r'\,', ',').replace(r'\;', ';')
+                
+                # Check status: uncompleted is NEEDS-ACTION
+                status = status_match.group(1).strip() if status_match else 'NEEDS-ACTION'
+                
+                if status == 'NEEDS-ACTION':
+                    # Only add if not already in the active list
+                    if not ListItem.objects.filter(bucket_list=bucket_list, title=title, is_completed=False).exists():
+                        ListItem.objects.create(
+                            bucket_list=bucket_list,
+                            title=title,
+                            is_completed=False
+                        )
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Microsoft To-Do sync failed for list {bucket_list.id}: {e}")
+
 

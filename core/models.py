@@ -97,6 +97,7 @@ class ListTemplate(models.Model):
 class BucketList(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=255)
+    todo_sync_url = models.URLField(blank=True, null=True, verbose_name="Microsoft To-Do iCal-Link", help_text="Öffentlicher iCal/ICS-Link zur Synchronisation (z.B. Microsoft To-Do)")
     category = models.ForeignKey(ListCategory, on_delete=models.PROTECT, related_name='lists')
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='owned_lists')
     shared_with = models.ManyToManyField(User, related_name='shared_lists', blank=True)
