@@ -247,6 +247,9 @@
                 font-size: 0.82rem !important;
                 font-weight: 600 !important;
             }
+            .nav-text {
+                display: none !important;
+            }
             .welcome-text {
                 display: none; /* Hide welcome text on mobile to save space */
             }
@@ -347,16 +350,16 @@
             <nav class="nav-links">
                 {% if user.is_authenticated %}
                     {% if user.is_staff %}
-                        <a href="{% url 'admin:index' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">⚙️ Admin</a>
+                        <a href="{% url 'admin:index' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">⚙️ <span class="nav-text">Admin</span></a>
                     {% endif %}
-                    <a href="{% url 'core:calendar' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">📅 Kalender</a>
-                    <a href="{% url 'core:settings' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🎨 Design</a>
+                    <a href="{% url 'core:calendar' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">📅 <span class="nav-text">Kalender</span></a>
+                    <a href="{% url 'core:settings' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🎨 <span class="nav-text">Design</span></a>
                     <form action="{% url 'core:logout' %}" method="post" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" style="background: none; border: none; color: var(--primary); font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0;">🚪 Logout</button>
+                        <button type="submit" style="background: none; border: none; color: var(--primary); font-weight: 600; font-size: 0.9rem; cursor: pointer; padding: 0;">🚪 <span class="nav-text">Logout</span></button>
                     </form>
                 {% else %}
-                    <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🔑 Anmelden</a>
+                    <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" style="text-decoration: none; color: var(--primary); font-weight: 600; font-size: 0.9rem;">🔑 <span class="nav-text">Anmelden</span></a>
                 {% endif %}
             </nav>
         </div>
