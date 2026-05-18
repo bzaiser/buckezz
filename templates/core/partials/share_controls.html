@@ -101,7 +101,7 @@
                                 const selectEl = document.getElementById('select-participant');
                                 const val = selectEl.value;
                                 if (val) {
-                                    htmx.ajax('POST', '{% url \'core:share_toggle\' bucket.id %}', {
+                                    htmx.ajax('POST', '{% url 'core:share_toggle' bucket.id %}', {
                                         target: '#share-controls',
                                         values: { action: 'add_participant', person_id: val }
                                     });
