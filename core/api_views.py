@@ -33,6 +33,110 @@ class AlexaAddItemView(View):
             'list': bucket.title
         })
 
+@method_decorator(csrf_exempt, name='dispatch')
+class AlexaSkillView(View):
+    def post(self, request):
+        import json
+        token = request.GET.get('token')
+        list_id = request.GET.get('list_id')
+        
+        if token != env('ALEXA_TOKEN', default='secret-alexa-token'):
+            return JsonResponse({'error': 'Unauthorized'}, status=401)
+            
+        if not list_id:
+            return JsonResponse({'error': 'Missing list_id parameter'}, status=400)
+            
+        try:
+            data = json.loads(request.body)
+            req_type = data.get('request', {}).get('type')
+            
+            # 1. LaunchRequest ("Alexa, öffne Buckezz")
+            if req_type == 'LaunchRequest':
+                response_text = "Hallo! Welches Element möchtest du auf die Einkaufsliste setzen?"
+                return JsonResponse({
+                    'version': '1.0',
+                    'response': {
+                        'outputSpeech': {
+                            'type': 'PlainText',
+                            'text': response_text
+                        },
+                        'shouldEndSession': False
+                    }
+                })
+                
+            # 2. IntentRequest ("Alexa, setze Milch auf die Liste")
+            elif req_type == 'IntentRequest':
+                intent_name = data.get('request', {}).get('intent', {}).get('name')
+                
+                if intent_name == 'AddItemIntent':
+                    slots = data.get('request', {}).get('intent', {}).get('slots', {})
+                    # Find slot for item title (can be named 'item', 'title', etc.)
+                    item_slot = slots.get('item') or slots.get('title') or {}
+                    title = item_slot.get('value')
+                    
+                    if title:
+                        bucket = get_object_or_404(BucketList, id=list_id)
+                        item = ListItem.objects.create(bucket_list=bucket, title=title)
+                        
+                        response_text = f"Ich habe {title} auf deine Liste {bucket.title} gesetzt."
+                    else:
+                        response_text = "Ich habe den Namen des Elements leider nicht verstanden. Bitte versuche es noch einmal."
+                        
+                    return JsonResponse({
+                        'version': '1.0',
+                        'response': {
+                            'outputSpeech': {
+                                'type': 'PlainText',
+                                'text': response_text
+                            },
+                            'shouldEndSession': True
+                        }
+                    })
+                
+                # Help or Stop intent
+                elif intent_name in ['AMAZON.HelpIntent', 'AMAZON.NavigateHomeIntent']:
+                    return JsonResponse({
+                        'version': '1.0',
+                        'response': {
+                            'outputSpeech': {
+                                'type': 'PlainText',
+                                'text': "Du kannst mich bitten, ein Element auf deine Liste zu setzen. Sage zum Beispiel: setze Tomaten auf die Liste."
+                            },
+                            'shouldEndSession': False
+                        }
+                    })
+                elif intent_name in ['AMAZON.CancelIntent', 'AMAZON.StopIntent']:
+                    return JsonResponse({
+                        'version': '1.0',
+                        'response': {
+                            'outputSpeech': {
+                                'type': 'PlainText',
+                                'text': "Tschüss!"
+                            },
+                            'shouldEndSession': True
+                        }
+                    })
+            
+            # SessionEndedRequest
+            return JsonResponse({
+                'version': '1.0',
+                'response': {
+                    'shouldEndSession': True
+                }
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'version': '1.0',
+                'response': {
+                    'outputSpeech': {
+                        'type': 'PlainText',
+                        'text': "Es gab leider einen Fehler bei der Verbindung zu Buckezz."
+                    },
+                    'shouldEndSession': True
+                }
+            })
+
 class ICalExportView(View):
     def get(self, request, pk):
         bucket = get_object_or_404(BucketList, id=pk)
