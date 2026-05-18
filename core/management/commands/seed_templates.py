@@ -23,7 +23,7 @@ class Command(BaseCommand):
                 'icon': '✅',
                 'fields': {'use_end_date': True, 'use_persons': True, 'use_reminder': True},
                 'help_purpose': 'Strukturierte Erfassung all deiner privaten und beruflichen Aufgaben.',
-                'help_fields': 'Nutze folgende Felder zur Aufgabenverwaltung:\n• Fälligkeitsdatum: Bis wann die Aufgabe erledigt sein muss\n• Erinnerung: Stelle Benachrichtigungen ein, um Fristen nicht zu verschlafen\n• Personen: Weise Aufgaben deinen Freunden oder Familienmitgliedern zu!',
+                'help_fields': 'Nutze folgende Felder zur Aufgabenverwaltung:\n• Fälligkeitsdatum: Bis wann die Aufgabe erledigt sein muss\n• Erinnerung: Stelle E-Mail-Wecker ein. Auf Reisen passt sich die Zeit automatisch an (z.B. in Griechenland). Du siehst den Status direkt am Symbol (⏰ = geplant, 📩 = gesendet!)\n• Personen: Weise Aufgaben deinen Freunden oder Familienmitgliedern zu!',
                 'help_example': 'Bezeichnung: "Wohnzimmer streichen" | Fälligkeit: "Sonntag" | Beteiligt: "Jonas, Papa"'
             },
             {
@@ -50,7 +50,7 @@ class Command(BaseCommand):
                 'icon': '💊',
                 'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True, 'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Verlässliche Erinnerung und Dokumentation deiner täglichen Medikamente.',
-                'help_fields': 'Behalte deine Gesundheit im Griff:\n• Dosierung/Menge: z.B. "1 Tablette" oder "15 Tropfen"\n• Startdatum: Wann die Einnahme-Phase beginnt\n• Erinnerung: Stelle tägliche oder wöchentliche Wecker ein\n• Einnahme-Tracker: Protokolliere Einnahmen in Echtzeit mit einem Klick im Live-Tracker!',
+                'help_fields': 'Behalte deine Gesundheit im Griff:\n• Dosierung/Menge: z.B. "1 Tablette" oder "15 Tropfen"\n• Startdatum: Wann die Einnahme-Phase beginnt\n• Erinnerung: E-Mail-Wecker, die sich auf Reisen vollautomatisch an deinen Standort anpassen (z.B. in Griechenland). Status: ⏰ = geplant, 📩 = gesendet.\n• Einnahme-Tracker: Protokolliere Einnahmen in Echtzeit mit einem Klick im Live-Tracker!',
                 'help_example': 'Bezeichnung: "Magnesium 400" | Dosis: "1 Kapsel" | Uhrzeit: "20:00 Uhr". Nach dem Schlucken klickst du einfach auf "Eingenommen" zum Protokollieren.'
             },
             {
@@ -86,7 +86,7 @@ class Command(BaseCommand):
                 'icon': '🐾',
                 'fields': {'use_persons': True, 'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Perfekt, um die Versorgung von Hund, Katze, Vögeln oder Pferd im Haushalt abzustimmen.',
-                'help_fields': 'Organisiere die Tierpflege:\n• Zuständigkeit: Wer füttert das Tier oder geht Gassi?\n• Erinnerung: Tägliche oder wöchentliche Wecker für Medizin, Bürsten, etc.\n• Pflege-Tracker: Logge jede Aktion minutengenau, um Doppel-Fütterungen auszuschließen!',
+                'help_fields': 'Organisiere die Tierpflege:\n• Zuständigkeit: Wer füttert das Tier oder geht Gassi?\n• Erinnerung: E-Mail-Wecker für Medizin, Bürsten, etc. (mit automatischer Zeitzonen-Erkennung auf Reisen: ⏰ = geplant, 📩 = gesendet)\n• Pflege-Tracker: Logge jede Aktion minutengenau, um Doppel-Fütterungen auszuschließen!',
                 'help_example': 'Bezeichnung: "Katze Futter geben" | Zuständig: "Sarah" | Uhrzeit: "07:30 Uhr". Nach dem Füttern loggst du es im Tracker ein.'
             },
             {
@@ -95,7 +95,7 @@ class Command(BaseCommand):
                 'icon': '🪴',
                 'fields': {'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Perfekt, um das Gießen, Düngen und Umtopfen deiner Zimmerpflanzen strukturiert im Griff zu behalten.',
-                'help_fields': 'Pflege deine Pflanzen optimal:\n• Gieß-Intervall (Erinnerung): Alle wie viele Tage gegossen wird (z.B. alle 7 Tage)\n• Gieß-Tracker: Logge das Gießen im Live-Tracker, um Staunässe sicher zu verhindern.',
+                'help_fields': 'Pflege deine Pflanzen optimal:\n• Gieß-Intervall (Erinnerung): Wecker zum Gießen (reisesicher mit automatischer Zeitzone: ⏰ = geplant, 📩 = gesendet)\n• Gieß-Tracker: Logge das Gießen im Live-Tracker, um Staunässe sicher zu verhindern.',
                 'help_example': 'Bezeichnung: "Monstera gießen" | Erinnerung: "Alle 8 Tage" | Tracker: Aktiviert. Sobald du mit der Gießkanne herumgehst, loggst du es ein!'
             }
         ]
