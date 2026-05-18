@@ -351,6 +351,18 @@ class EditItemView(View):
         item.notes = data.get('notes')
         item.target_milestone = data.get('target_milestone') if data.get('target_milestone') else None
         item.rating = data.get('rating') if data.get('rating') else None
+        
+        # Retroactive completion date override for milestone lists
+        if item.is_completed and bucket.category.template.use_milestone:
+            completed_at_val = data.get('completed_at')
+            if completed_at_val:
+                from django.utils.dateparse import parse_datetime
+                from django.utils import timezone
+                parsed = parse_datetime(completed_at_val)
+                if parsed:
+                    if timezone.is_naive(parsed):
+                        parsed = timezone.make_aware(parsed)
+                    item.completed_at = parsed
         item.tracker_unit = data.get('tracker_unit')
         item.tracker_times = data.get('tracker_times')
         item.tracker_stock_total = int(data.get('tracker_stock_total')) if data.get('tracker_stock_total') else None

@@ -70,6 +70,13 @@
                     <option value="before_die" {% if item.target_milestone == 'before_die' %}selected{% endif %}>Bevor ich sterbe</option>
                 </select>
             </div>
+            
+            {% if item and item.is_completed %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">🎉 Erreicht am (Datum & Uhrzeit)</label>
+                <input type="datetime-local" name="completed_at" value="{{ item.completed_at|date:'Y-m-d\TH:i' }}" class="glass" style="width: 100%; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 14px;">
+            </div>
+            {% endif %}
             {% endif %}
 
             {% if bucket.category.template.use_rating %}
