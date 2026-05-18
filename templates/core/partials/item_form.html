@@ -166,99 +166,52 @@
             {% endif %}
 
             {% if bucket.category.template.use_persons %}
-            <div class="form-group" x-data='{
-                search: "",
-                allPersons: [{% for p in people %}{id: {{ p.id }}, name: "{{ p.name|escapejs }}"},{% endfor %}],
-                selectedIds: [{% if item %}{% for role in item.person_roles.all %}{{ role.person.id }},{% endfor %}{% endif %}],
-                
-                get selectedPersons() {
-                    return this.allPersons.filter(p => this.selectedIds.includes(p.id));
-                },
-                
-                get filteredPersons() {
-                    if (this.search.trim() === "") return this.allPersons.filter(p => !this.selectedIds.includes(p.id)).slice(0, 8);
-                    return this.allPersons.filter(p => p.name.toLowerCase().includes(this.search.toLowerCase()) && !this.selectedIds.includes(p.id)).slice(0, 15);
-                },
-                
-                get showAddButton() {
-                    if (this.search.trim() === "") return false;
-                    return !this.allPersons.some(p => p.name.toLowerCase() === this.search.trim().toLowerCase());
-                },
-                
-                togglePerson(id) {
-                    if (this.selectedIds.includes(id)) {
-                        this.selectedIds = this.selectedIds.filter(i => i !== id);
-                    } else {
-                        this.selectedIds.push(id);
-                        this.search = "";
-                    }
-                },
-                
-                async addNewPerson() {
-                    const name = this.search.trim();
-                    if (!name) return;
-                    
-                    try {
-                        const formData = new FormData();
-                        formData.append("name", name);
-                        const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
-                        
-                        const response = await fetch("/api/person/add/", {
-                            method: "POST",
-                            body: formData,
-                            headers: {
-                                "X-CSRFToken": csrfToken
-                            }
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Beteiligte Personen</label>
+                <select id="select-persons" name="persons" multiple placeholder="Personen auswählen oder neu..." autocomplete="off">
+                    {% for p in people %}
+                        <option value="{{ p.id }}" 
+                            {% if item %}
+                                {% for role in item.person_roles.all %}
+                                    {% if role.person.id == p.id %}selected{% endif %}
+                                {% endfor %}
+                            {% endif %}>
+                            {{ p.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <script>
+                    (function() {
+                        const control = new TomSelect('#select-persons', {
+                            plugins: ['remove_button'],
+                            create: async function(input, callback) {
+                                try {
+                                    const formData = new FormData();
+                                    formData.append('name', input);
+                                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                                    const response = await fetch('/api/person/add/', {
+                                        method: 'POST',
+                                        body: formData,
+                                        headers: {
+                                            'X-CSRFToken': csrfToken
+                                        }
+                                    });
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        callback({value: data.id, text: data.name});
+                                    } else {
+                                        callback(false);
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                    callback(false);
+                                }
+                            },
+                            persist: false,
+                            placeholder: 'Personen auswählen oder neu...'
                         });
-                        if (response.ok) {
-                            const data = await response.json();
-                            this.allPersons.push({ id: data.id, name: data.name });
-                            this.selectedIds.push(data.id);
-                            this.search = "";
-                        }
-                    } catch (e) {
-                        console.error("Error adding person:", e);
-                    }
-                }
-            }'>
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Beteiligte Personen</label>
-                
-                <!-- Hidden inputs for form submission -->
-                <template x-for="id in selectedIds" :key="id">
-                    <input type="hidden" name="persons" :value="id">
-                </template>
-                
-                <!-- Selected Badges -->
-                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;" x-show="selectedPersons.length > 0">
-                    <template x-for="person in selectedPersons" :key="person.id">
-                        <span style="font-size: 0.8rem; background: color-mix(in srgb, var(--primary) 20%, transparent); color: var(--primary); padding: 4px 8px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px; border: 1px solid currentColor;" @click="togglePerson(person.id)">
-                            <span x-text="person.name"></span>
-                            <span style="opacity: 0.7;">&times;</span>
-                        </span>
-                    </template>
-                </div>
-                
-                <!-- Search / Add Box -->
-                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                    <input type="text" x-model="search" 
-                           @keydown.enter.prevent="addNewPerson()"
-                           class="glass input" placeholder="Suchen oder neu..." style="flex: 1; border-radius: 8px;">
-                    <button type="button" x-show="showAddButton" @click="addNewPerson()" class="glass" style="background: var(--primary); color: #000; border-radius: 8px; padding: 0 12px; font-weight: bold; cursor: pointer; border: none;">
-                        + Hinzufügen
-                    </button>
-                </div>
-                
-                <!-- Suggestions -->
-                <div x-show="filteredPersons.length > 0" style="max-height: 130px; overflow-y: auto; background: rgba(0, 0, 0, 0.3); border-radius: var(--radius-sm); border: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 2px; padding: 4px;">
-                    <template x-for="person in filteredPersons" :key="person.id">
-                        <div style="font-size: 0.85rem; background: transparent; padding: 8px 12px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: all 0.1s ease; color: var(--text-main);"
-                             @click="togglePerson(person.id)"
-                             onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.color='var(--primary)'"
-                             onmouseout="this.style.background='transparent'; this.style.color='var(--text-main)'">
-                            <span style="font-weight: 500;">+ <span x-text="person.name"></span></span>
-                        </div>
-                    </template>
-                </div>
+                    })();
+                </script>
             </div>
             {% endif %}
 

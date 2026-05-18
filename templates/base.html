@@ -278,8 +278,66 @@
                 font-size: 1.5rem;
             }
         }
+
+        /* Custom Tom Select Glassmorphism Overrides */
+        .ts-wrapper.multi .ts-control {
+            background: var(--input-bg) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: var(--input-text) !important;
+            border-radius: var(--radius-sm) !important;
+            padding: 10px 14px !important;
+            min-height: 42px !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 4px !important;
+        }
+        .ts-wrapper .ts-control input {
+            color: var(--input-text) !important;
+        }
+        .ts-wrapper .ts-control input::placeholder {
+            color: var(--text-muted) !important;
+            opacity: 0.6 !important;
+        }
+        .ts-dropdown {
+            background: #151b23 !important;
+            border: 1px solid var(--glass-border) !important;
+            border-radius: var(--radius-sm) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5) !important;
+            color: var(--text-main) !important;
+            z-index: 2000 !important;
+        }
+        .ts-dropdown .active {
+            background: var(--primary) !important;
+            color: #000000 !important;
+        }
+        .ts-dropdown .option {
+            color: var(--text-main) !important;
+            padding: 8px 12px !important;
+            cursor: pointer !important;
+        }
+        .ts-wrapper.multi .ts-control .item {
+            background: color-mix(in srgb, var(--primary) 20%, transparent) !important;
+            color: var(--primary) !important;
+            border: 1px solid var(--primary) !important;
+            border-radius: 12px !important;
+            padding: 2px 10px !important;
+            font-size: 0.8rem !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            font-weight: 600 !important;
+        }
+        .ts-wrapper.multi .ts-control .item .remove {
+            border-left: 1px solid var(--primary) !important;
+            color: var(--primary) !important;
+            margin-left: 6px !important;
+            padding-left: 4px !important;
+        }
     </style>
     
+    <!-- Tom Select CSS & JS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+
     <!-- JS -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
