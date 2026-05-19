@@ -23,7 +23,10 @@ SECRET_KEY = env('SECRET_KEY')
 DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
+# Always allow Tailscale Funnel domains and localhost as guaranteed fallback
+ALLOWED_HOSTS += ['localhost', '127.0.0.1', '.ts.net', 'nas.sunfish-universe.ts.net']
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+CSRF_TRUSTED_ORIGINS += ['https://nas.sunfish-universe.ts.net']
 
 # Trust the reverse proxy to determine the scheme (http vs https)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
