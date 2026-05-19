@@ -15,10 +15,47 @@ ALEXA_LOG_FILE = '/tmp/alexa_debug.log'
 
 def parse_german_amount(text):
     if not text:
-        return None, text
+        return None, None, None, text
     text = text.strip()
     
-    # German number words mapping
+    amount = None
+    shop = None
+    price = None
+    
+    # 1. Extract Price (e.g., "für 5 Euro", "für 5,99 €", "für 1.49 eur")
+    price_match = re.search(r'\bfür\s+(\d+(?:[.,]\d{1,2})?)\s*(?:euro|€|eur)\b', text, re.IGNORECASE)
+    if price_match:
+        price_str = price_match.group(1).replace(',', '.')
+        try:
+            price = float(price_str)
+            text = re.sub(r'\bfür\s+(\d+(?:[.,]\d{1,2})?)\s*(?:euro|€|eur)\b', '', text, flags=re.IGNORECASE).strip()
+        except ValueError:
+            pass
+            
+    # 2. Extract Shop (e.g., "von Aldi", "bei Lidl", "von Rewe")
+    common_shops = [
+        'aldi', 'lidl', 'rewe', 'edeka', 'netto', 'kaufland', 'dm', 'rossmann', 
+        'penny', 'alnatura', 'tegut', 'real', 'metro', 'norma', 'denns'
+    ]
+    shops_pattern = '|'.join(common_shops)
+    
+    shop_match = re.search(rf'\b(?:von|bei)\s+({shops_pattern})\b', text, re.IGNORECASE)
+    if shop_match:
+        shop = shop_match.group(1).capitalize()
+        text = re.sub(rf'\b(?:von|bei)\s+({shops_pattern})\b', '', text, flags=re.IGNORECASE).strip()
+    else:
+        # Fallback for other capitalized shops after "von" or "bei"
+        shop_match_gen = re.search(r'\b(?:von|bei)\s+([A-ZÄÖÜa-zäöüß]+)\b', text)
+        if shop_match_gen:
+            word = shop_match_gen.group(1)
+            if word.lower() not in ['kiste', 'kisten', 'flasche', 'flaschen', 'packung', 'packungen', 'euro']:
+                shop = word.capitalize()
+                text = re.sub(r'\b(?:von|bei)\s+[A-ZÄÖÜa-zäöüß]+\b', '', text).strip()
+                
+    # Clean multiple spaces left over
+    text = re.sub(r'\s+', ' ', text).strip()
+    
+    # 3. Extract Amount (e.g., "20 Kisten", "zwei Flaschen", "5")
     number_words = {
         'eine': '1', 'ein': '1', 'zwei': '2', 'drei': '3', 'vier': '4', 
         'fünf': '5', 'sechs': '6', 'sieben': '7', 'acht': '8', 'neun': '9', 
@@ -26,19 +63,16 @@ def parse_german_amount(text):
         'vierzig': '40', 'fünfzig': '50'
     }
     
-    # Common German shopping units (lowercase)
     units = [
         'kisten', 'kiste', 'flaschen', 'flasche', 'packungen', 'packung', 
         'dosen', 'dose', 'gläser', 'glas', 'tüten', 'tüte', 'becher', 'beutel',
         'stk', 'stück', 'stueck', 'kg', 'g', 'l', 'ml', 'liter', 'gramm', 
-        'kilogramm', 'pck', 'pakete', 'paket', 'karton', 'kartons', 'flasche', 'flaschen'
+        'kilogramm', 'pck', 'pakete', 'paket', 'karton', 'kartons'
     ]
     
     words_pattern = '|'.join(number_words.keys())
     units_pattern = '|'.join(units)
     
-    # Pattern 1: Digit or Word-Number followed by Unit, then product name
-    # e.g., "20 Kisten Bier", "zwei Flaschen Wein"
     pattern1 = re.compile(
         rf'^(\d+|{words_pattern})\s*({units_pattern})\s+(.+)$', 
         re.IGNORECASE
@@ -47,29 +81,29 @@ def parse_german_amount(text):
     if match1:
         num, unit, rest = match1.groups()
         num_clean = number_words.get(num.lower(), num)
-        
-        # Capitalize nicely
         unit_clean = unit.lower()
         if unit_clean in ['kg', 'g', 'l', 'ml']:
-            amount_str = f"{num_clean}{unit_clean}"
+            amount = f"{num_clean}{unit_clean}"
         else:
-            amount_str = f"{num_clean} {unit}"
+            amount = f"{num_clean} {unit}"
+        text = rest.strip()
+    else:
+        pattern2 = re.compile(
+            rf'^(\d+|{words_pattern})\s+(.+)$', 
+            re.IGNORECASE
+        )
+        match2 = pattern2.match(text)
+        if match2:
+            num, rest = match2.groups()
+            num_clean = number_words.get(num.lower(), num)
+            amount = f"{num_clean}x"
+            text = rest.strip()
             
-        return amount_str, rest.strip()
-        
-    # Pattern 2: Digit or Word-Number followed directly by product name
-    # e.g., "5 Äpfel", "zwei Gurken", "20 Bier"
-    pattern2 = re.compile(
-        rf'^(\d+|{words_pattern})\s+(.+)$', 
-        re.IGNORECASE
-    )
-    match2 = pattern2.match(text)
-    if match2:
-        num, rest = match2.groups()
-        num_clean = number_words.get(num.lower(), num)
-        return f"{num_clean}x", rest.strip()
-        
-    return None, text
+    # Clean leading articles like "die Spaghetti" -> "Spaghetti"
+    text = re.sub(r'^(?:die|der|das|ein|eine)\s+', '', text, flags=re.IGNORECASE).strip()
+    
+    return amount, shop, price, text
+
 
 
 def log_alexa(msg):
@@ -222,22 +256,31 @@ class AlexaSkillView(View):
                     
                     if title:
                         try:
-                            # Run our smart German quantity parser!
-                            parsed_amount, parsed_title = parse_german_amount(title)
+                            # Run our ultra-smart German shopping natural language parser!
+                            parsed_amount, parsed_shop, parsed_price, parsed_title = parse_german_amount(title)
                             
                             bucket = BucketList.objects.get(id=list_id)
                             item = ListItem.objects.create(
                                 bucket_list=bucket, 
                                 title=parsed_title,
                                 amount=parsed_amount,
+                                shop=parsed_shop,
+                                price=parsed_price,
                                 guest_created_by="Alexa",
                                 guest_updated_by="Alexa"
                             )
                             
+                            # Construct beautiful detailed speech response
+                            details = []
                             if parsed_amount:
-                                response_text = f"Ich habe {parsed_amount} {parsed_title} auf deine Liste {bucket.title} gesetzt."
-                            else:
-                                response_text = f"Ich habe {parsed_title} auf deine Liste {bucket.title} gesetzt."
+                                details.append(parsed_amount)
+                            details.append(parsed_title)
+                            if parsed_shop:
+                                details.append(f"von {parsed_shop}")
+                            if parsed_price:
+                                details.append(f"für {parsed_price:.2f} Euro".replace('.', ','))
+                                
+                            response_text = f"Ich habe {' '.join(details)} auf deine Liste {bucket.title} gesetzt."
                         except BucketList.DoesNotExist:
                             response_text = "Ich konnte deine Liste leider nicht finden. Bitte prüfe die Listen ID."
                     else:
