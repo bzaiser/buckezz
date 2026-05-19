@@ -186,7 +186,7 @@
             </span>
         {% endif %}
         
-        {% if item.is_completed %}
+        {% if bucket.category.template.use_milestone and item.is_completed %}
             <div style="margin-top: 4px; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: 0.75rem; color: #00e676; font-weight: 600;">
                 <span>🎉 Erreicht</span>
                 {% if item.age_at_completion %}
