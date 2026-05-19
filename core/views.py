@@ -80,6 +80,12 @@ def get_list_items_for_user(request, bucket):
         is_beneficiary = True
 
     items = bucket.items.all()
+    
+    # Live Search Filter
+    q = request.GET.get('q')
+    if q:
+        items = items.filter(title__icontains=q.strip())
+        
     if is_beneficiary:
         # Beneficiary sees all items as active (hiding completed/fulfilled ones)
         active_items = list(items)
@@ -210,6 +216,8 @@ class BucketListDetailView(DetailView):
                 request.session[session_key] = now
 
         context = self.get_context_data(object=self.object)
+        if request.headers.get('HX-Request') == 'true' and 'q' in request.GET:
+            return render(request, 'core/partials/item_list.html', context)
         return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):

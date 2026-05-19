@@ -56,6 +56,34 @@
 </div>
 
 <div class="card glass">
+    <!-- Top Control Bar (Search + Add Button) -->
+    <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); align-items: center; flex-wrap: wrap;">
+        <!-- Live Search Field -->
+        <div style="position: relative; flex: 1; min-width: 200px;">
+            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; opacity: 0.5; pointer-events: none;">🔍</span>
+            <input type="text" 
+                   name="q" 
+                   placeholder="Einträge suchen / filtern..." 
+                   hx-get="{% url 'core:list_detail' bucket.id %}" 
+                   hx-trigger="keyup changed delay:200ms" 
+                   hx-target="#item-list" 
+                   hx-swap="innerHTML"
+                   class="glass" 
+                   style="width: 100%; padding: 10px 14px 10px 38px; border-radius: var(--radius-md); color: var(--text-color); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); font-size: 0.9rem; outline: none; transition: var(--transition);">
+        </div>
+
+        {% if can_edit %}
+        <!-- Add Item Button -->
+        <button hx-get="{% url 'core:get_add_form' bucket.id %}" 
+                hx-target="#form-insertion-point" 
+                hx-swap="innerHTML"
+                class="btn btn-primary" 
+                style="min-height: 42px; border-radius: var(--radius-md); padding: 0 var(--spacing-lg); font-weight: 700; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+            + Hinzufügen
+        </button>
+        {% endif %}
+    </div>
+
     <div class="items-table-container">
         {% if not bucket.category.template.use_tracker %}
         <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
@@ -72,18 +100,6 @@
             {% include 'core/partials/item_list.html' %}
         </div>
     </div>
-
-    {% if can_edit %}
-    <div style="margin-top: var(--spacing-lg); padding-top: var(--spacing-md); border-top: 1px solid var(--primary);">
-        <button hx-get="{% url 'core:get_add_form' bucket.id %}" 
-                hx-target="#form-insertion-point" 
-                hx-swap="innerHTML"
-                class="btn btn-primary" 
-                style="width: 100%; justify-content: center;">
-            + Neuen Eintrag hinzufügen
-        </button>
-    </div>
-    {% endif %}
 </div>
 
 <!-- Render form insertion point outside the glass card to escape any stacking contexts -->
