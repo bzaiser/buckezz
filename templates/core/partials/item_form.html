@@ -215,21 +215,21 @@
                 {% if bucket.category.template.use_start_date %}
                 <div class="form-group" style="min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Start</label>
-                    <input type="datetime-local" name="start_date" value="{{ item.start_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0;">
+                    <input type="datetime-local" name="start_date" value="{{ item.start_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_end_date %}
                 <div class="form-group" style="min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ende</label>
-                    <input type="datetime-local" name="end_date" value="{{ item.end_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0;">
+                    <input type="datetime-local" name="end_date" value="{{ item.end_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_reminder %}
                 <div class="form-group" style="min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">⏰ Erinnerung am</label>
-                    <input type="datetime-local" name="reminder_at" value="{{ item.reminder_at|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0;">
+                    <input type="datetime-local" name="reminder_at" value="{{ item.reminder_at|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
                 </div>
                 {% endif %}
             </div>
