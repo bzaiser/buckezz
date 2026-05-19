@@ -7,8 +7,31 @@ from django.utils.decorators import method_decorator
 from .models import BucketList, ListItem, Person
 import environ
 from django.utils import timezone
+import datetime
+import json
+
+ALEXA_LOG_FILE = '/tmp/alexa_debug.log'
+
+def log_alexa(msg):
+    try:
+        with open(ALEXA_LOG_FILE, 'a') as f:
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            f.write(f"[{timestamp}] {msg}\n")
+    except Exception:
+        pass
 
 env = environ.Env()
+
+class AlexaLogView(View):
+    def get(self, request):
+        try:
+            with open(ALEXA_LOG_FILE, 'r') as f:
+                content = f.read()
+            if not content:
+                content = "Die Logdatei ist leer. Amazon hat noch keine Anfrage geschickt."
+        except FileNotFoundError:
+            content = "Logdatei existiert noch nicht. Amazon hat noch keine Anfrage geschickt."
+        return HttpResponse(content, content_type='text/plain; charset=utf-8')
 
 @method_decorator(csrf_exempt, name='dispatch')
 class AlexaAddItemView(View):
@@ -63,12 +86,20 @@ class AlexaSkillView(View):
 
     def post(self, request):
         import json
-        
+        log_alexa("====== NEUER ALEXA POST REQUEST ======")
+        log_alexa(f"Headers: {dict(request.headers)}")
+        try:
+            log_alexa(f"Body: {request.body.decode('utf-8')}")
+        except Exception:
+            log_alexa("Body: (Konnte nicht decodiert werden)")
+            
         def alexa_json(data):
+            log_alexa(f"Antwort-JSON: {json.dumps(data, ensure_ascii=False)}")
             return JsonResponse(data, json_dumps_params={'ensure_ascii': False}, content_type='application/json;charset=UTF-8')
 
         token = request.GET.get('token')
         list_id = request.GET.get('list_id')
+        log_alexa(f"Token im Link: {token} | Listen-ID im Link: {list_id}")
         
         allowed_tokens = [env('ALEXA_TOKEN', default='secret-alexa-token'), 'buckezz2026!1234Bernd', 'secret-alexa-token']
         if token not in allowed_tokens:
