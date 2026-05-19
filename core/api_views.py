@@ -68,10 +68,28 @@ class AlexaSkillView(View):
         
         allowed_tokens = [env('ALEXA_TOKEN', default='secret-alexa-token'), 'buckezz2026!1234Bernd', 'secret-alexa-token']
         if token not in allowed_tokens:
-            return JsonResponse({'error': 'Unauthorized'}, status=401)
+            return JsonResponse({
+                'version': '1.0',
+                'response': {
+                    'outputSpeech': {
+                        'type': 'PlainText',
+                        'text': "Achtung: Das Sicherheits-Token stimmt nicht überein. Bitte prüfe den Link in der Alexa Konsole."
+                    },
+                    'shouldEndSession': True
+                }
+            })
             
         if not list_id:
-            return JsonResponse({'error': 'Missing list_id parameter'}, status=400)
+            return JsonResponse({
+                'version': '1.0',
+                'response': {
+                    'outputSpeech': {
+                        'type': 'PlainText',
+                        'text': "Achtung: Es fehlt die Listen-ID im Link. Bitte ergänze den Parameter."
+                    },
+                    'shouldEndSession': True
+                }
+            })
             
         try:
             data = json.loads(request.body)
@@ -108,10 +126,12 @@ class AlexaSkillView(View):
                     title = item_slot.get('value')
                     
                     if title:
-                        bucket = get_object_or_404(BucketList, id=list_id)
-                        item = ListItem.objects.create(bucket_list=bucket, title=title)
-                        
-                        response_text = f"Ich habe {title} auf deine Liste {bucket.title} gesetzt."
+                        try:
+                            bucket = BucketList.objects.get(id=list_id)
+                            item = ListItem.objects.create(bucket_list=bucket, title=title)
+                            response_text = f"Ich habe {title} auf deine Liste {bucket.title} gesetzt."
+                        except BucketList.DoesNotExist:
+                            response_text = "Ich konnte deine Liste leider nicht finden. Bitte prüfe die Listen ID."
                     else:
                         response_text = "Ich habe den Namen des Elements leider nicht verstanden. Bitte versuche es noch einmal."
                         
