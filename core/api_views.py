@@ -63,12 +63,16 @@ class AlexaSkillView(View):
 
     def post(self, request):
         import json
+        
+        def alexa_json(data):
+            return JsonResponse(data, json_dumps_params={'ensure_ascii': False}, content_type='application/json;charset=UTF-8')
+
         token = request.GET.get('token')
         list_id = request.GET.get('list_id')
         
         allowed_tokens = [env('ALEXA_TOKEN', default='secret-alexa-token'), 'buckezz2026!1234Bernd', 'secret-alexa-token']
         if token not in allowed_tokens:
-            return JsonResponse({
+            return alexa_json({
                 'version': '1.0',
                 'response': {
                     'outputSpeech': {
@@ -80,7 +84,7 @@ class AlexaSkillView(View):
             })
             
         if not list_id:
-            return JsonResponse({
+            return alexa_json({
                 'version': '1.0',
                 'response': {
                     'outputSpeech': {
@@ -98,7 +102,7 @@ class AlexaSkillView(View):
             # 1. LaunchRequest ("Alexa, öffne Buckezz")
             if req_type == 'LaunchRequest':
                 response_text = "Hallo! Welches Element möchtest du auf die Einkaufsliste setzen?"
-                return JsonResponse({
+                return alexa_json({
                     'version': '1.0',
                     'response': {
                         'outputSpeech': {
@@ -135,7 +139,7 @@ class AlexaSkillView(View):
                     else:
                         response_text = "Ich habe den Namen des Elements leider nicht verstanden. Bitte versuche es noch einmal."
                         
-                    return JsonResponse({
+                    return alexa_json({
                         'version': '1.0',
                         'response': {
                             'outputSpeech': {
@@ -148,7 +152,7 @@ class AlexaSkillView(View):
                 
                 # Help or Stop intent
                 elif intent_name in ['AMAZON.HelpIntent', 'AMAZON.NavigateHomeIntent']:
-                    return JsonResponse({
+                    return alexa_json({
                         'version': '1.0',
                         'response': {
                             'outputSpeech': {
@@ -165,7 +169,7 @@ class AlexaSkillView(View):
                         }
                     })
                 elif intent_name in ['AMAZON.CancelIntent', 'AMAZON.StopIntent']:
-                    return JsonResponse({
+                    return alexa_json({
                         'version': '1.0',
                         'response': {
                             'outputSpeech': {
@@ -177,7 +181,7 @@ class AlexaSkillView(View):
                     })
             
             # SessionEndedRequest
-            return JsonResponse({
+            return alexa_json({
                 'version': '1.0',
                 'response': {
                     'shouldEndSession': True
@@ -185,7 +189,7 @@ class AlexaSkillView(View):
             })
             
         except Exception as e:
-            return JsonResponse({
+            return alexa_json({
                 'version': '1.0',
                 'response': {
                     'outputSpeech': {
