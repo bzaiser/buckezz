@@ -135,6 +135,12 @@ class AlexaSkillView(View):
                                 'type': 'PlainText',
                                 'text': "Du kannst mich bitten, ein Element auf deine Liste zu setzen. Sage zum Beispiel: setze Tomaten auf die Liste."
                             },
+                            'reprompt': {
+                                'outputSpeech': {
+                                    'type': 'PlainText',
+                                    'text': "Was möchtest du hinzufügen?"
+                                }
+                            },
                             'shouldEndSession': False
                         }
                     })
