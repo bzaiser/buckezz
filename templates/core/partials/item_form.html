@@ -12,8 +12,10 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        /* Collapse the right-side pseudo elements padding leaks */
+        /* Completely hide calendar picker indicator and other buttons to collapse empty space */
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            display: none !important;
+            -webkit-appearance: none !important;
             margin: 0 !important;
             padding: 0 !important;
         }
