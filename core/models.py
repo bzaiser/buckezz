@@ -130,6 +130,15 @@ class BucketList(models.Model):
         return self.title
 
     @property
+    def has_icon_in_title(self):
+        if not self.title:
+            return False
+        first_char = self.title.strip()[0] if self.title.strip() else ""
+        if not first_char:
+            return False
+        return ord(first_char) > 2000
+
+    @property
     def beneficiary_person(self):
         if self.beneficiary:
             return self.beneficiary

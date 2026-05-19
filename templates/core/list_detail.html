@@ -13,7 +13,9 @@
     <div class="detail-header">
         <div>
             <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
+                {% if not bucket.has_icon_in_title %}
                 <span style="font-size: 2rem;">{{ bucket.category.icon }}</span>
+                {% endif %}
                 <h1 style="margin: 0; font-size: 1.8rem;">{{ bucket.title }}</h1>
                 <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Ausführliche Anleitung & Beispiele">
                     ❓ <span style="font-size: 0.8rem; font-weight: bold;">Hilfe</span>
