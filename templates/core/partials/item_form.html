@@ -1,6 +1,9 @@
 <div id="item-form-container" class="modal-overlay" onclick="if(event.target === this) { this.remove(); }" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: flex-start; justify-content: center; z-index: 99999; backdrop-filter: blur(12px); padding: var(--spacing-md); overflow-y: auto;">
     <style>
         /* Target internal iOS Safari date & time picker Webkit container padding leaks */
+        input[type="datetime-local"] {
+            position: relative !important;
+        }
         input[type="datetime-local"]::-webkit-date-and-time-value {
             min-height: 1.15em !important;
             padding: 0 !important;
@@ -12,12 +15,19 @@
             padding: 0 !important;
             margin: 0 !important;
         }
-        /* Completely hide calendar picker indicator and other buttons to collapse empty space */
+        /* Completely extract calendar picker indicator from layout flow to collapse empty space */
         input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-            display: none !important;
-            -webkit-appearance: none !important;
+            position: absolute !important;
+            right: 0 !important;
+            top: 0 !important;
+            width: 0 !important;
+            height: 0 !important;
+            opacity: 0 !important;
             margin: 0 !important;
             padding: 0 !important;
+            pointer-events: none !important;
+            display: none !important;
+            -webkit-appearance: none !important;
         }
         input[type="datetime-local"]::-webkit-inner-spin-button,
         input[type="datetime-local"]::-webkit-clear-button {
@@ -237,7 +247,7 @@
             {% endif %}
 
             {% if bucket.category.template.use_start_date or bucket.category.template.use_end_date or bucket.category.template.use_reminder %}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: var(--spacing-md);">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--spacing-md);">
                 {% if bucket.category.template.use_start_date %}
                 <div class="form-group" style="min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Start</label>
