@@ -1,11 +1,13 @@
-<div id="item-form-container" class="glass card" style="margin-top: var(--spacing-lg); padding: var(--spacing-lg); border: 1px solid var(--primary);">
-    <h3 style="margin-bottom: var(--spacing-md);">{% if item %}Eintrag bearbeiten{% else %}Neuer Eintrag{% endif %}</h3>
-    
-    <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
-          hx-target="#item-list" 
-          hx-swap="innerHTML"
-          hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); }"
-          onkeydown="if(event.key === 'Enter' && event.target.tagName === 'INPUT') { event.preventDefault(); return false; }">
+<div id="item-form-container" class="modal-overlay" onclick="if(event.target === this) { this.remove(); }" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px); padding: var(--spacing-md);">
+    <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--primary); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: var(--spacing-md); position: relative; border-radius: var(--radius-lg); box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+        <button type="button" class="text-muted" onclick="this.closest('#item-form-container').remove()" style="position: absolute; top: var(--spacing-md); right: var(--spacing-md); background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">×</button>
+        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary);">{% if item %}Eintrag bearbeiten{% else %}Neuer Eintrag{% endif %}</h3>
+        
+        <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
+              hx-target="#item-list" 
+              hx-swap="innerHTML"
+              hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); }"
+              onkeydown="if(event.key === 'Enter' && event.target.tagName === 'INPUT') { event.preventDefault(); return false; }">
         {% csrf_token %}
         
         <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-md);">
@@ -226,4 +228,5 @@
             <button type="submit" class="btn btn-primary">Speichern</button>
         </div>
     </form>
+</div>
 </div>
