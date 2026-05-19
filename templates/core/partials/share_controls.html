@@ -7,6 +7,7 @@
     <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
         <!-- Base settings -->
         <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center;">
+            {% if bucket.category.template.use_is_public %}
             <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer;">
                 <input type="checkbox" 
                        {% if bucket.is_public %}checked{% endif %}
@@ -16,8 +17,9 @@
                        hx-swap="outerHTML">
                 <span>Öffentliche Link-Freigabe</span>
             </label>
+            {% endif %}
 
-            {% if bucket.is_public %}
+            {% if bucket.is_public and bucket.category.template.use_allow_public_edit %}
             <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; font-size: 0.9rem;">
                 <input type="checkbox" 
                        {% if bucket.allow_public_edit %}checked{% endif %}
@@ -29,6 +31,7 @@
             </label>
             {% endif %}
 
+            {% if bucket.category.template.use_secret_santa %}
             <label style="display: flex; align-items: center; gap: var(--spacing-sm); cursor: pointer; color: var(--primary);">
                 <input type="checkbox" 
                        {% if bucket.is_secret_santa %}checked{% endif %}
@@ -38,6 +41,7 @@
                        hx-swap="outerHTML">
                 <strong>🎅 Wichtel-Modus (Secret Santa)</strong>
             </label>
+            {% endif %}
         </div>
 
         {% if bucket.is_public and not bucket.is_secret_santa %}
@@ -53,6 +57,7 @@
             </div>
         {% endif %}
 
+        {% if bucket.category.template.logic_type == 'todo' %}
         <!-- Microsoft To-Do Sync Settings -->
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-xs);">
             <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem; display: flex; align-items: center; gap: 6px;">
@@ -81,18 +86,19 @@
                 </button>
             </div>
         </div>
+        {% endif %}
 
         <!-- Secret Santa configurations / Participant management -->
-        {% if bucket.is_secret_santa or bucket.category.template.use_persons %}
+        {% if bucket.category.template.use_secret_santa or bucket.category.template.use_persons or bucket.category.template.use_beneficiary %}
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-md);">
             
-            {% if bucket.is_secret_santa %}
-            <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem;">🎅 Wichtel-Optionen</h4>
+            {% if bucket.category.template.use_beneficiary %}
+            <h4 style="margin: 0; color: var(--primary); font-size: 0.95rem;">🎁 Begünstigter</h4>
             
             <!-- Beneficiary Selection -->
             <div class="form-group" style="margin: 0;">
                 <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">
-                    Wer wird beschenkt? (Begünstigter / sieht keine Badges)
+                    Für wen ist diese Liste? (Begünstigter / sieht keine speziellen Badges)
                 </label>
                 <select name="beneficiary_id" class="glass input" style="width: 100%; border-radius: 8px;"
                         hx-post="{% url 'core:share_toggle' bucket.id %}"

@@ -70,6 +70,22 @@ class ListCategory(models.Model):
 class ListTemplate(models.Model):
     category = models.OneToOneField(ListCategory, on_delete=models.CASCADE, related_name='template')
     
+    LOGIC_CHOICES = [
+        ('generic', _('Allgemein (Standard)')),
+        ('todo', _('To-Do Liste')),
+        ('gift', _('Geschenkeliste')),
+        ('bucket', _('Bucketliste')),
+        ('event', _('Veranstaltungsplaner')),
+        ('tracker', _('Tracker / Gewohnheiten')),
+    ]
+    logic_type = models.CharField(max_length=20, choices=LOGIC_CHOICES, default='generic', help_text=_("Bestimmt den spezifischen Workflow für diesen Listentyp"))
+
+    # Visibility & Access Configuration
+    use_is_public = models.BooleanField(default=False)
+    use_allow_public_edit = models.BooleanField(default=False)
+    use_beneficiary = models.BooleanField(default=False)
+    use_secret_santa = models.BooleanField(default=False)
+
     # Configuration which fields are active
     use_price = models.BooleanField(default=False)
     use_amount = models.BooleanField(default=False)

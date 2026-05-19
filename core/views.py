@@ -200,7 +200,7 @@ class BucketListDetailView(DetailView):
             return render(request, 'core/guest_login.html', {'bucket': self.object})
             
         # Trigger Edeka Microsoft To-Do real-time sync (throttled to once every 10 seconds per session)
-        if self.object.todo_sync_url:
+        if self.object.todo_sync_url and self.object.category.template.logic_type == 'todo':
             import time
             session_key = f'last_todo_sync_{self.object.id}'
             last_sync = request.session.get(session_key, 0)
