@@ -71,8 +71,6 @@
         <div id="item-list">
             {% include 'core/partials/item_list.html' %}
         </div>
-
-        <div id="form-insertion-point"></div>
     </div>
 
     {% if can_edit %}
@@ -87,6 +85,9 @@
     </div>
     {% endif %}
 </div>
+
+<!-- Render form insertion point outside the glass card to escape any stacking contexts -->
+<div id="form-insertion-point"></div>
 
 <style>
     .detail-header {
