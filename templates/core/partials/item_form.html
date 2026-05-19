@@ -12,6 +12,16 @@
             padding: 0 !important;
             margin: 0 !important;
         }
+        /* Collapse the right-side pseudo elements padding leaks */
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        input[type="datetime-local"]::-webkit-inner-spin-button,
+        input[type="datetime-local"]::-webkit-clear-button {
+            display: none !important;
+            -webkit-appearance: none !important;
+        }
     </style>
     <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--primary); display: flex; flex-direction: column; gap: var(--spacing-md); position: relative; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: var(--bg-surface); margin: auto;">
         <button type="button" class="text-muted" onclick="this.closest('#item-form-container').remove()" style="position: absolute; top: var(--spacing-md); right: var(--spacing-md); background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">×</button>
