@@ -87,6 +87,12 @@ class AlexaSkillView(View):
                             'type': 'PlainText',
                             'text': response_text
                         },
+                        'reprompt': {
+                            'outputSpeech': {
+                                'type': 'PlainText',
+                                'text': "Was soll ich auf die Liste setzen?"
+                            }
+                        },
                         'shouldEndSession': False
                     }
                 })
