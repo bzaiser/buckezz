@@ -9,8 +9,68 @@ import environ
 from django.utils import timezone
 import datetime
 import json
+import re
 
 ALEXA_LOG_FILE = '/tmp/alexa_debug.log'
+
+def parse_german_amount(text):
+    if not text:
+        return None, text
+    text = text.strip()
+    
+    # German number words mapping
+    number_words = {
+        'eine': '1', 'ein': '1', 'zwei': '2', 'drei': '3', 'vier': '4', 
+        'fünf': '5', 'sechs': '6', 'sieben': '7', 'acht': '8', 'neun': '9', 
+        'zehn': '10', 'elf': '11', 'zwölf': '12', 'zwanzig': '20', 'dreißig': '30', 
+        'vierzig': '40', 'fünfzig': '50'
+    }
+    
+    # Common German shopping units (lowercase)
+    units = [
+        'kisten', 'kiste', 'flaschen', 'flasche', 'packungen', 'packung', 
+        'dosen', 'dose', 'gläser', 'glas', 'tüten', 'tüte', 'becher', 'beutel',
+        'stk', 'stück', 'stueck', 'kg', 'g', 'l', 'ml', 'liter', 'gramm', 
+        'kilogramm', 'pck', 'pakete', 'paket', 'karton', 'kartons', 'flasche', 'flaschen'
+    ]
+    
+    words_pattern = '|'.join(number_words.keys())
+    units_pattern = '|'.join(units)
+    
+    # Pattern 1: Digit or Word-Number followed by Unit, then product name
+    # e.g., "20 Kisten Bier", "zwei Flaschen Wein"
+    pattern1 = re.compile(
+        rf'^(\d+|{words_pattern})\s*({units_pattern})\s+(.+)$', 
+        re.IGNORECASE
+    )
+    match1 = pattern1.match(text)
+    if match1:
+        num, unit, rest = match1.groups()
+        num_clean = number_words.get(num.lower(), num)
+        
+        # Capitalize nicely
+        unit_clean = unit.lower()
+        if unit_clean in ['kg', 'g', 'l', 'ml']:
+            amount_str = f"{num_clean}{unit_clean}"
+        else:
+            amount_str = f"{num_clean} {unit}"
+            
+        return amount_str, rest.strip()
+        
+    # Pattern 2: Digit or Word-Number followed directly by product name
+    # e.g., "5 Äpfel", "zwei Gurken", "20 Bier"
+    pattern2 = re.compile(
+        rf'^(\d+|{words_pattern})\s+(.+)$', 
+        re.IGNORECASE
+    )
+    match2 = pattern2.match(text)
+    if match2:
+        num, rest = match2.groups()
+        num_clean = number_words.get(num.lower(), num)
+        return f"{num_clean}x", rest.strip()
+        
+    return None, text
+
 
 def log_alexa(msg):
     try:
@@ -162,14 +222,22 @@ class AlexaSkillView(View):
                     
                     if title:
                         try:
+                            # Run our smart German quantity parser!
+                            parsed_amount, parsed_title = parse_german_amount(title)
+                            
                             bucket = BucketList.objects.get(id=list_id)
                             item = ListItem.objects.create(
                                 bucket_list=bucket, 
-                                title=title,
+                                title=parsed_title,
+                                amount=parsed_amount,
                                 guest_created_by="Alexa",
                                 guest_updated_by="Alexa"
                             )
-                            response_text = f"Ich habe {title} auf deine Liste {bucket.title} gesetzt."
+                            
+                            if parsed_amount:
+                                response_text = f"Ich habe {parsed_amount} {parsed_title} auf deine Liste {bucket.title} gesetzt."
+                            else:
+                                response_text = f"Ich habe {parsed_title} auf deine Liste {bucket.title} gesetzt."
                         except BucketList.DoesNotExist:
                             response_text = "Ich konnte deine Liste leider nicht finden. Bitte prüfe die Listen ID."
                     else:
