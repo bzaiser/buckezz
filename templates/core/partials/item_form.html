@@ -1,40 +1,4 @@
 <div id="item-form-container" class="modal-overlay" onclick="if(event.target === this) { this.remove(); }" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: flex-start; justify-content: center; z-index: 99999; backdrop-filter: blur(12px); padding: var(--spacing-md); overflow-y: auto;">
-    <style>
-        /* Target internal iOS Safari date & time picker Webkit container padding leaks */
-        input[type="datetime-local"] {
-            position: relative !important;
-        }
-        input[type="datetime-local"]::-webkit-date-and-time-value {
-            min-height: 1.15em !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            text-align: left !important;
-        }
-        input[type="datetime-local"]::-webkit-datetime-edit,
-        input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper {
-            padding: 0 !important;
-            margin: 0 !important;
-        }
-        /* Completely extract calendar picker indicator from layout flow to collapse empty space */
-        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-            position: absolute !important;
-            right: 0 !important;
-            top: 0 !important;
-            width: 0 !important;
-            height: 0 !important;
-            opacity: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            pointer-events: none !important;
-            display: none !important;
-            -webkit-appearance: none !important;
-        }
-        input[type="datetime-local"]::-webkit-inner-spin-button,
-        input[type="datetime-local"]::-webkit-clear-button {
-            display: none !important;
-            -webkit-appearance: none !important;
-        }
-    </style>
     <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--primary); display: flex; flex-direction: column; gap: var(--spacing-md); position: relative; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: var(--bg-surface); margin: auto;">
         <button type="button" class="text-muted" onclick="this.closest('#item-form-container').remove()" style="position: absolute; top: var(--spacing-md); right: var(--spacing-md); background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">×</button>
         <h3 style="margin-bottom: var(--spacing-md); color: var(--primary);">{% if item %}{% if can_edit %}Eintrag bearbeiten{% else %}Eintrag ansehen{% endif %}{% else %}Neuer Eintrag{% endif %}</h3>
@@ -247,25 +211,25 @@
             {% endif %}
 
             {% if bucket.category.template.use_start_date or bucket.category.template.use_end_date or bucket.category.template.use_reminder %}
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: var(--spacing-md);">
+            <div style="display: flex; flex-wrap: wrap; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_start_date %}
-                <div class="form-group" style="min-width: 0;">
+                <div class="form-group" style="flex: 1 1 200px; min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Start</label>
-                    <input type="datetime-local" name="start_date" value="{{ item.start_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
+                    <input type="datetime-local" name="start_date" value="{{ item.start_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; box-sizing: border-box;">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_end_date %}
-                <div class="form-group" style="min-width: 0;">
+                <div class="form-group" style="flex: 1 1 200px; min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ende</label>
-                    <input type="datetime-local" name="end_date" value="{{ item.end_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
+                    <input type="datetime-local" name="end_date" value="{{ item.end_date|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; box-sizing: border-box;">
                 </div>
                 {% endif %}
 
                 {% if bucket.category.template.use_reminder %}
-                <div class="form-group" style="min-width: 0;">
+                <div class="form-group" style="flex: 1 1 200px; min-width: 0;">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">⏰ Erinnerung am</label>
-                    <input type="datetime-local" name="reminder_at" value="{{ item.reminder_at|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; max-width: 100%; box-sizing: border-box; min-width: 0; padding: 8px 8px;">
+                    <input type="datetime-local" name="reminder_at" value="{{ item.reminder_at|date:'Y-m-d\TH:i'|default:'' }}" class="glass" style="width: 100%; box-sizing: border-box;">
                 </div>
                 {% endif %}
             </div>
