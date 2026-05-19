@@ -182,18 +182,18 @@ class AlexaSkillView(View):
                     })
                 
                 # Help or Stop intent
-                elif intent_name in ['AMAZON.HelpIntent', 'AMAZON.NavigateHomeIntent']:
+                elif intent_name in ['AMAZON.HelpIntent', 'AMAZON.NavigateHomeIntent', 'AMAZON.FallbackIntent']:
                     return alexa_json({
                         'version': '1.0',
                         'response': {
                             'outputSpeech': {
                                 'type': 'PlainText',
-                                'text': "Du kannst mich bitten, ein Element auf deine Liste zu setzen. Sage zum Beispiel: setze Tomaten auf die Liste."
+                                'text': "Das habe ich leider nicht verstanden. Sage zum Beispiel: setze Mehl auf die Einkaufsliste."
                             },
                             'reprompt': {
                                 'outputSpeech': {
                                     'type': 'PlainText',
-                                    'text': "Was möchtest du hinzufügen?"
+                                    'text': "Was soll ich auf die Einkaufsliste setzen?"
                                 }
                             },
                             'shouldEndSession': False
