@@ -288,19 +288,45 @@ def render_item_list(request, bucket, can_edit):
 class GetItemFormView(View):
     def get(self, request, bucket_id, item_id=None):
         bucket = get_object_or_404(BucketList, id=bucket_id)
-        # Permission check
-        can_edit = bucket.owner == request.user or \
-                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
-        if not can_edit:
-            return HttpResponseForbidden()
+        
+        # 1. View Permission Check
+        is_owner = bucket.owner == request.user
+        is_shared = request.user.is_authenticated and request.user in bucket.shared_with.all()
+        
+        # Secret Santa session checks
+        person_id = request.session.get('person_id')
+        current_person = None
+        if person_id:
+            try:
+                current_person = Person.objects.get(id=person_id)
+            except Person.DoesNotExist:
+                pass
+        
+        is_beneficiary = False
+        if bucket.is_secret_santa and bucket.beneficiary and current_person == bucket.beneficiary:
+            is_beneficiary = True
+
+        can_view = is_owner or is_shared or bucket.is_public or (bucket.is_secret_santa and (is_owner or person_id))
+        if not can_view:
+            return HttpResponseForbidden("Zugriff verweigert.")
+            
+        # 2. Edit Permission Check
+        if bucket.is_secret_santa:
+            can_edit = is_owner or is_beneficiary
+        else:
+            can_edit = is_owner or is_shared or (bucket.is_public and bucket.allow_public_edit)
             
         item = None
         if item_id:
             item = get_object_or_404(ListItem, id=item_id)
         
         people = Person.objects.all()
-        return render(request, 'core/partials/item_form.html', {'bucket': bucket, 'item': item, 'people': people})
+        return render(request, 'core/partials/item_form.html', {
+            'bucket': bucket,
+            'item': item,
+            'people': people,
+            'can_edit': can_edit
+        })
 
 class AddItemView(View):
     def post(self, request, bucket_id):

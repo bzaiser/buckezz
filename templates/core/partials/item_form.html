@@ -1,7 +1,7 @@
 <div id="item-form-container" class="modal-overlay" onclick="if(event.target === this) { this.remove(); }" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: flex-start; justify-content: center; z-index: 99999; backdrop-filter: blur(12px); padding: var(--spacing-md); overflow-y: auto;">
     <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--primary); display: flex; flex-direction: column; gap: var(--spacing-md); position: relative; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: var(--bg-surface); margin: auto;">
         <button type="button" class="text-muted" onclick="this.closest('#item-form-container').remove()" style="position: absolute; top: var(--spacing-md); right: var(--spacing-md); background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">×</button>
-        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary);">{% if item %}Eintrag bearbeiten{% else %}Neuer Eintrag{% endif %}</h3>
+        <h3 style="margin-bottom: var(--spacing-md); color: var(--primary);">{% if item %}{% if can_edit %}Eintrag bearbeiten{% else %}Eintrag ansehen{% endif %}{% else %}Neuer Eintrag{% endif %}</h3>
         
         <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
               hx-target="#item-list" 
@@ -9,6 +9,14 @@
               hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); }"
               onkeydown="if(event.key === 'Enter' && event.target.tagName === 'INPUT') { event.preventDefault(); return false; }">
         {% csrf_token %}
+        {% if not can_edit %}
+        <script>
+            (function() {
+                const form = document.currentScript.closest('form');
+                form.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+            })();
+        </script>
+        {% endif %}
         
         <div style="display: grid; grid-template-columns: 1fr; gap: var(--spacing-md);">
             <!-- Title is always required -->
@@ -90,10 +98,14 @@
                 <input type="hidden" name="rating" :value="rating">
                 <div style="display: flex; gap: 8px; font-size: 1.8rem; line-height: 1;">
                     <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
-                        <span @click="rating = (rating === star) ? 0 : star"
+                        <span {% if can_edit %}
+                              @click="rating = (rating === star) ? 0 : star"
                               @mouseenter="hoverRating = star"
                               @mouseleave="hoverRating = 0"
                               style="cursor: pointer; transition: transform 0.1s ease, color 0.15s ease; user-select: none;"
+                              {% else %}
+                              style="transition: transform 0.1s ease, color 0.15s ease; user-select: none;"
+                              {% endif %}
                               :style="{ 
                                   color: (hoverRating > 0 ? star <= hoverRating : star <= rating) ? 'var(--accent)' : 'rgba(255,255,255,0.15)',
                                   transform: hoverRating === star ? 'scale(1.25)' : 'scale(1)'
@@ -224,8 +236,12 @@
         </div>
 
         <div style="display: flex; justify-content: flex-end; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+            {% if can_edit %}
             <button type="button" class="btn glass" onclick="this.closest('#item-form-container').remove()">Abbrechen</button>
             <button type="submit" class="btn btn-primary">Speichern</button>
+            {% else %}
+            <button type="button" class="btn btn-primary" onclick="this.closest('#item-form-container').remove()">Schließen</button>
+            {% endif %}
         </div>
     </form>
 </div>

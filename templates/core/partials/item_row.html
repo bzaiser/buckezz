@@ -337,13 +337,18 @@
         <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" 
                 hx-target="#form-insertion-point" 
                 hx-swap="innerHTML"
-                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;">✏️</button>
+                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;" title="Bearbeiten">✏️</button>
         
         <button hx-delete="{% url 'core:delete_item' item.id %}" 
                 hx-confirm="Diesen Eintrag wirklich löschen?"
                 hx-target="#item-list"
                 hx-swap="innerHTML"
-                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;">🗑️</button>
+                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer;" title="Löschen">🗑️</button>
+        {% else %}
+        <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" 
+                hx-target="#form-insertion-point" 
+                hx-swap="innerHTML"
+                class="text-muted btn-icon" style="background:none; border:none; cursor:pointer; font-size: 1.15rem;" title="Details ansehen">👁️</button>
         {% endif %}
     </div>
 </div>
