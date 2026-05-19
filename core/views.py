@@ -317,15 +317,25 @@ class GetItemFormView(View):
             can_edit = is_owner or is_shared or (bucket.is_public and bucket.allow_public_edit)
             
         item = None
+        gift_status = "open"
+        gift_person = None
         if item_id:
             item = get_object_or_404(ListItem, id=item_id)
+            gift_role = item.person_roles.filter(role__in=['reserved', 'fulfilled']).first()
+            if gift_role:
+                gift_status = gift_role.role
+                gift_person = gift_role.person
         
         people = Person.objects.all()
         return render(request, 'core/partials/item_form.html', {
             'bucket': bucket,
             'item': item,
             'people': people,
-            'can_edit': can_edit
+            'can_edit': can_edit,
+            'is_beneficiary': is_beneficiary,
+            'current_person': current_person,
+            'gift_status': gift_status,
+            'gift_person': gift_person
         })
 
 class AddItemView(View):
@@ -368,6 +378,39 @@ class AddItemView(View):
         if person_ids:
             for pid in person_ids:
                 ItemPersonRole.objects.create(item=item, person_id=pid)
+        
+        # Handle custom status box
+        item_status = request.POST.get('item_status')
+        if item_status:
+            # Find current person
+            person_id = request.session.get('person_id')
+            current_person = None
+            if person_id:
+                try:
+                    current_person = Person.objects.get(id=person_id)
+                except Person.DoesNotExist:
+                    pass
+            if not current_person and request.user.is_authenticated:
+                current_person = Person.objects.filter(user=request.user).first()
+
+            if bucket.category.template.logic_type == 'gift':
+                if item_status == 'open':
+                    item.person_roles.filter(role__in=['reserved', 'fulfilled']).delete()
+                    item.is_completed = False
+                elif item_status in ['reserved', 'fulfilled'] and current_person:
+                    item.person_roles.filter(role__in=['reserved', 'fulfilled']).delete()
+                    role, _ = ItemPersonRole.objects.get_or_create(item=item, person=current_person)
+                    role.role = item_status
+                    role.save()
+                    item.is_completed = (item_status == 'fulfilled')
+            else:
+                if item_status == 'completed':
+                    item.is_completed = True
+                    item.status = 'done'
+                elif item_status == 'open':
+                    item.is_completed = False
+                    item.status = 'active'
+            item.save()
         
         if request.htmx:
             return render_item_list(request, bucket, True)
@@ -429,12 +472,45 @@ class EditItemView(View):
         new_pids = set(int(p) for p in person_ids)
         current_pids = set(item.person_roles.values_list('person_id', flat=True))
         
-        # Remove persons not in the new list
-        ItemPersonRole.objects.filter(item=item, person_id__in=current_pids - new_pids).delete()
+        # Remove persons not in the new list (except reserved/fulfilled roles which are status-tracked)
+        ItemPersonRole.objects.filter(item=item, person_id__in=current_pids - new_pids).exclude(role__in=['reserved', 'fulfilled']).delete()
         
         # Add new persons
         for pid in new_pids - current_pids:
             ItemPersonRole.objects.create(item=item, person_id=pid)
+            
+        # Handle custom status box
+        item_status = request.POST.get('item_status')
+        if item_status:
+            # Find current person
+            person_id = request.session.get('person_id')
+            current_person = None
+            if person_id:
+                try:
+                    current_person = Person.objects.get(id=person_id)
+                except Person.DoesNotExist:
+                    pass
+            if not current_person and request.user.is_authenticated:
+                current_person = Person.objects.filter(user=request.user).first()
+
+            if bucket.category.template.logic_type == 'gift':
+                if item_status == 'open':
+                    item.person_roles.filter(role__in=['reserved', 'fulfilled']).delete()
+                    item.is_completed = False
+                elif item_status in ['reserved', 'fulfilled'] and current_person:
+                    item.person_roles.filter(role__in=['reserved', 'fulfilled']).delete()
+                    role, _ = ItemPersonRole.objects.get_or_create(item=item, person=current_person)
+                    role.role = item_status
+                    role.save()
+                    item.is_completed = (item_status == 'fulfilled')
+            else:
+                if item_status == 'completed':
+                    item.is_completed = True
+                    item.status = 'done'
+                elif item_status == 'open':
+                    item.is_completed = False
+                    item.status = 'active'
+            item.save()
         
         if request.htmx:
             return render_item_list(request, bucket, True)

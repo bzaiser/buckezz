@@ -25,6 +25,62 @@
                 <input type="text" name="title" value="{{ item.title|default:'' }}" required class="glass">
             </div>
 
+            <!-- Status Section (Conditional by can_edit & logic_type) -->
+            {% if item %}
+            <div class="form-group" style="margin-top: 4px; margin-bottom: 4px;">
+                {% if can_edit %}
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Status</label>
+                    <select name="item_status" class="glass" style="width: 100%; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 14px; font-weight: 500;">
+                        {% if bucket.category.template.logic_type == 'gift' %}
+                            <option value="open" {% if gift_status == 'open' %}selected{% endif %}>📌 Offen</option>
+                            <option value="reserved" {% if gift_status == 'reserved' %}selected{% endif %}>🔒 Reserviert</option>
+                            <option value="fulfilled" {% if gift_status == 'fulfilled' %}selected{% endif %}>🎁 Wunsch erfüllt</option>
+                        {% else %}
+                            <option value="open" {% if not item.is_completed %}selected{% endif %}>📌 Offen</option>
+                            <option value="completed" {% if item.is_completed %}selected{% endif %}>
+                                {% if bucket.category.template.logic_type == 'bucket' %}🎉 Erreicht{% else %}✅ Erledigt{% endif %}
+                            </option>
+                        {% endif %}
+                    </select>
+                {% else %}
+                    <!-- Read-Only Status Badges (Hidden from Secret Santa beneficiary) -->
+                    {% if bucket.category.template.logic_type == 'gift' %}
+                        {% if not is_beneficiary %}
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span style="font-size: 0.8rem; color: var(--text-muted);">Status:</span>
+                                {% if gift_status == 'reserved' %}
+                                    <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; border: 1px solid currentColor; font-weight: bold; background: color-mix(in srgb, #29b6f6 15%, transparent); color: #29b6f6;">
+                                        🔒 Reserviert {% if gift_person %}von {{ gift_person.name }}{% endif %}
+                                    </span>
+                                {% elif gift_status == 'fulfilled' %}
+                                    <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; border: 1px solid currentColor; font-weight: bold; background: color-mix(in srgb, #66bb6a 15%, transparent); color: #66bb6a;">
+                                        🎁 Wunsch erfüllt {% if gift_person %}von {{ gift_person.name }}{% endif %}
+                                    </span>
+                                {% else %}
+                                    <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                                        📌 Offen
+                                    </span>
+                                {% endif %}
+                            </div>
+                        {% endif %}
+                    {% else %}
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="font-size: 0.8rem; color: var(--text-muted);">Status:</span>
+                            {% if item.is_completed %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; border: 1px solid #00e676; font-weight: bold; background: rgba(0, 230, 118, 0.15); color: #00e676;">
+                                    {% if bucket.category.template.logic_type == 'bucket' %}🎉 Erreicht{% else %}✅ Erledigt{% endif %}
+                                </span>
+                            {% else %}
+                                <span style="font-size: 0.8rem; padding: 4px 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2); font-weight: bold; background: rgba(255,255,255,0.05); color: var(--text-muted);">
+                                    📌 Offen
+                                </span>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+            {% endif %}
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_amount %}
                 <div class="form-group">
