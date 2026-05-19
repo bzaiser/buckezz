@@ -163,7 +163,12 @@ class AlexaSkillView(View):
                     if title:
                         try:
                             bucket = BucketList.objects.get(id=list_id)
-                            item = ListItem.objects.create(bucket_list=bucket, title=title)
+                            item = ListItem.objects.create(
+                                bucket_list=bucket, 
+                                title=title,
+                                guest_created_by="Alexa",
+                                guest_updated_by="Alexa"
+                            )
                             response_text = f"Ich habe {title} auf deine Liste {bucket.title} gesetzt."
                         except BucketList.DoesNotExist:
                             response_text = "Ich konnte deine Liste leider nicht finden. Bitte prüfe die Listen ID."
