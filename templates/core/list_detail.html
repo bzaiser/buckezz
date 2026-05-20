@@ -411,6 +411,15 @@
             {% endif %}
         </div>
 
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            {% for item in active_items %}
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                            {% if item.workout_type == 'strength' %}💪{% elif item.workout_type == 'endurance' %}🏃{% else %}⏱️{% endif %}
+                            {{ item.title }}
+                        </h4>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap;">
                             {% if item.workout_type == 'strength' %}
                                 <span>Sets: <strong>{{ item.workout_config_json.sets_count|default:3 }}</strong></span>
                                 <span style="opacity:0.3;">|</span>
