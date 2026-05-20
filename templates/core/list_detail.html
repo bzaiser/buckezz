@@ -4,12 +4,15 @@
 {# Safe JSON data island – avoids breaking Alpine x-data attribute parsing #}
 <script type="application/json" id="workout-sessions-data">{{ workout_sessions_json|default:"[]" }}</script>
 
-<div x-data="{ 
-    showShare: false, 
-    showPrintModal: false, 
-    showHelpModal: false,
-    showStats: false,
-    
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('listDetail', () => ({
+        showShare: false,
+
+        showPrintModal: false,
+        showHelpModal: false,
+        showStats: false,
+
     // Gym / Workout Mode States
     gymMode: false,
     workoutStarted: false,
@@ -709,7 +712,11 @@
             }
         });
     }
-} x-on:click.away="showShare = false">
+    }));
+});
+</script>
+
+<div x-data="listDetail()" @click.away="showShare = false">
 
 <!-- Hidden csrf token input for ajax logging -->
 <form style="display:none;">{% csrf_token %}</form>
