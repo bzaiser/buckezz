@@ -285,6 +285,87 @@
             </div>
             {% endif %}
 
+            {% if bucket.category.template.logic_type == 'workout' %}
+            <div style="border: 1px solid var(--primary); padding: var(--spacing-md); border-radius: var(--radius-md); background: rgba(0,0,0,0.2); margin-top: var(--spacing-sm); margin-bottom: var(--spacing-sm);"
+                 x-data="{ 
+                     workoutType: '{{ item.workout_type|default:'strength' }}',
+                     setsCount: '{{ item.workout_config_json.sets_count|default:'3' }}',
+                     targetReps: '{{ item.workout_config_json.target_reps|default:'10, 8, 6' }}',
+                     targetWeight: '{{ item.workout_config_json.target_weight|default:'50' }}',
+                     restTime: '{{ item.workout_config_json.rest_time|default:'120' }}',
+                     targetDistance: '{{ item.workout_config_json.target_distance|default:'' }}',
+                     targetDuration: '{{ item.workout_config_json.target_duration|default:'' }}',
+                     targetPace: '{{ item.workout_config_json.target_pace|default:'' }}',
+                     intervalFormat: '{{ item.workout_config_json.interval_format|default:'AMRAP' }}',
+                     intervalDuration: '{{ item.workout_config_json.interval_duration|default:'' }}'
+                 }">
+                <h4 style="font-size: 0.9rem; color: var(--primary); margin-bottom: var(--spacing-md); display: flex; align-items: center; gap: 6px;">
+                    <span>🏋️‍♂️ Aktivitäts-Konfiguration</span>
+                </h4>
+                
+                <div class="form-group" style="margin-bottom: var(--spacing-md);">
+                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Aktivitätstyp</label>
+                    <select name="workout_type" x-model="workoutType" class="glass" style="width: 100%; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 14px;">
+                        <option value="strength">💪 Krafttraining (Gewichte & Sätze)</option>
+                        <option value="endurance">🏃 Ausdauertraining (Strecke & Zeit)</option>
+                        <option value="interval">⏱️ Intervall / Crossfit / HIIT</option>
+                    </select>
+                </div>
+
+                <!-- STRENGTH FIELDS -->
+                <div x-show="workoutType === 'strength'" style="display: flex; flex-direction: column; gap: var(--spacing-sm);">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Anzahl Sätze</label>
+                            <input type="number" name="workout_sets_count" x-model="setsCount" class="glass">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Pause nach Satz (Sekunden)</label>
+                            <input type="number" name="workout_rest_time" x-model="restTime" class="glass">
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ziel-Wdh. (z.B. 10,8,6)</label>
+                            <input type="text" name="workout_target_reps" x-model="targetReps" placeholder="z.B. 10, 8, 6" class="glass">
+                        </div>
+                        <div class="form-group">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ziel-Gewicht (kg, z.B. 50)</label>
+                            <input type="text" name="workout_target_weight" x-model="targetWeight" placeholder="z.B. 50, 50, 60" class="glass">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ENDURANCE FIELDS -->
+                <div x-show="workoutType === 'endurance'" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--spacing-md);">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ziel-Distanz (km)</label>
+                        <input type="text" name="workout_target_distance" x-model="targetDistance" placeholder="z.B. 10" class="glass">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ziel-Dauer (Min.)</label>
+                        <input type="text" name="workout_target_duration" x-model="targetDuration" placeholder="z.B. 60" class="glass">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Ziel-Pace (Min/km)</label>
+                        <input type="text" name="workout_target_pace" x-model="targetPace" placeholder="z.B. 5:15" class="glass">
+                    </div>
+                </div>
+
+                <!-- INTERVAL FIELDS -->
+                <div x-show="workoutType === 'interval'" style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Format (z.B. AMRAP, EMOM)</label>
+                        <input type="text" name="workout_interval_format" x-model="intervalFormat" placeholder="z.B. AMRAP" class="glass">
+                    </div>
+                    <div class="form-group">
+                        <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Dauer (Minuten)</label>
+                        <input type="text" name="workout_interval_duration" x-model="intervalDuration" placeholder="z.B. 20" class="glass">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <div class="form-group">
                 <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Notizen</label>
                 <textarea name="notes" class="glass" style="min-height: 80px;">{{ item.notes|default:'' }}</textarea>

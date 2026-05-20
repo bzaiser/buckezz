@@ -97,4 +97,51 @@ class Command(BaseCommand):
                     )
                     self.stdout.write(self.style.SUCCESS("Seeded Pflanzen-Pflege demo list"))
 
+            # 4. Trainingsplan
+            cat_gym = ListCategory.objects.filter(name='Trainingsplan').first()
+            if cat_gym:
+                list_gym, created = BucketList.objects.get_or_create(
+                    title="🏋️‍♂️ Mein Ganzkörper-Trainingsplan",
+                    category=cat_gym,
+                    owner=owner
+                )
+                if created or not list_gym.items.exists():
+                    # Strength exercise
+                    ListItem.objects.create(
+                        bucket_list=list_gym,
+                        title="Bankdrücken",
+                        workout_type="strength",
+                        workout_config_json={
+                            "sets_count": 3,
+                            "target_reps": "10, 8, 6",
+                            "target_weight": "60",
+                            "rest_time": 90
+                        },
+                        notes="Fokus auf saubere Ausführung und kontrolliertes Absenken."
+                    )
+                    # Interval exercise
+                    ListItem.objects.create(
+                        bucket_list=list_gym,
+                        title="Tabata Kettlebell-Swings",
+                        workout_type="interval",
+                        workout_config_json={
+                            "interval_format": "Tabata",
+                            "interval_duration": 4
+                        },
+                        notes="20 Sek Belastung, 10 Sek Pause im Wechsel für 8 Runden."
+                    )
+                    # Endurance exercise
+                    ListItem.objects.create(
+                        bucket_list=list_gym,
+                        title="Waldlauf (Grundlagenausdauer)",
+                        workout_type="endurance",
+                        workout_config_json={
+                            "target_distance": "5",
+                            "target_duration": "30",
+                            "target_pace": "6.0"
+                        },
+                        notes="Konstantes Tempo halten, lockerer Lauf."
+                    )
+                    self.stdout.write(self.style.SUCCESS("Seeded Trainingsplan demo list"))
+
         self.stdout.write(self.style.SUCCESS("Demo data seeded successfully!"))

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog, WorkoutSessionLog, WorkoutActivityLog
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -31,6 +31,7 @@ class ListCategoryAdmin(admin.ModelAdmin):
                     <li style="margin-bottom: 6px;"><strong>Bucketliste (bucket):</strong> Für Lebensziele. Ermöglicht Zuordnung zu Lebensabschnitten (Milestones), Prioritäten-Sternen und eine editierbare "Erreicht-am"-Chronik nach dem Abhaken.</li>
                     <li style="margin-bottom: 6px;"><strong>Veranstaltungsplaner (event):</strong> Ermöglicht Budget- und Kostenkalkulation, Zuordnung von Aufgaben an Personen und exakte Zeiteinteilungen.</li>
                     <li style="margin-bottom: 6px;"><strong>Tracker / Gewohnheiten (tracker):</strong> Schaltet den Live-Tracker frei, über den Aktionen live und zeitgenau protokolliert werden (z.B. Medikamenteneinnahme, Gießen, Tierfütterung).</li>
+                    <li style="margin-bottom: 6px;"><strong>Trainingsplan / Sport (workout):</strong> Aktiviert den interaktiven **Gym- & Workout-Modus**. Bietet Stoppuhr, automatischen Pausen-Countdown mit Beep-Signal, Rundenzeit-Stopper für Ausdauersport und lückenloses historisches Leistungs-Protokoll!</li>
                 </ul>
 
                 <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">2. Aktive Felder steuern:</h4>
@@ -193,3 +194,20 @@ class ListParticipantAdmin(admin.ModelAdmin):
 class ItemTrackerLogAdmin(admin.ModelAdmin):
     list_display = ('item', 'date', 'scheduled_time', 'completed', 'completed_at')
     list_filter = ('date', 'scheduled_time', 'completed')
+
+class WorkoutActivityLogInline(admin.TabularInline):
+    model = WorkoutActivityLog
+    extra = 0
+    readonly_fields = ('title', 'activity_type', 'logged_data_json')
+
+@admin.register(WorkoutSessionLog)
+class WorkoutSessionLogAdmin(admin.ModelAdmin):
+    list_display = ('bucket_list', 'user', 'date', 'duration_display', 'rating')
+    list_filter = ('bucket_list', 'user', 'date')
+    inlines = [WorkoutActivityLogInline]
+
+    def duration_display(self, obj):
+        minutes = obj.duration_seconds // 60
+        seconds = obj.duration_seconds % 60
+        return f"{minutes} Min. {seconds} Sek."
+    duration_display.short_description = "Dauer"

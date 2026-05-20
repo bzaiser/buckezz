@@ -181,8 +181,79 @@
                     setTimeout(() => {
                         window.location.reload(true);
                     }, 1000);
-                }
             </script>
+            </div>
+
+            <!-- Gym & Sport settings -->
+            <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
+                <h3 style="color: var(--primary); margin-bottom: 4px;">🏋️‍♂️ Gym & Sport-Einstellungen</h3>
+                <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Verwalte dein aktuelles Körpergewicht, deine Fitness-Ziele und deinen Ernährungsplan.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
+                    <div class="control-group">
+                        <label>Aktuelles Körpergewicht (kg)</label>
+                        <input type="number" step="0.1" name="gym_weight" class="glass input" value="{{ settings.gym_weight|default:'' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label>Fitness-Ziel (z.B. Muskelaufbau, Marathon)</label>
+                        <input type="text" name="gym_fitness_goal" class="glass input" value="{{ settings.gym_fitness_goal|default:'' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                </div>
+
+                <div class="control-group" style="margin-top: 10px;">
+                    <label>Link zum Ernährungsplan (URL)</label>
+                    <input type="url" name="gym_nutrition_plan_url" placeholder="https://..." class="glass input" value="{{ settings.gym_nutrition_plan_url|default:'' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 120px 1fr; gap: var(--spacing-md); margin-top: 10px;">
+                    <div class="control-group">
+                        <label>Plan-Anpassung</label>
+                        <select name="gym_plan_adaptation_weeks" class="glass select" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                            <option value="2" {% if settings.gym_plan_adaptation_weeks == 2 %}selected{% endif %}>2 Wochen</option>
+                            <option value="4" {% if settings.gym_plan_adaptation_weeks == 4 %}selected{% endif %}>4 Wochen</option>
+                            <option value="6" {% if settings.gym_plan_adaptation_weeks == 6 %}selected{% endif %}>6 Wochen</option>
+                            <option value="8" {% if settings.gym_plan_adaptation_weeks == 8 %}selected{% endif %}>8 Wochen</option>
+                            <option value="12" {% if settings.gym_plan_adaptation_weeks == 12 %}selected{% endif %}>12 Wochen</option>
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label>Erinnerungs-Meldung</label>
+                        <input type="text" name="gym_plan_adaptation_message" class="glass input" value="{{ settings.gym_plan_adaptation_message|default:'Bitte melde dich beim Trainer für einen neuen Plan, damit die Fortschritte möglich sind.' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                </div>
+
+                <!-- Body Measurements -->
+                <h4 style="color: #ff8a5c; margin-top: 15px; margin-bottom: 8px;">📏 Körpermaße (cm)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px;">
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Brust</label>
+                        <input type="text" name="measure_brust" placeholder="z.B. 104" class="glass input" value="{{ settings.gym_body_measurements_json.brust|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Rücken</label>
+                        <input type="text" name="measure_ruecken" placeholder="z.B. 46" class="glass input" value="{{ settings.gym_body_measurements_json.ruecken|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Arm Links</label>
+                        <input type="text" name="measure_arm_l" placeholder="z.B. 38" class="glass input" value="{{ settings.gym_body_measurements_json.arm_l|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Arm Rechts</label>
+                        <input type="text" name="measure_arm_r" placeholder="z.B. 38.5" class="glass input" value="{{ settings.gym_body_measurements_json.arm_r|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Bauch</label>
+                        <input type="text" name="measure_bauch" placeholder="z.B. 88" class="glass input" value="{{ settings.gym_body_measurements_json.bauch|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Bein Links</label>
+                        <input type="text" name="measure_bein_l" placeholder="z.B. 58" class="glass input" value="{{ settings.gym_body_measurements_json.bein_l|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                    <div class="control-group">
+                        <label style="font-size: 0.75rem;">Bein Rechts</label>
+                        <input type="text" name="measure_bein_r" placeholder="z.B. 58" class="glass input" value="{{ settings.gym_body_measurements_json.bein_r|default:'' }}" style="width: 100%; padding: 6px 10px; border-radius: 4px; color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    </div>
+                </div>
             </div>
             
             <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">

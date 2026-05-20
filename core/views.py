@@ -255,6 +255,14 @@ class BucketListDetailView(DetailView):
         context['current_person'] = current_person
         context['people'] = Person.objects.all()
         
+        # Inject workout specific details
+        if bucket.category.template.logic_type == 'workout':
+            context['workout_sessions'] = bucket.workout_sessions.all().prefetch_related('activities')
+            if self.request.user.is_authenticated:
+                from core.models import UserSetting
+                user_settings, _ = UserSetting.objects.get_or_create(user=self.request.user)
+                context['user_settings'] = user_settings
+        
         return context
 
 def render_item_list(request, bucket, can_edit):
@@ -370,8 +378,39 @@ class AddItemView(View):
             tracker_dosage_per_take=float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0,
             reminder_at=data.get('reminder_at') if data.get('reminder_at') else None,
             created_by=request.user if request.user.is_authenticated else None,
-            guest_created_by=guest_name if not request.user.is_authenticated else None
+            guest_created_by=guest_name if not request.user.is_authenticated else None,
+            workout_type=data.get('workout_type', 'strength')
         )
+        
+        # Save workout config
+        workout_type = data.get('workout_type', 'strength')
+        if workout_type == 'strength':
+            try:
+                sets_count = int(data.get('workout_sets_count') or 3)
+            except ValueError:
+                sets_count = 3
+            try:
+                rest_time = int(data.get('workout_rest_time') or 120)
+            except ValueError:
+                rest_time = 120
+            item.workout_config_json = {
+                'sets_count': sets_count,
+                'target_reps': data.get('workout_target_reps', '').strip(),
+                'target_weight': data.get('workout_target_weight', '').strip(),
+                'rest_time': rest_time
+            }
+        elif workout_type == 'endurance':
+            item.workout_config_json = {
+                'target_distance': data.get('workout_target_distance', '').strip(),
+                'target_duration': data.get('workout_target_duration', '').strip(),
+                'target_pace': data.get('workout_target_pace', '').strip(),
+            }
+        elif workout_type == 'interval':
+            item.workout_config_json = {
+                'interval_format': data.get('workout_interval_format', 'AMRAP').strip(),
+                'interval_duration': data.get('workout_interval_duration', '').strip(),
+            }
+        item.save()
         
         # Handle persons
         person_ids = request.POST.getlist('persons')
@@ -457,6 +496,36 @@ class EditItemView(View):
         item.tracker_stock_min = int(data.get('tracker_stock_min')) if data.get('tracker_stock_min') else None
         item.tracker_dosage_per_take = float(data.get('tracker_dosage_per_take')) if data.get('tracker_dosage_per_take') else 1.0
         item.reminder_at = data.get('reminder_at') if data.get('reminder_at') else None
+        
+        # Save workout config
+        workout_type = data.get('workout_type', 'strength')
+        item.workout_type = workout_type
+        if workout_type == 'strength':
+            try:
+                sets_count = int(data.get('workout_sets_count') or 3)
+            except ValueError:
+                sets_count = 3
+            try:
+                rest_time = int(data.get('workout_rest_time') or 120)
+            except ValueError:
+                rest_time = 120
+            item.workout_config_json = {
+                'sets_count': sets_count,
+                'target_reps': data.get('workout_target_reps', '').strip(),
+                'target_weight': data.get('workout_target_weight', '').strip(),
+                'rest_time': rest_time
+            }
+        elif workout_type == 'endurance':
+            item.workout_config_json = {
+                'target_distance': data.get('workout_target_distance', '').strip(),
+                'target_duration': data.get('workout_target_duration', '').strip(),
+                'target_pace': data.get('workout_target_pace', '').strip(),
+            }
+        elif workout_type == 'interval':
+            item.workout_config_json = {
+                'interval_format': data.get('workout_interval_format', 'AMRAP').strip(),
+                'interval_duration': data.get('workout_interval_duration', '').strip(),
+            }
         
         if request.user.is_authenticated:
             item.updated_by = request.user
@@ -734,6 +803,38 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.calendar_filter_completed = request.POST.get('calendar_filter_completed') == 'on'
         settings.calendar_refresh_interval = request.POST.get('calendar_refresh_interval', 'PT15M')
         
+        # Save Gym & Workout settings
+        gym_weight = request.POST.get('gym_weight')
+        if gym_weight:
+            try:
+                settings.gym_weight = float(gym_weight)
+            except ValueError:
+                pass
+        else:
+            settings.gym_weight = None
+            
+        settings.gym_fitness_goal = request.POST.get('gym_fitness_goal', '').strip()
+        settings.gym_nutrition_plan_url = request.POST.get('gym_nutrition_plan_url', '').strip() or None
+        
+        try:
+            settings.gym_plan_adaptation_weeks = int(request.POST.get('gym_plan_adaptation_weeks', 4))
+        except (ValueError, TypeError):
+            settings.gym_plan_adaptation_weeks = 4
+            
+        settings.gym_plan_adaptation_message = request.POST.get('gym_plan_adaptation_message', '').strip()
+        
+        # Save measurements
+        measurements = {
+            'brust': request.POST.get('measure_brust', '').strip(),
+            'ruecken': request.POST.get('measure_ruecken', '').strip(),
+            'arm_l': request.POST.get('measure_arm_l', '').strip(),
+            'arm_r': request.POST.get('measure_arm_r', '').strip(),
+            'bauch': request.POST.get('measure_bauch', '').strip(),
+            'bein_l': request.POST.get('measure_bein_l', '').strip(),
+            'bein_r': request.POST.get('measure_bein_r', '').strip(),
+        }
+        settings.gym_body_measurements_json = measurements
+        
         settings.save()
         
         # Save birth date
@@ -747,6 +848,46 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         person.save()
         
         return redirect('core:dashboard')
+
+from django.http import JsonResponse
+class WorkoutLogSessionView(View):
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'Nicht autorisiert'}, status=403)
+        try:
+            import json
+            from core.models import WorkoutSessionLog, WorkoutActivityLog, BucketList
+            data = json.loads(request.body)
+            bucket_id = data.get('bucket_id')
+            bucket = BucketList.objects.get(id=bucket_id)
+            
+            # Check permissions
+            if bucket.owner != request.user and request.user not in bucket.shared_with.all():
+                return JsonResponse({'status': 'error', 'message': 'Zugriff verweigert'}, status=403)
+            
+            session = WorkoutSessionLog.objects.create(
+                user=request.user,
+                bucket_list=bucket,
+                duration_seconds=data.get('duration_seconds', 0),
+                rating=data.get('rating', 5),
+                notes=data.get('notes', '')
+            )
+            
+            activities = data.get('activities', [])
+            for act in activities:
+                WorkoutActivityLog.objects.create(
+                    session=session,
+                    title=act.get('title'),
+                    activity_type=act.get('activity_type', 'strength'),
+                    logged_data_json=act.get('logged_data')
+                )
+                
+            # Reset the list items for next training session
+            bucket.items.all().update(is_completed=False, status='active', completed_at=None)
+            
+            return JsonResponse({'status': 'success', 'session_id': session.id})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 class ToggleTrackerLogView(View):
     def post(self, request, item_id):

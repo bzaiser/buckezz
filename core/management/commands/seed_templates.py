@@ -196,6 +196,26 @@ Notizen: Ca. 300ml lauwarmes, abgestandenes Wasser gießen. Vor dem Gießen mit 
                 'help_purpose': 'Strukturierte Übersicht, rechtzeitige Erinnerung und lückenlose Nachbereitung all deiner Arzt- und Vorsorgetermine.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Terminieren: Trage Arztbesuche mit Fachbereich, genauer Uhrzeit, Praxisname und Adresse weit im Voraus ein.\n2. Rechtzeitig erinnern: Der E-Mail-Wecker erinnert dich rechtzeitig vor dem Termin, damit du wichtige Unterlagen oder Vorbereitungen nicht vergisst.\n3. Dokumentieren & Priorisieren: Nutze die Wichtigkeits-Sterne für dringende Termine und halte Telefonnummern für Rückfragen direkt griffbereit.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Anlass / Fachbereich des Termins (z.B. "Zahnarzt Vorsorge")\n• Arzt/Praxis (Name): Name des Arztes oder der Praxis (wird im Feld "Marke" erfasst)\n• Termin (Start): Genaue Uhrzeit des Arzttermins\n• Erinnerung: Wunschzeitpunkt für deinen automatischen E-Mail-Wecker\n• Ort/Telefon: Praxisadresse und Telefonnummer zur schnellen Kontaktaufnahme\n• Bewertung (Bedeutung): Dringlichkeit des Termins oder Beurteilung des Arztes von 1-5 Sternen',
                 'help_example': 'Titel / Bezeichnung: Augenarzt\n\nMarke: Sima\n\nOrt: Freiberg\n\nBewertung: ⭐⭐⭐⭐\n\nStart: 19.11.2026 09:10 zu diesem Zeitpunkt findet der Arzttermin statt.\n\n⏰ Erinnerung am: 14.10.2026 22:19 Wann willst du eine Erinnerung erhalten?\n\nNotizen: Zum Beispiel Mit Fahrer kommen da die Augen getropft werden'
+            },
+            {
+                'old_name': '🏋️‍♂️ Trainingsplan',
+                'name': 'Trainingsplan',
+                'icon': '🏋️‍♂️',
+                'fields': {
+                    'logic_type': 'workout',
+                    'use_rating': True
+                },
+                'help_purpose': 'Voll-polymorpher Trainingsplaner für Fitnessstudio, Laufen, Radsport, HIIT und Crossfit.',
+                'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Planen: Erstelle Übungen oder Läufe. Wähle den Aktivitätstyp (Kraft, Ausdauer oder Intervall/HIIT).\n2. Aktiv Trainieren: Öffne das Workout-Cockpit (Play-Icon). Die interaktive Stoppuhr, der Satz-Erledigungs-Haken, der automatische Pausen-Countdown mit Beep-Signal und der Rundenzeit-Stopper begleiten dich live im Gym oder auf der Laufstrecke!\n3. Progression & Historie: Dokumentiere jede Trainingseinheit mit Gesamtbewertung, Stimmung und Notizen. Dein gesamter Leistungsverlauf wird lückenlos historisch protokolliert, um Fortschritte auszuwerten!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name der Übung, der Laufstrecke oder des WODs (z.B. "Bankdrücken")\n• Aktivitätstyp: Kraft (Gewichte/Sätze), Ausdauer (Kilometer/Zeit) oder Intervall (Crossfit/HIIT)\n• Konfiguration: Sätze, Ziel-Wiederholungen/Gewicht oder Distanz/Zeit-Ziele\n• Bewertung & Notizen: Zur Protokollierung deines körperlichen Befindens am Ende des Workouts',
+                'help_example': """Aktivitätstyp: Krafttraining (strength)
+Übung / Bezeichnung: Bankdrücken
+Satz 1: 10 Wiederholungen mit 50 kg
+Satz 2: 8 Wiederholungen mit 60 kg
+Satz 3: 5 Wiederholungen mit 70 kg
+Pause nach Sätzen: 3 Minuten (180s)
+Rest-Timer: Aktiviert
+
+Notizen: Beim letzten Satz bis zum Muskelversagen gegangen. Nächstes Mal versuchen, das Gewicht beim 2. Satz um 2.5 kg zu erhöhen!"""
             }
         ]
 

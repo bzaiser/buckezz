@@ -1,8 +1,307 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div x-data="{ showShare: false, showPrintModal: false, showHelpModal: false }">
-<div class="list-header" style="margin-bottom: 40px; position: relative; z-index: 50;">
+<div x-data="{ 
+    showShare: false, 
+    showPrintModal: false, 
+    showHelpModal: false,
+    
+    // Gym / Workout Mode States
+    gymMode: false,
+    workoutStarted: false,
+    workoutDuration: 0,
+    timerInterval: null,
+    currentExerciseIndex: 0,
+    rating: 5,
+    notes: '',
+    activeRestTimer: null,
+    restTimeRemaining: 0,
+    restDuration: 120,
+    restProgress: 100,
+    audioContext: null,
+    showLogSessionModal: false,
+    
+    // Laps for endurance stopwatch
+    lapTimer: 0,
+    lapInterval: null,
+    currentLapIndex: 1,
+    
+    // Work / Rest Interval Timer States
+    intervalTimerRunning: false,
+    intervalState: 'idle', // 'idle', 'work', 'rest'
+    intervalSecondsRemaining: 0,
+    intervalWorkDuration: 40,
+    intervalRestDuration: 20,
+    intervalRound: 1,
+    intervalTotalRounds: 8,
+    intervalInterval: null,
+
+    // Gym Workout Logs
+    logs: {},
+    
+    startWorkout() {
+        this.workoutStarted = true;
+        this.workoutDuration = 0;
+        this.currentExerciseIndex = 0;
+        this.timerInterval = setInterval(() => {
+            this.workoutDuration++;
+        }, 1000);
+        this.gymMode = true;
+        this.initWorkoutLogs();
+        
+        // Initialize Web Audio
+        try {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        } catch(e) {}
+    },
+    
+    beep(freq = 880, dur = 300) {
+        if (!this.audioContext) return;
+        try {
+            let osc = this.audioContext.createOscillator();
+            let gain = this.audioContext.createGain();
+            osc.connect(gain);
+            gain.connect(this.audioContext.destination);
+            osc.frequency.setValueAtTime(freq, this.audioContext.currentTime);
+            gain.gain.setValueAtTime(0.4, this.audioContext.currentTime);
+            osc.start();
+            setTimeout(() => { osc.stop(); }, dur);
+        } catch(e){}
+    },
+    
+    startRest(seconds) {
+        if (this.activeRestTimer) clearInterval(this.activeRestTimer);
+        this.restDuration = seconds;
+        this.restTimeRemaining = seconds;
+        this.restProgress = 100;
+        
+        this.activeRestTimer = setInterval(() => {
+            this.restTimeRemaining--;
+            this.restProgress = (this.restTimeRemaining / this.restDuration) * 100;
+            if (this.restTimeRemaining <= 0) {
+                clearInterval(this.activeRestTimer);
+                this.activeRestTimer = null;
+                this.beep(1200, 500);
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            }
+        }, 1000);
+    },
+    
+    formatTime(sec) {
+        let m = Math.floor(sec / 60);
+        let s = sec % 60;
+        return (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+    },
+    
+    toggleSet(itemId, setIdx, restTime) {
+        let set = this.logs[itemId].sets[setIdx];
+        set.done = !set.done;
+        if (set.done) {
+            // Beep and automatically start rest timer
+            this.beep(880, 150);
+            this.startRest(restTime || 120);
+        }
+    },
+    
+    // Interval Timer controls
+    startIntervalTraining() {
+        if (this.intervalTimerRunning) return;
+        this.intervalTimerRunning = true;
+        this.intervalState = 'work';
+        this.intervalSecondsRemaining = this.intervalWorkDuration;
+        this.intervalRound = 1;
+        this.beep(600, 400);
+        
+        this.intervalInterval = setInterval(() => {
+            this.intervalSecondsRemaining--;
+            if (this.intervalSecondsRemaining <= 0) {
+                if (this.intervalState === 'work') {
+                    if (this.intervalRound >= this.intervalTotalRounds) {
+                        // Finished all rounds
+                        clearInterval(this.intervalInterval);
+                        this.intervalTimerRunning = false;
+                        this.intervalState = 'idle';
+                        this.beep(1200, 1000);
+                    } else {
+                        // Switch to rest
+                        this.intervalState = 'rest';
+                        this.intervalSecondsRemaining = this.intervalRestDuration;
+                        this.beep(400, 500);
+                    }
+                } else {
+                    // Switch to work
+                    this.intervalRound++;
+                    this.intervalState = 'work';
+                    this.intervalSecondsRemaining = this.intervalWorkDuration;
+                    this.beep(600, 400);
+                }
+            } else if (this.intervalSecondsRemaining <= 3) {
+                // Warning beeps
+                this.beep(800, 100);
+            }
+        }, 1000);
+    },
+    
+    stopIntervalTraining() {
+        clearInterval(this.intervalInterval);
+        this.intervalTimerRunning = false;
+        this.intervalState = 'idle';
+    },
+
+    // Endurance split stopwatch controls
+    startLapTimer() {
+        if (this.lapInterval) return;
+        this.lapInterval = setInterval(() => {
+            this.lapTimer++;
+        }, 100);
+    },
+
+    stopLapTimer() {
+        clearInterval(this.lapInterval);
+        this.lapInterval = null;
+    },
+
+    resetLapTimer() {
+        this.stopLapTimer();
+        this.lapTimer = 0;
+    },
+
+    recordLap(itemId) {
+        let decSeconds = this.lapTimer / 10;
+        let formatted = (Math.floor(decSeconds / 60)) + ':' + (Math.floor(decSeconds % 60)) + '.' + (this.lapTimer % 10);
+        this.logs[itemId].laps.push({
+            lap: this.currentLapIndex++,
+            time: formatted
+        });
+        this.lapTimer = 0;
+    },
+    
+    // Save workout session to backend
+    async finishWorkout() {
+        clearInterval(this.timerInterval);
+        clearInterval(this.lapInterval);
+        clearInterval(this.intervalInterval);
+        
+        let payload = {
+            bucket_id: '{{ bucket.id }}',
+            duration_seconds: this.workoutDuration,
+            rating: this.rating,
+            notes: this.notes,
+            activities: []
+        };
+        
+        for (let itemId in this.logs) {
+            let itemLog = this.logs[itemId];
+            if (itemLog.type === 'strength') {
+                let loggedSets = itemLog.sets.filter(s => s.done).map(s => ({
+                    reps: parseInt(s.reps) || 0,
+                    weight: parseFloat(s.weight) || 0
+                }));
+                if (loggedSets.length > 0) {
+                    payload.activities.push({
+                        title: itemLog.title,
+                        activity_type: 'strength',
+                        logged_data: { sets: loggedSets }
+                    });
+                }
+            } else if (itemLog.type === 'endurance' && itemLog.done) {
+                payload.activities.push({
+                    title: itemLog.title,
+                    activity_type: 'endurance',
+                    logged_data: {
+                        distance: parseFloat(itemLog.distance) || 0,
+                        duration: itemLog.duration,
+                        pace: itemLog.pace,
+                        laps: itemLog.laps
+                    }
+                });
+            } else if (itemLog.type === 'interval' && itemLog.done) {
+                payload.activities.push({
+                    title: itemLog.title,
+                    activity_type: 'interval',
+                    logged_data: {
+                        format: itemLog.format,
+                        duration: itemLog.duration,
+                        completed_rounds: itemLog.completed_rounds,
+                        completed_time: itemLog.completed_time
+                    }
+                });
+            }
+        }
+        
+        try {
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+            let res = await fetch('{% url "core:workout_log_session" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify(payload)
+            });
+            if (res.ok) {
+                // Success! Force reload to display updated charts/history
+                window.location.reload();
+            } else {
+                alert('Fehler beim Speichern der Trainingseinheit.');
+            }
+        } catch(e) {
+            console.error(e);
+            alert('Ein unerwarteter Fehler ist aufgetreten.');
+        }
+    },
+    
+    initWorkoutLogs() {
+        let initialLogs = {};
+        {% for item in active_items %}
+            {% if item.workout_type == 'strength' %}
+                initialLogs[{{ item.id }}] = {
+                    title: '{{ item.title }}',
+                    type: 'strength',
+                    sets: []
+                };
+                let sets = parseInt('{{ item.workout_config_json.sets_count|default:3 }}') || 3;
+                let repsStr = '{{ item.workout_config_json.target_reps|default:"10" }}';
+                let weightsStr = '{{ item.workout_config_json.target_weight|default:"50" }}';
+                let repsArr = repsStr.split(',');
+                let weightsArr = weightsStr.split(',');
+                for (let i = 0; i < sets; i++) {
+                    initialLogs[{{ item.id }}].sets.push({
+                        reps: repsArr[i] ? repsArr[i].trim() : (repsArr[repsArr.length - 1] || '10').trim(),
+                        weight: weightsArr[i] ? weightsArr[i].trim() : (weightsArr[weightsArr.length - 1] || '50').trim(),
+                        done: false
+                    });
+                }
+            {% elif item.workout_type == 'endurance' %}
+                initialLogs[{{ item.id }}] = {
+                    title: '{{ item.title }}',
+                    type: 'endurance',
+                    distance: '{{ item.workout_config_json.target_distance|default:"" }}',
+                    duration: '{{ item.workout_config_json.target_duration|default:"" }}',
+                    pace: '{{ item.workout_config_json.target_pace|default:"" }}',
+                    laps: [],
+                    done: false
+                };
+            {% elif item.workout_type == 'interval' %}
+                initialLogs[{{ item.id }}] = {
+                    title: '{{ item.title }}',
+                    type: 'interval',
+                    format: '{{ item.workout_config_json.interval_format|default:"AMRAP" }}',
+                    duration: '{{ item.workout_config_json.interval_duration|default:"" }}',
+                    completed_rounds: '',
+                    completed_time: '',
+                    done: false
+                };
+            {% endif %}
+        {% endfor %}
+        this.logs = initialLogs;
+    }
+}">
+
+<!-- Hidden csrf token input for ajax logging -->
+<form style="display:none;">{% csrf_token %}</form>
+
+<div class="list-header" style="margin-bottom: 30px; position: relative; z-index: 50;">
     <nav style="margin-bottom: var(--spacing-md);">
         {% if user.is_authenticated %}
             <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
@@ -22,31 +321,19 @@
                 </button>
             </div>
             <p class="text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
-            
-            {% if bucket.category.template.use_milestone and bucket.beneficiary_person %}
-                <div style="margin-top: 12px; display: inline-flex; align-items: center; flex-wrap: wrap; gap: 8px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); padding: 6px 14px; border-radius: 20px; font-size: 0.82rem; color: var(--text-color);">
-                    <span>👤</span>
-                    <strong>{{ bucket.beneficiary_person.name }}</strong>
-                    {% if bucket.beneficiary_person.birth_date %}
-                        <span style="opacity: 0.4;">|</span>
-                        <span>🎂 {{ bucket.beneficiary_person.birth_date|date:"d.m.Y" }}</span>
-                        <span style="opacity: 0.4;">|</span>
-                        <span style="color: var(--primary); font-weight: bold;">Alter: {{ bucket.beneficiary_person.age }} Jahre</span>
-                    {% else %}
-                        <span style="opacity: 0.4;">|</span>
-                        <a href="{% url 'core:settings' %}" style="color: var(--accent); text-decoration: none; font-weight: bold; display: inline-flex; align-items: center; gap: 4px;">
-                            🎂 Geburtsdatum eintragen
-                        </a>
-                    {% endif %}
-                </div>
-            {% endif %}
         </div>
+        
         <div class="actions">
+            {% if bucket.category.template.logic_type == 'workout' and active_items %}
+                <!-- Dynamic Pulsing Training Play Button -->
+                <button @click="startWorkout()" class="btn" style="background: linear-gradient(135deg, #00e676, #00b0ff); border: none; color: #000; font-weight: 900; animation: pulsePlay 2s infinite; font-size: 0.95rem; border-radius: var(--radius-md); padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
+                    ▶️ Training Starten
+                </button>
+            {% endif %}
+            
             <button @click="showPrintModal = true" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></button>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
-            {% endif %}
-            {% if bucket.owner == user %}
                 <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass" title="Einstellungen">⚙️ <span class="hide-mobile">Einstellungen</span></a>
             {% endif %}
         </div>
@@ -57,49 +344,516 @@
     </div>
 </div>
 
-<div class="card glass">
-    <!-- Top Control Bar (Search + Add Button) -->
-    <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); align-items: center; flex-wrap: wrap;">
-        <!-- Live Search Field -->
-        <div style="position: relative; flex: 1; min-width: 200px;">
-            <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; opacity: 0.5; pointer-events: none;">🔍</span>
-            <input type="text" 
-                   name="q" 
-                   placeholder="Einträge suchen / filtern..." 
-                   hx-get="{% url 'core:list_detail' bucket.id %}" 
-                   hx-trigger="keyup changed delay:200ms" 
-                   hx-target="#item-list" 
-                   hx-swap="innerHTML"
-                   class="glass" 
-                   style="width: 100%; padding: 10px 14px 10px 38px; border-radius: var(--radius-md); color: var(--text-color); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); font-size: 0.9rem; outline: none; transition: var(--transition);">
+{% if bucket.category.template.logic_type == 'workout' %}
+    <!-- Workout Stats Header Widget -->
+    {% if user_settings %}
+    <div class="card glass" style="margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-md);">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Gewicht</div>
+                    <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary);">{{ user_settings.gym_weight|default:"-" }} kg</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); padding: 8px 16px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Fitness-Ziel</div>
+                    <div style="font-size: 1.2rem; font-weight: 800; color: var(--accent);">{{ user_settings.gym_fitness_goal|default:"-" }}</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                {% if user_settings.gym_nutrition_plan_url %}
+                    <a href="{{ user_settings.gym_nutrition_plan_url }}" target="_blank" class="btn btn-glass" style="background: rgba(0,230,118,0.1); border-color: #00e676; color: #00e676; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; font-weight: bold;">
+                        🥗 Ernährungsplan
+                    </a>
+                {% endif %}
+                <a href="{% url 'core:settings' %}" class="btn btn-glass">⚙️ Maße aktualisieren</a>
+            </div>
         </div>
 
-        {% if can_edit %}
-        <!-- Add Item Button -->
-        <button hx-get="{% url 'core:get_add_form' bucket.id %}" 
-                hx-target="#form-insertion-point" 
-                hx-swap="innerHTML"
-                class="btn btn-primary" 
-                style="min-height: 42px; border-radius: var(--radius-md); padding: 0 var(--spacing-lg); font-weight: 700; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-            + Hinzufügen
-        </button>
+        {% if user_settings.gym_body_measurements_json %}
+        <div style="margin-top: 15px; border-top: 1px solid var(--glass-border); padding-top: 15px; display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 10px; text-align: center;">
+            {% for key, val in user_settings.gym_body_measurements_json.items %}
+                {% if val %}
+                <div style="background: rgba(0,0,0,0.2); padding: 6px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="font-size: 0.7rem; color: var(--text-muted); text-transform: capitalize;">{{ key }}</div>
+                    <div style="font-size: 0.95rem; font-weight: 700; color: #fff;">{{ val }} cm</div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
         {% endif %}
     </div>
-
-    <div class="items-table-container">
-        {% if not bucket.category.template.use_tracker %}
-        <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
-            <div>Status</div>
-            <div>Bezeichnung</div>
-            {% if bucket.category.template.use_amount %}<div>Menge</div>{% endif %}
-            {% if bucket.category.template.use_price %}<div>Preis</div>{% endif %}
-            {% if bucket.category.template.use_rating %}<div>Bewertung</div>{% endif %}
-            <div>Aktion</div>
+    
+    <!-- Proactive Trainer message/adaptation reminder -->
+    {% if user_settings.gym_plan_adaptation_weeks %}
+        <div style="background: rgba(255, 171, 0, 0.08); border: 1px solid rgba(255, 171, 0, 0.2); padding: var(--spacing-md); border-radius: var(--radius-md); margin-bottom: 25px; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">💡</span>
+            <div>
+                <h4 style="margin: 0; color: #ffab00; font-size: 0.92rem; font-weight: 800;">💡 Trainer-Tipp zur Trainingsanpassung (Alle {{ user_settings.gym_plan_adaptation_weeks }} Wochen):</h4>
+                <p style="margin: 3px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">{{ user_settings.gym_plan_adaptation_message|default:"Bitte melde dich beim Trainer für einen neuen Plan, damit die Fortschritte möglich sind." }}</p>
+            </div>
         </div>
-        {% endif %}
+    {% endif %}
+    {% endif %}
 
-        <div id="item-list">
-            {% include 'core/partials/item_list.html' %}
+    <!-- Exercises & Plans Config Dashboard -->
+    <div class="card glass">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">
+            <h3 style="margin: 0; color: var(--primary);">📋 Übungsplan Übersicht</h3>
+            {% if can_edit %}
+            <button hx-get="{% url 'core:get_add_form' bucket.id %}" hx-target="#form-insertion-point" hx-swap="innerHTML" class="btn btn-glass" style="font-size: 0.85rem;">+ Übung hinzufügen</button>
+            {% endif %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            {% for item in active_items %}
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div>
+                        <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                            {% if item.workout_type == 'strength' %}💪{% elif item.workout_type == 'endurance' %}🏃{% else %}⏱️{% endif %}
+                            {{ item.title }}
+                        </h4>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap;">
+                            {% if item.workout_type == 'strength' %}
+                                <span>Sets: <strong>{{ item.workout_config_json.sets_count|default:3 }}</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Ziel-Wiederholungen: <strong>{{ item.workout_config_json.target_reps|default:"10,8,6" }}</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Ziel-Gewicht: <strong>{{ item.workout_config_json.target_weight|default:"50" }} kg</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Pause: <strong>{{ item.workout_config_json.rest_time|default:120 }}s</strong></span>
+                            {% elif item.workout_type == 'endurance' %}
+                                <span>Ziel-Distanz: <strong>{{ item.workout_config_json.target_distance|default:"-" }} km</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Ziel-Dauer: <strong>{{ item.workout_config_json.target_duration|default:"-" }} Min.</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Ziel-Pace: <strong>{{ item.workout_config_json.target_pace|default:"-" }} Min/km</strong></span>
+                            {% elif item.workout_type == 'interval' %}
+                                <span>Format: <strong>{{ item.workout_config_json.interval_format|default:"AMRAP" }}</strong></span>
+                                <span style="opacity:0.3;">|</span>
+                                <span>Dauer: <strong>{{ item.workout_config_json.interval_duration|default:"-" }} Min.</strong></span>
+                            {% endif %}
+                        </div>
+                        {% if item.notes %}
+                            <p style="margin: 8px 0 0 0; font-size: 0.82rem; font-style: italic; color: rgba(255,255,255,0.4);">💡 Notiz: {{ item.notes }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if can_edit %}
+                    <div style="display: flex; gap: 8px;">
+                        <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" hx-target="#form-insertion-point" hx-swap="innerHTML" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem;">Bearbeiten</button>
+                        <form hx-post="{% url 'core:delete_item' item.id %}" hx-target="#item-list" hx-swap="innerHTML" hx-confirm="Bist du sicher, dass du diese Übung entfernen willst?" style="margin: 0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem; color: #ff5252; border-color: rgba(255, 82, 82, 0.2);">Löschen</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 40px; color: var(--text-muted);">
+                    Hier sind noch keine Übungen eingetragen. Klicke oben rechts auf "+ Übung hinzufügen", um deinen Trainingsplan zu bestücken!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Workout Logs Progression History section -->
+    <div class="card glass" style="margin-top: 30px;">
+        <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
+            <span>📈 Leistungsverlauf & Historie</span>
+        </h3>
+        
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            {% for session in workout_sessions %}
+                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
+                        <div>
+                            <span style="font-weight: 800; color: var(--primary); font-size: 1.05rem;">📅 Workout am {{ session.date|date:"d.m.Y H:i" }}</span>
+                            <span style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; color: #00e676; font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: bold; margin-left: 10px;">Abgeschlossen</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 15px;">
+                            <span>Dauer: <strong>{{ session.duration_seconds }}s</strong></span>
+                            <span>Bewertung: <strong style="color: var(--accent);">{% for i in "12345" %}{% if forloop.counter <= session.rating %}★{% else %}☆{% endif %}{% endfor %}</strong></span>
+                        </div>
+                    </div>
+
+                    {% if session.notes %}
+                        <p style="margin: 0 0 12px 0; font-size: 0.85rem; font-style: italic; color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.02); padding: 8px; border-radius: 4px; border-left: 3px solid var(--primary);">
+                            📝 {{ session.notes }}
+                        </p>
+                    {% endif %}
+
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        {% for act in session.activities.all %}
+                            <div style="font-size: 0.88rem; display: flex; align-items: flex-start; gap: 6px;">
+                                <span style="opacity: 0.5;">•</span>
+                                <div>
+                                    <strong style="color: #fff;">{{ act.title }}</strong>:
+                                    {% if act.activity_type == 'strength' %}
+                                        <span style="color: var(--text-muted);">
+                                            {% for set in act.logged_data_json.sets %}
+                                                Set {{ forloop.counter }}: {{ set.reps }} Wdh. mit {{ set.weight }} kg{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                    {% elif act.activity_type == 'endurance' %}
+                                        <span style="color: var(--text-muted);">
+                                            Distanz: <strong>{{ act.logged_data_json.distance }} km</strong> in <strong>{{ act.logged_data_json.duration }} Min.</strong> (Pace: <strong>{{ act.logged_data_json.pace }} Min/km</strong>)
+                                            {% if act.logged_data_json.laps %}
+                                                <div style="font-size: 0.78rem; opacity: 0.8; margin-top: 4px; padding-left: 10px;">
+                                                    Lap Splits: {% for lap in act.logged_data_json.laps %}R{{ lap.lap }}: {{ lap.time }}s{% if not forloop.last %}, {% endif %}{% endfor %}
+                                                </div>
+                                            {% endif %}
+                                        </span>
+                                    {% elif act.activity_type == 'interval' %}
+                                        <span style="color: var(--text-muted);">
+                                            Format: {{ act.logged_data_json.format }} (Dauer: {{ act.logged_data_json.duration }} Min.) | Absolviert: <strong>{{ act.logged_data_json.completed_rounds }} Runden</strong> in <strong>{{ act.logged_data_json.completed_time }}s</strong>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% empty %}
+                <div style="text-align: center; padding: 30px; color: var(--text-muted);">
+                    Bisher wurden keine Workouts protokolliert. Starte deine erste Einheit mit dem "Training Starten" Button!
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+
+{% else %}
+    <!-- Generic checklists / bucket lists rendering -->
+    <div class="card glass">
+        <!-- Top Control Bar (Search + Add Button) -->
+        <div style="display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-lg); align-items: center; flex-wrap: wrap;">
+            <!-- Live Search Field -->
+            <div style="position: relative; flex: 1; min-width: 200px;">
+                <span style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; opacity: 0.5; pointer-events: none;">🔍</span>
+                <input type="text" 
+                       name="q" 
+                       placeholder="Einträge suchen / filtern..." 
+                       hx-get="{% url 'core:list_detail' bucket.id %}" 
+                       hx-trigger="keyup changed delay:200ms" 
+                       hx-target="#item-list" 
+                       hx-swap="innerHTML"
+                       class="glass" 
+                       style="width: 100%; padding: 10px 14px 10px 38px; border-radius: var(--radius-md); color: var(--text-color); background: rgba(0, 0, 0, 0.2); border: 1px solid var(--glass-border); font-size: 0.9rem; outline: none; transition: var(--transition);">
+            </div>
+
+            {% if can_edit %}
+            <!-- Add Item Button -->
+            <button hx-get="{% url 'core:get_add_form' bucket.id %}" 
+                    hx-target="#form-insertion-point" 
+                    hx-swap="innerHTML"
+                    class="btn btn-primary" 
+                    style="min-height: 42px; border-radius: var(--radius-md); padding: 0 var(--spacing-lg); font-weight: 700; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                + Hinzufügen
+            </button>
+            {% endif %}
+        </div>
+
+        <div class="items-table-container">
+            {% if not bucket.category.template.use_tracker %}
+            <div class="items-header" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); padding-bottom: var(--spacing-sm); border-bottom: 1px solid var(--glass-border); margin-bottom: var(--spacing-md); font-weight: 800; font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">
+                <div>Status</div>
+                <div>Bezeichnung</div>
+                {% if bucket.category.template.use_amount %}<div>Menge</div>{% endif %}
+                {% if bucket.category.template.use_price %}<div>Preis</div>{% endif %}
+                {% if bucket.category.template.use_rating %}<div>Bewertung</div>{% endif %}
+                <div>Aktion</div>
+            </div>
+            {% endif %}
+
+            <div id="item-list">
+                {% include 'core/partials/item_list.html' %}
+            </div>
+        </div>
+    </div>
+{% endif %}
+
+<!-- IMMERSIVE PWAA GYM COCKPIT WINDOW (FULL-SCREEN MODE) -->
+<div x-show="gymMode" style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 10, 0.96); backdrop-filter: blur(15px); z-index: 15000; overflow-y: auto; color: #fff;">
+    <div style="width: 100%; max-width: 650px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; flex-direction: column;">
+        
+        <!-- Header status bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 15px; margin-bottom: 20px;">
+            <div>
+                <span style="font-size: 0.72rem; color: var(--primary); text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">🏋️‍♂️ Gym Cockpit</span>
+                <h2 style="margin: 0; font-size: 1.3rem; color: #fff;">{{ bucket.title }}</h2>
+            </div>
+            
+            <div style="text-align: right;">
+                <div style="font-size: 1.4rem; font-weight: 900; font-family: monospace; color: #00e676;" x-text="formatTime(workoutDuration)">00:00</div>
+                <span style="font-size: 0.75rem; color: var(--text-muted);">Workout Zeit</span>
+            </div>
+        </div>
+
+        <!-- Global Rest Timer Widget inside cockpit -->
+        <div x-show="activeRestTimer" style="background: linear-gradient(135deg, rgba(255,171,0,0.15), rgba(255,82,82,0.1)); border: 1px solid rgba(255,171,0,0.25); border-radius: var(--radius-md); padding: 15px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div style="position: relative; width: 44px; height: 44px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                    <div :style="`position: absolute; inset: 0; background: conic-gradient(var(--accent) ${restProgress}%, transparent 0%); opacity: 0.2;`"></div>
+                    <span style="font-size: 1.2rem; z-index: 2;">⏱️</span>
+                </div>
+                <div>
+                    <div style="font-weight: 800; font-size: 0.95rem; color: var(--accent);">Pause läuft...</div>
+                    <div style="font-size: 0.78rem; color: var(--text-muted);">Mach dich bereit für den nächsten Satz!</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 1.5rem; font-weight: 900; font-family: monospace; color: var(--accent);" x-text="restTimeRemaining + 's'">0s</span>
+                <button @click="clearInterval(activeRestTimer); activeRestTimer = null;" class="btn" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; padding: 4px 10px; font-size: 0.75rem; border-radius: 4px;">Überspringen</button>
+            </div>
+        </div>
+
+        <!-- Cockpit Body: Exercise carousel/list -->
+        <div style="flex: 1;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <span style="font-size: 0.85rem; color: var(--text-muted);">
+                    Übung <strong style="color: #fff;" x-text="(currentExerciseIndex + 1)">1</strong> von <strong style="color: #fff;">{{ active_items|length }}</strong>
+                </span>
+                
+                <div style="display: flex; gap: 6px;">
+                    <button @click="if (currentExerciseIndex > 0) currentExerciseIndex--" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem;" :disabled="currentExerciseIndex === 0">&larr; Zurück</button>
+                    <button @click="if (currentExerciseIndex < {{ active_items|length }} - 1) currentExerciseIndex++" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem;" :disabled="currentExerciseIndex === {{ active_items|length }} - 1">Weiter &rarr;</button>
+                </div>
+            </div>
+
+            <!-- Exercises Loop in cockpit -->
+            {% for item in active_items %}
+                <div x-show="currentExerciseIndex === {{ forloop.counter0 }}" style="animation: slideIn 0.3s ease-out;">
+                    <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                            <div>
+                                <span style="background: var(--primary); color: #000; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
+                                    {{ item.get_workout_type_display }}
+                                </span>
+                                <h3 style="margin: 6px 0 0 0; font-size: 1.4rem; color: #fff;">{{ item.title }}</h3>
+                            </div>
+                        </div>
+
+                        {% if item.notes %}
+                            <p style="margin: 0 0 20px 0; font-size: 0.88rem; font-style: italic; color: var(--text-muted); background: rgba(255,255,255,0.02); padding: 10px; border-radius: var(--radius-sm); border-left: 3px solid var(--primary);">
+                                💡 Tipp: {{ item.notes }}
+                            </p>
+                        {% endif %}
+
+                        <!-- Dynamic workout type views -->
+                        {% if item.workout_type == 'strength' %}
+                            <!-- Strength sets checkpoints -->
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <template x-if="logs[{{ item.id }}]">
+                                    <template x-for="(set, idx) in logs[{{ item.id }}].sets" :key="idx">
+                                        <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
+                                            <div style="display: flex; align-items: center; gap: 12px;">
+                                                <button @click="toggleSet({{ item.id }}, idx, {{ item.workout_config_json.rest_time|default:120 }})" 
+                                                        class="btn" 
+                                                        :style="set.done ? 'background: #00e676; border-color: #00e676; color: #000;' : 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.25);'" 
+                                                        style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s;">
+                                                    <span x-text="set.done ? '✓' : (idx + 1)"></span>
+                                                </button>
+                                                <span style="font-weight: 800; font-size: 0.95rem; color: #fff;">Satz <span x-text="(idx + 1)"></span></span>
+                                            </div>
+
+                                            <div style="display: flex; align-items: center; gap: 15px;">
+                                                <!-- Repetitions counter controller -->
+                                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Wdh.</span>
+                                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                                        <button @click="if (parseInt(set.reps) > 0) set.reps = parseInt(set.reps) - 1" class="btn" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.08); border:none; color:#fff; border-radius:4px; font-weight:bold;">-</button>
+                                                        <input type="text" x-model="set.reps" style="width: 36px; text-align: center; background: none; border: none; color: #fff; font-weight: bold; font-size: 1rem; padding: 0;">
+                                                        <button @click="set.reps = parseInt(set.reps) + 1" class="btn" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.08); border:none; color:#fff; border-radius:4px; font-weight:bold;">+</button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Weight counter controller -->
+                                                <div style="display: flex; flex-direction: column; align-items: center;">
+                                                    <span style="font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;">Gewicht</span>
+                                                    <div style="display: flex; align-items: center; gap: 4px; margin-top: 2px;">
+                                                        <button @click="if (parseFloat(set.weight) >= 2.5) set.weight = (parseFloat(set.weight) - 2.5).toString()" class="btn" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.08); border:none; color:#fff; border-radius:4px; font-weight:bold;">-</button>
+                                                        <input type="text" x-model="set.weight" style="width: 44px; text-align: center; background: none; border: none; color: #fff; font-weight: bold; font-size: 1rem; padding: 0;">
+                                                        <button @click="set.weight = (parseFloat(set.weight) + 2.5).toString()" class="btn" style="width:28px; height:28px; padding:0; display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.08); border:none; color:#fff; border-radius:4px; font-weight:bold;">+</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </template>
+                            </div>
+
+                        {% elif item.workout_type == 'endurance' %}
+                            <!-- Endurance widgets (Distance, Laps & stopwatch splits) -->
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">Ziel Distanz</div>
+                                        <strong style="font-size: 1rem;">{{ item.workout_config_json.target_distance|default:"-" }} km</strong>
+                                    </div>
+                                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">Ziel Dauer</div>
+                                        <strong style="font-size: 1rem;">{{ item.workout_config_json.target_duration|default:"-" }} Min.</strong>
+                                    </div>
+                                    <div style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); text-align: center;">
+                                        <div style="font-size: 0.7rem; color: var(--text-muted);">Ziel Pace</div>
+                                        <strong style="font-size: 1rem;">{{ item.workout_config_json.target_pace|default:"-" }} Min/km</strong>
+                                    </div>
+                                </div>
+
+                                <div style="background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.08); padding: 15px; border-radius: var(--radius-md);">
+                                    <h4 style="margin: 0 0 10px 0; font-size: 0.9rem; color: var(--primary);">⏱️ Rundenzeiten Stoppuhr</h4>
+                                    
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                        <span style="font-size: 1.5rem; font-family: monospace; font-weight: 800; color: #00e676;">
+                                            <span x-text="Math.floor(lapTimer / 600)">0</span>:<span x-text="Math.floor((lapTimer / 10) % 60) < 10 ? '0' : ''"></span><span x-text="Math.floor((lapTimer / 10) % 60)">0</span>.<span x-text="lapTimer % 10">0</span>
+                                        </span>
+                                        
+                                        <div style="display: flex; gap: 8px;">
+                                            <button @click="startLapTimer()" class="btn" style="background: rgba(0,230,118,0.2); color: #00e676; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Start</button>
+                                            <button @click="stopLapTimer()" class="btn" style="background: rgba(255,82,82,0.2); color: #ff5252; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Stop</button>
+                                            <button @click="recordLap({{ item.id }})" class="btn" style="background: rgba(255,171,0,0.2); color: var(--accent); border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;" :disabled="lapTimer === 0">Split</button>
+                                            <button @click="resetLapTimer()" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Reset</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Recorded Lap Splits Carousel/table -->
+                                    <template x-if="logs[{{ item.id }}] && logs[{{ item.id }}].laps.length > 0">
+                                        <div style="max-height: 120px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.3);">
+                                            <table style="width: 100%; font-size: 0.8rem; text-align: left;">
+                                                <thead>
+                                                    <tr style="color: var(--text-muted);">
+                                                        <th>Runde</th>
+                                                        <th>Zwischenzeit</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <template x-for="lap in logs[{{ item.id }}].laps" :key="lap.lap">
+                                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
+                                                            <td style="font-weight: bold; color: var(--primary);" x-text="'Lap ' + lap.lap"></td>
+                                                            <td style="font-family: monospace; color: #fff;" x-text="lap.time + 's'"></td>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                                    <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tatsächlicher Lauf / Fahrt loggen:</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                        <input type="text" placeholder="Distanz (km)" x-model="logs[{{ item.id }}].distance" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Dauer (Min.)" x-model="logs[{{ item.id }}].duration" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Pace (Min/km)" x-model="logs[{{ item.id }}].pace" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                    </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 5px; cursor: pointer;">
+                                        <input type="checkbox" x-model="logs[{{ item.id }}].done" style="width: 18px; height: 18px; accent-color: #00e676;">
+                                        <span style="font-size: 0.85rem;">Als erledigt markieren</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                        {% elif item.workout_type == 'interval' %}
+                            <!-- HIIT Interval cycle timer with circular beeper -->
+                            <div style="display: flex; flex-direction: column; gap: 15px;">
+                                <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 8px;">
+                                    <h4 style="margin: 0 0 10px 0; font-size: 0.88rem; color: var(--primary);">⏱️ Intervall-Taktgeber (Work & Rest Beep)</h4>
+                                    
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                                        <div>
+                                            <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Belastung (s)</label>
+                                            <input type="number" x-model="intervalWorkDuration" class="glass" style="padding: 6px; font-size: 0.82rem;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Erholung (s)</label>
+                                            <input type="number" x-model="intervalRestDuration" class="glass" style="padding: 6px; font-size: 0.82rem;">
+                                        </div>
+                                        <div>
+                                            <label style="font-size: 0.7rem; color: var(--text-muted); display: block; margin-bottom: 2px;">Runden</label>
+                                            <input type="number" x-model="intervalTotalRounds" class="glass" style="padding: 6px; font-size: 0.82rem;">
+                                        </div>
+                                    </div>
+
+                                    <!-- Beeper State display panel -->
+                                    <div :style="intervalState === 'work' ? 'background: rgba(0, 230, 118, 0.15); border-color: #00e676;' : (intervalState === 'rest' ? 'background: rgba(255, 82, 82, 0.15); border-color: #ff5252;' : 'background: rgba(255,255,255,0.02);')" 
+                                         style="border: 1px dashed rgba(255,255,255,0.1); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 12px; transition: all 0.3s ease;">
+                                        <div style="font-size: 0.78rem; text-transform: uppercase; color: var(--text-muted);" x-text="intervalState === 'work' ? '⚡ BELASTUNG' : (intervalState === 'rest' ? '💤 ERHOLUNG' : 'BEREIT')"></div>
+                                        <div style="font-size: 2.2rem; font-weight: 900; font-family: monospace; color: #fff; margin: 4px 0;" x-text="intervalSecondsRemaining + 's'">0s</div>
+                                        <div style="font-size: 0.8rem; color: var(--text-muted);">Runde <span x-text="intervalRound" style="color:#fff; font-weight:bold;">1</span> von <span x-text="intervalTotalRounds" style="color:#fff; font-weight:bold;">8</span></div>
+                                    </div>
+
+                                    <div style="display: flex; gap: 8px;">
+                                        <button @click="startIntervalTraining()" class="btn" style="flex: 1; background: #00e676; color: #000; border: none; font-weight: bold; border-radius: 4px; padding: 8px;" :disabled="intervalTimerRunning">Start Timer</button>
+                                        <button @click="stopIntervalTraining()" class="btn" style="flex: 1; background: #ff5252; color: #fff; border: none; font-weight: bold; border-radius: 4px; padding: 8px;" :disabled="!intervalTimerRunning">Stop Timer</button>
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
+                                    <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Runden loggen:</h4>
+                                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                        <input type="text" placeholder="Runden geschafft" x-model="logs[{{ item.id }}].completed_rounds" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Dauer (Min/Sek)" x-model="logs[{{ item.id }}].completed_time" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                    </div>
+                                    <label style="display: flex; align-items: center; gap: 8px; margin-top: 5px; cursor: pointer;">
+                                        <input type="checkbox" x-model="logs[{{ item.id }}].done" style="width: 18px; height: 18px; accent-color: #00e676;">
+                                        <span style="font-size: 0.85rem;">Als erledigt markieren</span>
+                                    </label>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Cockpit Footer options -->
+        <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px; margin-top: 25px; display: flex; justify-content: space-between; gap: 15px;">
+            <button @click="clearInterval(timerInterval); clearInterval(lapInterval); clearInterval(intervalInterval); gymMode = false; workoutStarted = false;" class="btn btn-glass" style="border-color: rgba(255, 82, 82, 0.4); color: #ff5252;">Training abbrechen</button>
+            <button @click="showLogSessionModal = true" class="btn" style="background: linear-gradient(135deg, #00d2ff, #ffab00); border: none; color: #000; font-weight: 800; padding: 12px 24px; border-radius: var(--radius-md);">🏁 Training beenden</button>
+        </div>
+
+    </div>
+</div>
+
+<!-- COMPLETED WORKOUT LOG MODAL -->
+<div x-show="showLogSessionModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 20000; display: flex; align-items: center; justify-content: center; padding: 20px;">
+    <div class="modal-content glass card" style="width: 100%; max-width: 500px; padding: var(--spacing-lg); border: 1px solid var(--accent); position: relative; background: var(--bg-surface);">
+        <h3 style="margin-top: 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span>🎉</span> Training geschafft!
+        </h3>
+        <p class="text-muted" style="font-size: 0.88rem; margin-bottom: var(--spacing-md);">Herzlichen Glückwunsch! Logge nun dein Befinden und deine Notizen für deine Progression-Historie.</p>
+        
+        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+            <!-- Star rating -->
+            <div class="form-group" x-data="{ hoverRating: 0 }">
+                <label style="display: block; font-size: 0.82rem; margin-bottom: 6px; color: var(--text-muted);">Wie anstrengend / gut war das Training?</label>
+                <div style="display: flex; gap: 8px; font-size: 2rem; line-height: 1;">
+                    <template x-for="star in [1, 2, 3, 4, 5]" :key="star">
+                        <span @click="rating = star"
+                              @mouseenter="hoverRating = star"
+                              @mouseleave="hoverRating = 0"
+                              style="cursor: pointer; transition: transform 0.1s ease, color 0.15s ease;"
+                              :style="{ 
+                                  color: (hoverRating > 0 ? star <= hoverRating : star <= rating) ? 'var(--accent)' : 'rgba(255,255,255,0.15)',
+                                  transform: hoverRating === star ? 'scale(1.25)' : 'scale(1)'
+                              }">
+                            ★
+                        </span>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group">
+                <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; color: var(--text-muted);">Notizen (z.B. Gefühl, Supplements, Besondere Leistungen)</label>
+                <textarea x-model="notes" class="glass" style="min-height: 100px; width: 100%; color: #fff;" placeholder="z.B. Stark gefühlt, heute 80kg Bankdrücken geknackt!..."></textarea>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: var(--spacing-md); margin-top: var(--spacing-lg);">
+            <button @click="showLogSessionModal = false" class="btn btn-glass">Zurück</button>
+            <button @click="finishWorkout()" class="btn btn-primary" style="background: var(--accent); color: #000; font-weight: 800;">Speichern & Beenden</button>
         </div>
     </div>
 </div>
@@ -108,6 +862,12 @@
 <div id="form-insertion-point"></div>
 
 <style>
+    @keyframes pulsePlay {
+        0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); }
+        70% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); }
+        100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); }
+    }
+    
     .detail-header {
         display: flex;
         justify-content: space-between;
@@ -129,133 +889,15 @@
             flex-direction: row;
             width: 100%;
             gap: var(--spacing-sm);
+            flex-wrap: wrap;
         }
         .detail-header .actions .btn {
             flex: 1;
             justify-content: center;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         .hide-mobile {
             display: none;
-        }
-        
-        /* Remove rigid horizontal scrolling rules */
-        .items-header {
-            display: none !important;
-        }
-        .items-table-container {
-            overflow-x: visible !important;
-            padding-bottom: 0 !important;
-        }
-        
-        /* Fully responsive block card with absolute side controls on mobile */
-        .list-item {
-            display: block !important;
-            position: relative !important;
-            padding: var(--spacing-md) 0 !important;
-            padding-left: 32px !important; /* Space for checkbox */
-            padding-right: 64px !important; /* Space for actions */
-            min-width: 0 !important;
-            border-bottom: 1px solid var(--glass-border) !important;
-        }
-        
-        .list-item-check {
-            position: absolute !important;
-            left: 0 !important;
-            top: 20px !important;
-            display: block !important;
-        }
-        
-        .list-item-content {
-            display: block !important;
-            margin-bottom: 8px !important;
-            min-width: 0 !important;
-        }
-        
-        .list-item-actions {
-            position: absolute !important;
-            right: 0 !important;
-            top: 18px !important;
-            display: flex !important;
-            gap: 12px !important;
-        }
-        
-        /* Premium custom inline badges for metadata fields */
-        .list-item-amount,
-        .list-item-price,
-        .list-item-rating {
-            display: inline-flex !important;
-            align-items: center !important;
-            gap: 6px !important;
-            background: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid var(--glass-border) !important;
-            padding: 4px 10px !important;
-            border-radius: 8px !important;
-            font-size: 0.8rem !important;
-            margin-top: 6px !important;
-            margin-right: 8px !important;
-            vertical-align: middle !important;
-        }
-
-        .list-item-amount::before {
-            content: "📦 ";
-        }
-        .list-item-price::before {
-            content: "💰 ";
-        }
-        .list-item-rating {
-            background: rgba(255, 255, 255, 0.02) !important;
-        }
-    }
-
-    /* Print Preview scaling rules for screen mode */
-    @media screen {
-        #print-area {
-            padding: 16px !important;
-            font-size: 0.85rem !important;
-        }
-        #print-area h1 {
-            font-size: 1.5rem !important;
-        }
-        #print-area table {
-            font-size: 0.75rem !important;
-            width: 100% !important;
-        }
-        #print-area th, #print-area td {
-            padding: 6px 4px !important;
-        }
-        
-        @media (max-width: 576px) {
-            #print-area {
-                padding: 10px !important;
-            }
-            #print-area table {
-                font-size: 0.68rem !important;
-            }
-            #print-area th, #print-area td {
-                padding: 4px 2px !important;
-            }
-        }
-    }
-
-    @media print {
-        /* Hide everything on page */
-        body * {
-            visibility: hidden !important;
-        }
-        /* Show print area and its children */
-        #print-area, #print-area * {
-            visibility: visible !important;
-        }
-        #print-area {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            background: white !important;
-            color: black !important;
         }
     }
 </style>
@@ -284,7 +926,6 @@
 
         <!-- Modal Body (Printable Sheet Preview) -->
         <div id="print-area" style="padding: 40px; overflow-y: auto; flex: 1; background: #fff; color: #333; font-family: Helvetica, Arial, sans-serif; text-align: left;">
-            
             <div style="text-align: center; border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
                 <h1 style="font-size: 24pt; font-weight: bold; margin: 0; color: #333;">{{ bucket.title }}</h1>
                 <div style="font-size: 14pt; color: #666; margin-top: 5px;">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
@@ -294,137 +935,94 @@
                 <thead>
                     <tr>
                         <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="30">#</th>
-                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Bezeichnung</th>
-                        {% if bucket.category.template.use_amount %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Menge</th>{% endif %}
-                        {% if bucket.category.template.use_brand %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Marke</th>{% endif %}
-                        {% if bucket.category.template.use_shop %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Shop</th>{% endif %}
-                        {% if bucket.category.template.use_price %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Preis</th>{% endif %}
-                        {% if bucket.category.template.use_rating %}<th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Bewertung</th>{% endif %}
+                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Übung / Bezeichnung</th>
+                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Typ</th>
+                        <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Konfiguration / Ziele</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in bucket.items.all %}
                     <tr>
-                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{% if item.is_completed %}[X]{% else %}[ ]{% endif %}</td>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">[ ]</td>
                         <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
                             <strong style="color: #333;">{{ item.title }}</strong>
                             {% if item.notes %}<br/><small style="color: #666;">{{ item.notes }}</small>{% endif %}
                         </td>
-                        {% if bucket.category.template.use_amount %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.amount|default:"-" }}</td>{% endif %}
-                        {% if bucket.category.template.use_brand %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.brand|default:"-" }}</td>{% endif %}
-                        {% if bucket.category.template.use_shop %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.shop|default:"-" }}</td>{% endif %}
-                        {% if bucket.category.template.use_price %}<td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</td>{% endif %}
-                        {% if bucket.category.template.use_rating %}
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.get_workout_type_display }}</td>
                         <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
-                            {% if item.rating %}
-                                {% for i in "12345" %}
-                                    {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
-                                {% endfor %}
-                            {% else %}
-                                -
+                            {% if item.workout_type == 'strength' %}
+                                Sets: {{ item.workout_config_json.sets_count|default:3 }} | Ziel: {{ item.workout_config_json.target_reps }} Wdh. bei {{ item.workout_config_json.target_weight }} kg
+                            {% elif item.workout_type == 'endurance' %}
+                                Distanz: {{ item.workout_config_json.target_distance|default:"-" }} km | Pace: {{ item.workout_config_json.target_pace|default:"-" }} Min/km
+                            {% elif item.workout_type == 'interval' %}
+                                Format: {{ item.workout_config_json.interval_format|default:"AMRAP" }} | Dauer: {{ item.workout_config_json.interval_duration }} Min.
                             {% endif %}
                         </td>
-                        {% endif %}
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 20px; color: #999;">Keine Einträge vorhanden.</td>
+                        <td colspan="4" style="text-align: center; padding: 20px; color: #999;">Keine Einträge vorhanden.</td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
-
-            <div style="margin-top: 30px; text-align: center; font-size: 9pt; color: #999; border-top: 1px solid #eee; padding-top: 5px;">
-                Generiert mit buckezz am {% now "d.m.Y H:i" %}
-            </div>
         </div>
     </div>
 </div>
-    <!-- Help Modal -->
-    <template x-if="showHelpModal">
-        <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
-            <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: var(--spacing-md); position: relative;">
-                
-                <!-- Close Button -->
-                <button type="button" @click="showHelpModal = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
-                
-                <!-- Header -->
-                <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
-                    <span style="font-size: 2.2rem;">{{ bucket.category.icon }}</span>
-                    <div>
-                        <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Anleitung: {{ bucket.category.name }}</h2>
-                        <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.85rem;">
-                            {% if bucket.category.template.help_purpose %}
-                                {{ bucket.category.template.help_purpose }}
-                            {% else %}
-                                Schritt-für-Schritt Anleitung & Beispiele
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
 
-                <!-- Step-by-Step Instructions -->
-                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.5;">
-                    <div>
-                        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <span>🆕</span> 1. So erstellst du Einträge
-                        </h3>
-                        {% if can_edit %}
-                            <p style="margin: 0 0 8px 0; font-size: 0.9rem;">
-                                Klicke ganz unten auf der Seite auf den großen blauen Button <strong>"+ Neuen Eintrag hinzufügen"</strong>. Daraufhin öffnet sich das Formular direkt auf der Seite.
-                            </p>
-                            <p style="margin: 0; font-size: 0.9rem;">
-                                Trage dort die Bezeichnung ein. Je nach Liste stehen dir spezifische Zusatzfelder zur Verfügung (z.B. {% if bucket.category.template.use_price %}Preis, {% endif %}{% if bucket.category.template.use_amount %}Menge, {% endif %}{% if bucket.category.template.use_persons %}beteiligte Personen, {% endif %}etc.). Klicke anschließend auf <strong>"Speichern"</strong>.
-                            </p>
-                        {% else %}
-                            <p style="margin: 0; font-size: 0.9rem; color: #f87171;">
-                                ⚠️ Du hast für diese Liste aktuell <strong>nur Leserechte</strong>. Neue Einträge können nur vom Besitzer oder berechtigten Mitgliedern angelegt werden.
-                            </p>
-                        {% endif %}
-                    </div>
-
-                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md);">
-                        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
-                            <span>⚙️</span> 2. So benutzt du diese Liste
-                        </h3>
-                        <div style="font-size: 0.9rem; display: flex; flex-direction: column; gap: 8px;">
-                            {% if bucket.category.template.help_fields %}
-                                <div style="white-space: pre-line;">{{ bucket.category.template.help_fields }}</div>
-                            {% else %}
-                                <p style="margin: 0;">📋 Behalte deine Einträge im Blick, weise bei Bedarf Personen zu und hake erledigte Dinge einfach ab, um den Fortschritt zu sehen.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-
-                    {% if bucket.category.template.help_example %}
-                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
-                        <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-                            <span>📝</span> Praxis-Beispiel
-                        </h3>
-                        <div style="font-size: 0.88rem; font-style: italic; color: var(--text-muted); white-space: pre-line;">{{ bucket.category.template.help_example }}</div>
-                    </div>
-                    {% endif %}
-
-                    <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); display: flex; align-items: center; justify-content: space-between; font-size: 0.85rem;">
-                        <span>🛡️ Deine Berechtigung:</span>
-                        {% if can_edit %}
-                            <span style="color: var(--primary); font-weight: bold; display: flex; align-items: center; gap: 4px;">
-                                🟢 Schreibrechte (Erstellen & Bearbeiten erlaubt)
-                            </span>
-                        {% else %}
-                            <span style="color: #f87171; font-weight: bold; display: flex; align-items: center; gap: 4px;">
-                                🔴 Nur Leserechte (Keine Änderungen erlaubt)
-                            </span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div style="margin-top: var(--spacing-md); display: flex; justify-content: flex-end;">
-                    <button type="button" class="btn btn-primary" @click="showHelpModal = false" style="min-width: 100px;">Verstanden</button>
+<!-- Help Modal -->
+<template x-if="showHelpModal">
+    <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
+        <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--accent); max-height: 90vh; overflow-y: auto; display: flex; flex-direction: column; gap: var(--spacing-md); position: relative;">
+            <button type="button" @click="showHelpModal = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+            
+            <div style="display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px;">
+                <span style="font-size: 2.2rem;">{{ bucket.category.icon }}</span>
+                <div>
+                    <h2 style="margin: 0; font-size: 1.4rem; color: var(--primary);">Anleitung: {{ bucket.category.name }}</h2>
+                    <p class="text-muted" style="margin: 2px 0 0 0; font-size: 0.85rem;">
+                        {{ bucket.category.template.help_purpose|default:"Ausführliche Trainings-Anleitung & Beispiele" }}
+                    </p>
                 </div>
             </div>
+
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.5;">
+                <div>
+                    <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                        <span>🆕</span> 1. So erstellst du deinen Plan
+                    </h3>
+                    <p style="margin: 0; font-size: 0.9rem;">
+                        Klicke oben rechts auf <strong>"+ Übung hinzufügen"</strong>. Wähle den Aktivitätstyp (Kraft, Ausdauer oder Intervall) und trage deine Vorgaben (z.B. Sets, Wiederholungen, Gewicht) ein.
+                    </p>
+                </div>
+
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                        <span>🏋️‍♂️</span> 2. So absolvierst du dein Training (Gym Mode)
+                    </h3>
+                    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">
+                        Tippe oben auf den leuchtenden grünen Button <strong>"▶️ Training Starten"</strong>, um das ablenkungsfreie Gym-Cockpit aufzurufen.
+                    </p>
+                    <p style="margin: 0; font-size: 0.9rem;">
+                        Hake während deines Trainings die Sätze ab. Die integrierte Stoppuhr zählt deine Pause runter und signalisiert das Ende mit einem unaufdringlichen Beep-Ton! Du kannst Reps und Gewichte direkt live verändern, falls du ein anderes Gewicht gestemmt hast.
+                    </p>
+                </div>
+
+                {% if bucket.category.template.help_example %}
+                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
+                    <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+                        <span>📝</span> Praxis-Beispiel
+                    </h3>
+                    <div style="font-size: 0.88rem; font-style: italic; color: var(--text-muted); white-space: pre-line;">{{ bucket.category.template.help_example }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div style="margin-top: var(--spacing-md); display: flex; justify-content: flex-end;">
+                <button type="button" class="btn btn-primary" @click="showHelpModal = false" style="min-width: 100px;">Verstanden</button>
+            </div>
         </div>
-    </template>
-</div>
-</div>
+    </div>
+</template>
+
 {% endblock %}

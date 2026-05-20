@@ -36,4 +36,5 @@ urlpatterns = [
     path('settings/', views.ThemeSettingsView.as_view(), name='settings'),
     path('calendar/', views.CalendarView.as_view(), name='calendar'),
     path('calendar/feed/<uuid:token>/calendar.ics', api_views.PersonalICalFeedView.as_view(), name='list_ical_feed'),
+    path('workout/log-session/', views.WorkoutLogSessionView.as_view(), name='workout_log_session'),
 ]

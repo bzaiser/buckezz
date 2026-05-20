@@ -20,6 +20,14 @@ class UserSetting(models.Model):
     calendar_filter_reminder = models.BooleanField(default=True)
     calendar_filter_completed = models.BooleanField(default=True)
 
+    # Gym & Workout settings
+    gym_weight = models.FloatField(null=True, blank=True)
+    gym_body_measurements_json = models.JSONField(blank=True, null=True)
+    gym_nutrition_plan_url = models.URLField(max_length=1000, blank=True, null=True)
+    gym_fitness_goal = models.CharField(max_length=255, blank=True, null=True)
+    gym_plan_adaptation_weeks = models.IntegerField(default=4)
+    gym_plan_adaptation_message = models.TextField(default='Bitte melde dich beim Trainer für einen neuen Plan, damit die Fortschritte möglich sind.')
+
     def __str__(self):
         return f"Settings for {self.user.username}"
 
@@ -83,6 +91,7 @@ class ListTemplate(models.Model):
         ('bucket', _('Bucketliste')),
         ('event', _('Veranstaltungsplaner')),
         ('tracker', _('Tracker / Gewohnheiten')),
+        ('workout', _('Trainingsplan / Sport')),
     ]
     logic_type = models.CharField(max_length=20, choices=LOGIC_CHOICES, default='generic', help_text=_("Bestimmt den spezifischen Workflow für diesen Listentyp"))
 
@@ -191,6 +200,15 @@ class ListItem(models.Model):
     
     location = models.CharField(max_length=255, null=True, blank=True)
     
+    # Workout activity fields
+    WORKOUT_TYPE_CHOICES = [
+        ('strength', _('Krafttraining (Gewichte/Sätze)')),
+        ('endurance', _('Ausdauertraining (Distanz/Zeit)')),
+        ('interval', _('Intervalltraining (Crossfit/HIIT)')),
+    ]
+    workout_type = models.CharField(max_length=20, choices=WORKOUT_TYPE_CHOICES, default='strength')
+    workout_config_json = models.JSONField(blank=True, null=True, help_text=_("Konfiguration für Sätze, Distanzen, Intervalle"))
+    
     STATUS_CHOICES = [
         ('active', _('Aktiv')),
         ('done', _('Erledigt')),
@@ -293,3 +311,32 @@ class ItemTrackerLog(models.Model):
 
     def __str__(self):
         return f"{self.item.title} am {self.date} um {self.scheduled_time}"
+
+class WorkoutSessionLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='workout_sessions')
+    bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='workout_sessions')
+    date = models.DateTimeField(auto_now_add=True)
+    duration_seconds = models.IntegerField(default=0)
+    rating = models.PositiveSmallIntegerField(default=5)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name = _("Trainingseinheit Protokoll")
+        verbose_name_plural = _("Trainingseinheiten Protokolle")
+
+    def __str__(self):
+        return f"{self.bucket_list.title} am {self.date.strftime('%d.%m.%Y')}"
+
+class WorkoutActivityLog(models.Model):
+    session = models.ForeignKey(WorkoutSessionLog, on_delete=models.CASCADE, related_name='activities')
+    title = models.CharField(max_length=255)
+    activity_type = models.CharField(max_length=20) # 'strength', 'endurance', 'interval'
+    logged_data_json = models.JSONField()
+
+    class Meta:
+        verbose_name = _("Aktivität Protokoll")
+        verbose_name_plural = _("Aktivitäten Protokolle")
+
+    def __str__(self):
+        return f"{self.title} ({self.activity_type})"
