@@ -5,4 +5,32 @@
     {{ block.super }}
     <link rel="icon" type="image/svg+xml" href="{% static 'img/logo.svg' %}">
     <link rel="alternate icon" type="image/png" href="{% static 'img/logo.png' %}">
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Find user tools header navigation
+            const userTools = document.getElementById("user-tools");
+            if (userTools) {
+                const links = userTools.getElementsByTagName("a");
+                for (let link of links) {
+                    const href = link.getAttribute("href");
+                    // Rename and adjust view site link
+                    if (href && (href === "/dashboard/" || href === "/" || link.innerText.includes("Webseite") || link.innerText.includes("View site"))) {
+                        link.innerHTML = "💻 Zurück zum Desktop";
+                        link.style.fontWeight = "bold";
+                        link.style.color = "var(--primary, #00adb5)";
+                        
+                        // Smart back link to referrer if it is inside our domain and not in admin panel
+                        const referrer = document.referrer;
+                        if (referrer && !referrer.includes("/admin/") && (referrer.includes(window.location.host) || referrer.startsWith("/"))) {
+                            link.setAttribute("href", referrer);
+                        } else {
+                            link.setAttribute("href", "/dashboard/");
+                        }
+                    }
+                }
+            }
+        });
+    </script>
 {% endblock %}
+

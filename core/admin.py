@@ -10,6 +10,55 @@ class ListCategoryAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'icon')
     prepopulated_fields = {'slug': ('name',)}
     inlines = [ListTemplateInline]
+    readonly_fields = ('template_creation_guide',)
+    fields = ('template_creation_guide', 'name', 'slug', 'icon')
+
+    def template_creation_guide(self, obj):
+        from django.utils.safestring import mark_safe
+        return mark_safe("""
+            <div style="background: #1e1e1e; color: #e0e0e0; padding: 22px; border-radius: 8px; border: 1px solid #3c3c3c; line-height: 1.6; font-size: 13px; max-width: 850px; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+                <h3 style="color: #00adb5; margin-top: 0; font-size: 16px; border-bottom: 1px solid #3c3c3c; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 600;">
+                    ℹ️ Premium-Leitfaden für Listen-Vorlagen (Admins)
+                </h3>
+                <p style="margin: 0 0 16px 0; color: #a0a0a0;">Willkommen in der Vorlagen-Verwaltung! Wenn du eine neue Vorlage (Kategorie) erstellst, bestimmst du das Verhalten und die verfügbaren Felder der Liste. Folge diesem Leitfaden:</p>
+                
+                <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">1. Workflow & Logik-Typ (logic_type) bestimmen:</h4>
+                <p style="margin: 0 0 10px 0;">Wähle unter <strong>Logik-Typ</strong> die passende Verhaltensweise für die Liste aus. Das verändert den gesamten Workflow:</p>
+                <ul style="padding-left: 20px; margin: 0 0 16px 0; list-style-type: square; color: #ccc;">
+                    <li style="margin-bottom: 6px;"><strong>Allgemein (generic):</strong> Klassischer Listen-Workflow. Elemente können als erledigt abgehakt werden.</li>
+                    <li style="margin-bottom: 6px;"><strong>To-Do Liste (todo):</strong> Optimiert für Aufgaben mit Personen-Zuweisung und automatischen Mail-Erinnerungen.</li>
+                    <li style="margin-bottom: 6px;"><strong>Geschenkeliste (gift):</strong> Aktiviert das <strong>Reservierungs- & Wichtelsystem</strong>. Schenkende können Wünsche reservieren (🔒) oder erfüllen (🎁). Der Empfänger der Geschenke (Beschenkte/owner) sieht diese Zuordnungen und Statusänderungen nicht (Überraschungs-Schutz!), während alle anderen Schenkenden sie sehen, um Doppelkäufe zu vermeiden.</li>
+                    <li style="margin-bottom: 6px;"><strong>Bucketliste (bucket):</strong> Für Lebensziele. Ermöglicht Zuordnung zu Lebensabschnitten (Milestones), Prioritäten-Sternen und eine editierbare "Erreicht-am"-Chronik nach dem Abhaken.</li>
+                    <li style="margin-bottom: 6px;"><strong>Veranstaltungsplaner (event):</strong> Ermöglicht Budget- und Kostenkalkulation, Zuordnung von Aufgaben an Personen und exakte Zeiteinteilungen.</li>
+                    <li style="margin-bottom: 6px;"><strong>Tracker / Gewohnheiten (tracker):</strong> Schaltet den Live-Tracker frei, über den Aktionen live und zeitgenau protokolliert werden (z.B. Medikamenteneinnahme, Gießen, Tierfütterung).</li>
+                </ul>
+
+                <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">2. Aktive Felder steuern:</h4>
+                <p style="margin: 0 0 10px 0;">Aktiviere durch Anhaken nur die Felder, die für diese Liste wirklich Sinn machen. Das hält die Benutzeroberfläche für deine User extrem schlank:</p>
+                <ul style="padding-left: 20px; margin: 0 0 16px 0; list-style-type: square; color: #ccc;">
+                    <li style="margin-bottom: 6px;"><strong>Menge (use_amount):</strong> Für Stückzahlen oder Dosen (z.B. Einkäufe, Weinflaschen, Medikamente).</li>
+                    <li style="margin-bottom: 6px;"><strong>Marke (use_brand):</strong> Zeigt ein Marken- oder Herstellernamen-Feld an (wird bei Ärzten für den Arzt-/Praxisnamen verwendet).</li>
+                    <li style="margin-bottom: 6px;"><strong>Geschäft (use_shop):</strong> Zeigt an, in welchem Geschäft (oder auf welcher Website) etwas besorgt werden soll.</li>
+                    <li style="margin-bottom: 6px;"><strong>Preis (use_price):</strong> Schaltet die Preiserfassung frei. Bei Einkäufen/Events wird automatisch die Summe aller offenen Posten und die Gesamtsumme berechnet!</li>
+                    <li style="margin-bottom: 6px;"><strong>Ort (use_location):</strong> Für Adressen, GPS-Orte oder Web-Links (z.B. Arztpraxis, Event-Ort, Wunschzettel-Shoplink).</li>
+                    <li style="margin-bottom: 6px;"><strong>Startdatum (use_start_date) & Enddatum (use_end_date):</strong> Für zeitlich begrenzte Termine oder Einnahmephasen.</li>
+                    <li style="margin-bottom: 6px;"><strong>Erinnerung (use_reminder):</strong> Schaltet E-Mail-Erinnerungen frei, die sich vollautomatisch an die lokale Zeitzone anpassen.</li>
+                    <li style="margin-bottom: 6px;"><strong>Personen (use_persons):</strong> Für Zuständigkeiten, Wichtel-Teilnehmer oder Beteiligte.</li>
+                    <li style="margin-bottom: 6px;"><strong>Tracker (use_tracker):</strong> Aktiviert das minutengenaue Live-Abhaken für regelmäßige Routinen.</li>
+                </ul>
+
+                <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">3. Hilfetexte schreiben:</h4>
+                <p style="margin: 0;">Gib gute Hilfestellungen. Schreibe das <strong>Praxis-Beispiel</strong> sauber untereinander (mit normalen Zeilenumbrüchen). Das System rendert sie wunderschön zeilenweise im Browser-Info-Modal!</p>
+            </div>
+        """)
+    template_creation_guide.short_description = "Premium Ausfüll-Hilfe & Anleitung"
+
+# Customizing the Admin site titles and back link
+admin.site.site_header = "Buckezz Administration"
+admin.site.site_title = "Buckezz Admin"
+admin.site.index_title = "Willkommen in der Buckezz Verwaltung"
+admin.site.site_url = "/dashboard/"
+
 
 from .models import UserSetting
 
