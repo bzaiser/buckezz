@@ -506,6 +506,11 @@ class PersonalICalFeedView(View):
                     f'DTEND:{format_ical_date(end_dt)}',
                     f'SUMMARY:⏰ {item.title} (Erinnerung)',
                     f'DESCRIPTION:Liste: {item.bucket_list.title}\\n\\nNotizen:\\n{item.notes or ""}',
+                    'BEGIN:VALARM',
+                    'ACTION:DISPLAY',
+                    f'DESCRIPTION:Erinnerung: {item.title}',
+                    'TRIGGER:-PT0M',  # Trigger alert exactly at the start time
+                    'END:VALARM',
                     'END:VEVENT'
                 ])
 
