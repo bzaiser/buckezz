@@ -40,6 +40,10 @@
     // Gym Workout Logs
     logs: {},
     
+    init() {
+        this.initWorkoutLogs();
+    },
+    
     startWorkout() {
         this.workoutStarted = true;
         this.workoutDuration = 0;
