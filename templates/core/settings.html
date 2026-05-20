@@ -111,8 +111,8 @@
                             <option value="Europe/Vienna" {% if settings.timezone == 'Europe/Vienna' %}selected{% endif %}>Österreich / Wien (Europe/Vienna)</option>
                             <option value="UTC" {% if settings.timezone == 'UTC' %}selected{% endif %}>Koordinierte Weltzeit (UTC)</option>
                         </select>
-                        <button type="button" onclick="detectBrowserTimezone()" class="btn btn-glass" style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.85rem;" title="Erkennt die lokale Zeitzone deines aktuellen Webbrowsers">
-                            🌍 Auto-Erkennung
+                        <button type="button" onclick="detectBrowserTimezone()" class="btn btn-glass" style="display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; min-width: 44px; border-radius: var(--radius-sm); font-size: 1.2rem; cursor: pointer; transition: all 0.2s ease; border: 1px solid rgba(255, 255, 255, 0.1);" title="Lokale Zeitzone automatisch ermitteln">
+                            📍
                         </button>
                     </div>
                     <p id="tz-detect-msg" style="margin: 4px 0 0 0; font-size: 0.78rem; color: var(--primary); font-weight: bold; display: none;">
