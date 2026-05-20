@@ -97,6 +97,21 @@ class Command(BaseCommand):
                 'help_purpose': 'Perfekt, um das Gießen, Düngen und Umtopfen deiner Zimmerpflanzen strukturiert im Griff zu behalten.',
                 'help_fields': 'Pflege deine Pflanzen optimal:\n• Gieß-Intervall (Erinnerung): Wecker zum Gießen (reisesicher mit automatischer Zeitzone: ⏰ = geplant, 📩 = gesendet)\n• Gieß-Tracker: Logge das Gießen im Live-Tracker, um Staunässe sicher zu verhindern.',
                 'help_example': 'Bezeichnung: "Monstera gießen" | Erinnerung: "Alle 8 Tage" | Tracker: Aktiviert. Sobald du mit der Gießkanne herumgehst, loggst du es ein!'
+            },
+            {
+                'old_name': 'Arzt Termine',
+                'name': 'Arzt Termine',
+                'icon': '🏥',
+                'fields': {
+                    'use_brand': True,
+                    'use_start_date': True,
+                    'use_reminder': True,
+                    'use_location': True,
+                    'use_rating': True
+                },
+                'help_purpose': 'Erfasse deine Arzt- und Vorsorgetermine strukturiert und behalte den Überblick über deine Gesundheit.',
+                'help_fields': 'Perfekte Übersicht für deine Arztbesuche:\n• Arzt/Praxis (Name): Name des Arztes, der Praxis oder des Fachgebiets (wird im Feld "Marke" erfasst)\n• Termin (Start): Genaue Uhrzeit des Arzttermins (z.B. "19.11.2026 09:10")\n• Erinnerung: Stelle Benachrichtigungen ein, um Fristen nicht zu verschlafen (reisesicher mit automatischer Zeitzone: ⏰ = geplant, 📩 = gesendet)\n• Ort/Telefon: Adresse des Arztes und eventuell die Telefonnummer zur direkten Kontaktaufnahme\n• Bewertung (Bedeutung): Drücke hier entweder deine Beurteilung des Arztes oder die Dringlichkeit/Wichtigkeit des Termins aus',
+                'help_example': 'Titel: "Zahnarzt Vorsorge" | Arzt (Marke): "Dr. Müller" | Termin (Start): "19.11.2026 09:10" | Ort: "Hauptstraße 4, Tel: 012345" | Wichtigkeit: "⭐⭐⭐⭐" | Erinnerung: "12.11.2026 18:00"\n\nNotiz: "Dran denken, die Krankenkassenkarte mitzubringen und eventuell ein Handtuch!"'
             }
         ]
 
