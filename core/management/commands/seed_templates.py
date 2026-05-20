@@ -15,7 +15,17 @@ class Command(BaseCommand):
                 'fields': {'use_amount': True, 'use_brand': True, 'use_shop': True, 'use_price': True},
                 'help_purpose': 'Perfekt für deinen Wocheneinkauf, Vorratsbestellungen oder geplante Anschaffungen.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Planen: Trage alle Artikel bequem ein. Du kannst Marke, bevorzugtes Geschäft und Preis direkt in der Zeile erfassen.\n2. Einkaufen: Hake gekaufte Artikel live im Supermarkt ab. Sie wandern automatisch nach unten.\n3. Budget-Kontrolle: Die Liste errechnet in Echtzeit die Zwischensumme aller offenen Artikel sowie die Gesamtsumme deiner Einkäufe!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Der Name des Produkts\n• Menge: Anzahl oder Mengenangabe (z.B. "3" oder "1 Packung")\n• Marke: Zur präzisen Orientierung im Regal (z.B. "Oatly")\n• Geschäft: Wo das Produkt gekauft werden soll (z.B. "Rewe", "Aldi")\n• Preis: Einzelpreis des Artikels zur automatischen Preiskalkulation',
-                'help_example': 'Titel / Bezeichnung: Hafermilch\nMenge: 4 Packungen\nMarke: Oatly\nGeschäft: Edeka\nPreis: 1.99 €'
+                'help_example': """Titel / Bezeichnung: Hafermilch (Barista Edition)
+
+Menge: 4 Packungen
+
+Marke: Oatly
+
+Geschäft: Edeka (Hauptstraße)
+
+Preis: 2,19 € pro Packung
+
+Notizen: Steht meistens bei den haltbaren Milchprodukten im Gang 3. Bitte nur die graue Barista-Edition mitnehmen!"""
             },
             {
                 'old_name': '✅ To-Do Liste',
@@ -24,7 +34,15 @@ class Command(BaseCommand):
                 'fields': {'use_end_date': True, 'use_persons': True, 'use_reminder': True},
                 'help_purpose': 'Strukturierte Erfassung, Zuweisung und Überwachung all deiner privaten und beruflichen Aufgaben.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Erfassen: Schreibe anstehende Aufgaben auf.\n2. Zuweisen & Planen: Bestimme Fälligkeiten und weise Aufgaben Familienmitgliedern oder Kollegen zu.\n3. Automatischer Wecker: Setze reisesichere E-Mail-Erinnerungen ein. Die Status-Badges zeigen dir direkt, ob eine E-Mail geplant (⏰) oder bereits verschickt (📩) wurde.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Was getan werden muss\n• Fälligkeitsdatum: Bis wann die Aufgabe erledigt sein muss\n• Erinnerung: Wunschzeitpunkt für den automatischen E-Mail-Wecker\n• Zuständig (Personen): Teilt Aufgaben bestimmten Personen zu',
-                'help_example': 'Titel / Bezeichnung: Wohnzimmer streichen\nFälligkeitsdatum: Sonntag\nErinnerung: Samstag, 10:00 Uhr\nBeteiligte Personen: Jonas, Papa'
+                'help_example': """Titel / Bezeichnung: Wohnzimmer streichen (Wände & Decke)
+
+Fälligkeitsdatum: Sonntag, 24.05.2026 bis 18:00 Uhr
+
+⏰ Erinnerung am: Samstag, 23.05.2026 um 10:00 Uhr (damit noch Zeit zum Abkleben bleibt)
+
+Zuständig: Jonas, Papa
+
+Notizen: Abdeckfolie, Malerkrepp und weiße Wandfarbe (Alpina) vorher im Baumarkt besorgen. Papa bringt die Teleskopstange mit!"""
             },
             {
                 'old_name': '🍷 Weinvorrat',
@@ -33,7 +51,15 @@ class Command(BaseCommand):
                 'fields': {'use_amount': True, 'use_brand': True, 'use_location': True},
                 'help_purpose': 'Präzise Bestandsübersicht über deinen Weinkeller, Gin-Regale, deine Hausbar oder Vorratskammer.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Inventarisieren: Trage Flaschen mit Marke, Jahrgang und genauem Lagerort ein.\n2. Schneller Abgleich: Über die +/- Knöpfe direkt in der Liste kannst du die Mengen sekundenschnell anpassen, wenn du eine Flasche entnimmst oder einlagerst – ganz ohne die Zeile öffnen zu müssen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des edlen Tropfens / Getränks\n• Menge: Aktueller Flaschenbestand (direkt in der Liste editierbar)\n• Winzer/Marke: Hersteller, Winzer oder Marke zur Orientierung\n• Lagerort: Wo genau sich das Produkt befindet (z.B. "Keller, Regal B")',
-                'help_example': 'Titel / Bezeichnung: Cabernet Sauvignon 2019\nMenge: 4 Flaschen\nWinzer/Marke: Château Margaux\nLagerort: Fach 5A'
+                'help_example': """Titel / Bezeichnung: Cabernet Sauvignon (Jahrgang 2019)
+
+Menge: 4 Flaschen (von ursprünglich 6)
+
+Winzer / Marke: Château Margaux
+
+Lagerort: Weinkeller, Holzregal 3, Fach 5A
+
+Notizen: Ein absoluter Spitzenwein. Sollte mindestens 2 Stunden vor dem Trinken dekantiert werden. Perfekt zu dunklem Fleisch oder reifem Käse."""
             },
             {
                 'old_name': '🗓️ Veranstaltungsplaner',
@@ -42,7 +68,19 @@ class Command(BaseCommand):
                 'fields': {'use_location': True, 'use_start_date': True, 'use_end_date': True, 'use_persons': True, 'use_price': True},
                 'help_purpose': 'Umfassende Koordination von Geburtstagen, Hochzeiten, Ausflügen, Grillfesten oder Business-Events.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Planen: Erstelle Event-Posten (z.B. "Location mieten", "Catering organisieren").\n2. Zuweisen: Teile Aufgaben und Zuständigkeiten bestimmten Personen zu (z.B. "Wer bringt den Nudelsalat mit?").\n3. Zeitplanung & Budget: Lege Start- und Endzeiten fest und behalte über die automatische Preiskalkulation das Gesamtbudget im Auge.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name der Aktivität / Planungs-Aufgabe\n• Ort: Veranstaltungsort oder Adresse\n• Start & Ende: Exakter Zeitraum für den Ablauf\n• Zuständig (Personen): Zugewiesene Organisatoren / Helfer\n• Kosten/Preis: Kalkulierter Einzelpreis zur automatischen Budgetberechnung',
-                'help_example': 'Titel / Bezeichnung: Getränke holen\nOrt: Getränkemarkt Müller\nStart: 18.06.2026 15:00 Uhr\nEnde: 18.06.2026 16:30 Uhr\nZuständig: Felix\nPreis: 60.00 €'
+                'help_example': """Titel / Bezeichnung: Getränke und Eis für die Grillparty besorgen
+
+Ort: Getränkemarkt Müller (Industriestraße)
+
+Start: Donnerstag, 18.06.2026 um 15:00 Uhr
+
+Ende: Donnerstag, 18.06.2026 um 16:30 Uhr
+
+Zuständig: Felix
+
+Preis / Budget: 60,00 € (Gesamtkalkulation für 3 Kisten Bier und Softdrinks)
+
+Notizen: Bitte die Pfandflaschen aus dem Keller vorher ins Auto einladen und direkt verrechnen lassen! Kassenbon für die Abrechnung aufheben."""
             },
             {
                 'old_name': '💊 Medikamentenplan',
@@ -51,7 +89,19 @@ class Command(BaseCommand):
                 'fields': {'use_amount': True, 'use_start_date': True, 'use_persons': True, 'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Verlässliche Einnahmekontrolle, reisesichere Wecker und lückenlose Dokumentation deiner täglichen Medikamente.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Dosierung & Wecker: Trage Medikamente, Dosis und Einnahmezeitpunkte ein. Der E-Mail-Wecker passt sich auf Reisen vollautomatisch deiner Ortszeit an.\n2. Live-Tracker: Klicke im intuitiven Einnahme-Tracker direkt auf "Eingenommen". Die Einnahme wird minutengenau im Verlauf mit Namen protokolliert.\n3. Sicherheit: Doppel-Einnahmen oder vergessene Dosen gehören der Vergangenheit an!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des Medikaments\n• Menge: Dosis pro Einnahme (z.B. "1 Tablette" oder "15 Tropfen")\n• Startdatum: Wann die Einnahme-Phase beginnt\n• Erinnerung: Zeitpunkt für deinen automatischen E-Mail-Wecker\n• Personen: Für wen das Medikament bestimmt ist\n• Tracker: Aktiviert das minutengenaue Live-Einnahmeprotokoll',
-                'help_example': 'Titel / Bezeichnung: Magnesium 400\nMenge: 1 Kapsel\nStartdatum: Täglich ab 20.05.2026\nErinnerung: Täglich um 20:00 Uhr\nPersonen: Bernd\nLive-Tracker: Aktiv (Nach dem Schlucken klickst du einfach auf "Eingenommen")'
+                'help_example': """Titel / Bezeichnung: Magnesium 400 (Hochdosiert gegen Wadenkrämpfe)
+
+Dosierung / Menge: 1 Kapsel am Abend
+
+Startdatum: Täglich ab dem 20.05.2026
+
+⏰ Erinnerung am: Täglich um 20:00 Uhr (per E-Mail-Wecker, der sich auf Reisen automatisch anpasst)
+
+Personen: Bernd
+
+Live-Tracker: Aktiviert
+
+Notizen: Immer mit ausreichend Wasser direkt nach dem Abendessen einnehmen. Nach dem Schlucken einfach im Live-Tracker auf "Eingenommen" klicken!"""
             },
             {
                 'old_name': '🎬 Wunschliste',
@@ -60,7 +110,13 @@ class Command(BaseCommand):
                 'fields': {'use_location': True, 'use_persons': True},
                 'help_purpose': 'Smarte Verwaltung von Geschenken und Wünschen für Geburtstage, Weihnachten oder Hochzeiten – mit eingebautem Überraschungs-Schutz!',
                 'help_fields': '🔄 DER GENIALE WICHTEL- & ÜBERRASCHUNGS-WORKFLOW:\n1. Wünsche äußern: Das Geburtstagskind erstellt seine Wünsche mit Shop-Links und Bildern.\n2. Teilen: Sende den Wichtel-Link der Liste an deine Freunde/Gäste.\n3. Reservieren & Schenken: Gäste können Wünsche auf "Reserviert" (🔒) oder "Erfüllt" (🎁) setzen und sich eintragen. \n4. Der Clou (Überraschungs-Schutz!): Das Geburtstagskind sieht die Reservierungen und Zuordnungen NICHT! Für den Beschenkten bleibt alles offen und spannend. Nur die schenkenden Gäste sehen untereinander, wer was besorgt, um Doppelkäufe komplett auszuschließen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des Wunsches\n• Geschäft/Link (Ort): Shop-Name oder Direkt-URL zum Bestellen (wird unter "Ort" erfasst)\n• Beschenkter (Personen): Für wen der Wunsch gedacht ist (wird unter "Personen" erfasst)',
-                'help_example': 'Titel / Bezeichnung: Acoustic Guitar\nGeschäft/Link (Ort): Thomann.de\nWunsch von (Personen): Sarah'
+                'help_example': """Titel / Bezeichnung: Acoustic Western-Gitarre (Harley Benton)
+
+Geschäft / Shoplink: www.thomann.de/de/harley_benton_custom_line.htm
+
+Wunsch von: Sarah (Geburtstagswunsch)
+
+Notizen: Sarah wünscht sich diese Gitarre schon sehr lange zum Üben. Wenn reserviert oder gekauft, bitte den Status hier im Wichtel-Link direkt auf "Reserviert" oder "Erfüllt" ändern – Sarah sieht davon nichts, aber wir vermeiden doppelte Geschenke!"""
             },
             {
                 'old_name': '🏆 Winliste',
@@ -69,7 +125,13 @@ class Command(BaseCommand):
                 'fields': {'use_rating': True, 'use_persons': True},
                 'help_purpose': 'Dein persönliches Dankbarkeitstagebuch zum Sammeln positiver Momente, Erfolge und Meilensteine.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Erfolge feiern: Halte bestandene Prüfungen, sportliche Siege oder einfach schöne Erlebnisse fest.\n2. Bewerten: Verteile 1-5 Sterne je nach persönlicher Bedeutung und emotionalem Wert.\n3. Teilen: Halte fest, mit wem du diese glücklichen Momente geteilt hast, um an grauen Tagen positive Energie zu tanken.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Das erfreuliche Ereignis\n• Bedeutung (Bewertung): Emotionale Wichtigkeit von 1-5 Sternen\n• Geteilt mit (Personen): Mit wem du diesen Moment erlebt hast',
-                'help_example': 'Titel / Bezeichnung: Bachelorarbeit bestanden (1.3)\nBedeutung (Bewertung): ⭐⭐⭐⭐⭐\nDabei (Personen): Familie, Freunde'
+                'help_example': """Titel / Bezeichnung: Bachelorarbeit im Fach Informatik erfolgreich bestanden!
+
+Bedeutung (Bewertung): ⭐⭐⭐⭐⭐ (Absolutes Lebens-Highlight!)
+
+Dabei gewesene Personen: Familie, Sarah, meine besten Freunde
+
+Notizen: Note 1.3 erhalten! Die monatelange harte Arbeit in der Bibliothek hat sich endlich ausgezahlt. Danach gab es ein grandioses Abendessen beim Italiener zur Feier des Tages. Nie den Glauben an sich selbst verlieren!"""
             },
             {
                 'old_name': '🎯 Bucket List',
@@ -78,7 +140,15 @@ class Command(BaseCommand):
                 'fields': {'use_milestone': True, 'use_url': True, 'use_rating': True},
                 'help_purpose': 'Planung, Visualisierung und Festhalten all deiner großen Lebensträume, Abenteuer und Reiseziele.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Träumen: Schreibe Lebensziele auf (z.B. "Fallschirmsprung machen", "Polarlichter sehen").\n2. Strukturieren: Ordne deine Träume Meilensteinen zu (z.B. "vor 30", "vor 50") und bewerte ihre Wichtigkeit.\n3. Realisieren & Dokumentieren: Verlinke Infos oder Reiseberichte. Wenn du ein Ziel erreichst, hake es ab. Das "Erreicht am"-Datum bleibt editierbar, um deine Lebens-Chronik perfekt zu pflegen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Dein Lebensziel / Abenteuer\n• Lebensabschnitt (Milestone): Wann du es erreichen möchtest\n• Wichtigkeit (Bewertung): Bedeutung des Traums von 1-5 Sternen\n• Inspirations-Link (URL): Hilfreicher Link oder Bild-URL zum Traum',
-                'help_example': 'Titel / Bezeichnung: Fallschirmsprung machen\nMilestone: vor 40\nWichtigkeit (Bewertung): ⭐⭐⭐⭐⭐\nLink (URL): skydiving-school.de'
+                'help_example': """Titel / Bezeichnung: Spektakulärer Tandem-Fallschirmsprung aus 4.000 Metern Höhe
+
+Milestone / Lebensabschnitt: Vor dem 40. Geburtstag erreichen!
+
+Wichtigkeit (Bewertung): ⭐⭐⭐⭐⭐ (Absoluter Adrenalinkick-Traum)
+
+Inspirations-Link (URL): www.skydiving-school-bavaria.de
+
+Notizen: Am besten im Sommer bei klarem Himmel buchen. Die GoPro-Video-Option unbedingt mitbestellen, um den freien Fall als Erinnerung festzuhalten!"""
             },
             {
                 'old_name': '🐾 Haustier-Planer',
@@ -87,7 +157,15 @@ class Command(BaseCommand):
                 'fields': {'use_persons': True, 'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Gemeinsame Koordination und lückenlose Abstimmung der Fütterung, Pflege und Medizin deiner Haustiere im Haushalt.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Absichern: Trage Pflege- und Fütterungs-Aufgaben ein.\n2. Erinnern: Nutze reisesichere E-Mail-Wecker für regelmäßige Behandlungen oder Arztbesuche.\n3. Live-Tracker: Protokolliere jede Fütterung oder Gassirunde live mit einem Klick. Alle Haushaltsmitglieder sehen sofort in Echtzeit, ob die Katze oder der Hund bereits gefüttert wurde – Doppel-Fütterungen ausgeschlossen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Pflege-Aufgabe (z.B. "Katze füttern", "Medizin geben")\n• Zuständigkeit (Personen): Wer die Aufgabe übernimmt\n• Erinnerung: Uhrzeit für den automatischen E-Mail-Wecker\n• Tracker: Live-Protokollierung zur Abstimmung im Haushalt',
-                'help_example': 'Titel / Bezeichnung: Katze Minka Futter geben\nZuständig (Personen): Sarah\nErinnerung: Täglich 07:30 Uhr\nPflege-Tracker: Aktiv'
+                'help_example': """Titel / Bezeichnung: Katze Minka - Nassfutter geben (Morgen-Portion)
+
+Zuständig: Sarah
+
+⏰ Erinnerung am: Täglich um 07:30 Uhr (damit Minka nicht hungert)
+
+Pflege-Tracker: Aktiviert (Protokollierung in Echtzeit)
+
+Notizen: Bitte nur eine halbe Dose vom Geflügel-Nassfutter geben. Falls sie die Medizin nehmen muss, diese unter das Futter mischen. Nach dem Füttern sofort im Tracker abhaken, damit Papa nicht versehentlich nochmals füttert!"""
             },
             {
                 'old_name': '🪴 Pflanzen-Pflege',
@@ -96,7 +174,13 @@ class Command(BaseCommand):
                 'fields': {'use_tracker': True, 'use_reminder': True},
                 'help_purpose': 'Strukturierte und disziplinierte Pflege deiner Zimmerpflanzen – verhindert Übergießen und Austrocknen.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Strukturieren: Erfasse deine Pflanzen und bestimme ihre individuellen Gieß- und Dünge-Intervalle.\n2. Gießen & Düngen: Der reisesichere E-Mail-Wecker erinnert dich an das fällige Intervall.\n3. Protokollieren: Trage das Gießen direkt über das Live-Tracker-Panel ein, um die Gießhistorie im Blick zu behalten und Staunässe sicher zu verhindern!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name der Zimmerpflanze (z.B. "Monstera")\n• Intervall (Erinnerung): Wann das nächste Gießen fällig ist\n• Tracker: Live-Gießprotokoll zum schnellen Abhaken nach dem Gießen',
-                'help_example': 'Titel / Bezeichnung: Monstera gießen\nErinnerung: Alle 8 Tage\nGieß-Tracker: Aktiv'
+                'help_example': """Titel / Bezeichnung: Große Monstera (Fensterblatt) im Wohnzimmer gießen
+
+Intervall / Erinnerung: Alle 8 Tage am Morgen
+
+Gieß-Tracker: Aktiviert (zur optimalen Gieß-Kontrolle)
+
+Notizen: Ca. 300ml lauwarmes, abgestandenes Wasser gießen. Vor dem Gießen mit dem Finger prüfen, ob die obere Erdschicht trocken ist (Staunässe vermeiden!). Blätter gelegentlich mit Wasser besprühen und abstauben."""
             },
             {
                 'old_name': 'Arzt Termine',
