@@ -613,11 +613,17 @@ class ToggleItemView(View):
 
 class DeleteItemView(View):
     def delete(self, request, pk):
+        return self._do_delete(request, pk)
+
+    def post(self, request, pk):
+        return self._do_delete(request, pk)
+
+    def _do_delete(self, request, pk):
         item = get_object_or_404(ListItem, pk=pk)
         bucket = item.bucket_list
         if bucket.owner != request.user and not (bucket.is_public and bucket.allow_public_edit):
             return HttpResponseForbidden()
-            
+
         item.delete()
         if request.htmx:
             return render_item_list(request, bucket, True)
