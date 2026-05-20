@@ -13,6 +13,11 @@ class UserSetting(models.Model):
     input_text_color = models.CharField(max_length=7, default='#ffffff')
     glass_opacity = models.DecimalField(max_digits=3, decimal_places=2, default=0.15)
     timezone = models.CharField(max_length=50, default='Europe/Berlin')
+    calendar_start_hour = models.IntegerField(default=8)
+    calendar_end_hour = models.IntegerField(default=22)
+    calendar_filter_tracker = models.BooleanField(default=True)
+    calendar_filter_reminder = models.BooleanField(default=True)
+    calendar_filter_completed = models.BooleanField(default=True)
 
     def __str__(self):
         return f"Settings for {self.user.username}"

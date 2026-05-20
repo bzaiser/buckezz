@@ -718,6 +718,21 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.input_text_color = request.POST.get('input_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.timezone = request.POST.get('timezone', 'Europe/Berlin')
+        
+        try:
+            settings.calendar_start_hour = int(request.POST.get('calendar_start_hour', 8))
+        except (ValueError, TypeError):
+            settings.calendar_start_hour = 8
+            
+        try:
+            settings.calendar_end_hour = int(request.POST.get('calendar_end_hour', 22))
+        except (ValueError, TypeError):
+            settings.calendar_end_hour = 22
+            
+        settings.calendar_filter_tracker = request.POST.get('calendar_filter_tracker') == 'on'
+        settings.calendar_filter_reminder = request.POST.get('calendar_filter_reminder') == 'on'
+        settings.calendar_filter_completed = request.POST.get('calendar_filter_completed') == 'on'
+        
         settings.save()
         
         # Save birth date

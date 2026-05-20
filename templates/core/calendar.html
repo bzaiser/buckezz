@@ -203,17 +203,17 @@
         </span>
         
         <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
-            <input type="checkbox" id="filter-tracker" checked style="accent-color: #00e676; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <input type="checkbox" id="filter-tracker" {% if request.user.settings.calendar_filter_tracker %}checked{% endif %} style="accent-color: #00e676; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
             <span>🐾 Routinen (Tracker)</span>
         </label>
         
         <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
-            <input type="checkbox" id="filter-reminder" checked style="accent-color: #ffab00; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <input type="checkbox" id="filter-reminder" {% if request.user.settings.calendar_filter_reminder %}checked{% endif %} style="accent-color: #ffab00; width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
             <span>⏰ Erinnerungen</span>
         </label>
-
+ 
         <label style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; font-weight: 600; cursor: pointer; color: var(--text-color); user-select: none;">
-            <input type="checkbox" id="filter-completed" checked style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
+            <input type="checkbox" id="filter-completed" {% if request.user.settings.calendar_filter_completed %}checked{% endif %} style="accent-color: var(--primary); width: 16px; height: 16px; cursor: pointer; border-radius: 4px;">
             <span>✓ Erledigte Aufgaben</span>
         </label>
     </div>
@@ -285,6 +285,10 @@
             initialView: 'dayGridMonth',
             locale: 'de',
             firstDay: 1, // Start week on Monday
+            height: 'auto',
+            contentHeight: 'auto',
+            slotMinTime: '{{ request.user.settings.calendar_start_hour|stringformat:"02d" }}:00:00',
+            slotMaxTime: '{{ request.user.settings.calendar_end_hour|stringformat:"02d" }}:00:00',
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',
