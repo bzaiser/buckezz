@@ -96,14 +96,16 @@
     },
     
     toggleSet(itemId, setIdx, restTime) {
-        let set = this.logs[itemId].sets[setIdx];
-        set.done = !set.done;
-        if (set.done) {
-            // Beep and automatically start rest timer
-            this.beep(880, 150);
-            this.startRest(restTime || 120);
-        }
-    },
+    if (!this.logs[itemId] || !this.logs[itemId].sets) return;
+    let set = this.logs[itemId].sets[setIdx];
+    if (!set) return;
+    set.done = !set.done;
+    if (set.done) {
+        // Beep and automatically start rest timer
+        this.beep(880, 150);
+        this.startRest(restTime || 120);
+    }
+},
     
     // Interval Timer controls
     startIntervalTraining() {
@@ -409,15 +411,6 @@
             {% endif %}
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
-            {% for item in active_items %}
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div>
-                        <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                            {% if item.workout_type == 'strength' %}💪{% elif item.workout_type == 'endurance' %}🏃{% else %}⏱️{% endif %}
-                            {{ item.title }}
-                        </h4>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap;">
                             {% if item.workout_type == 'strength' %}
                                 <span>Sets: <strong>{{ item.workout_config_json.sets_count|default:3 }}</strong></span>
                                 <span style="opacity:0.3;">|</span>
@@ -637,16 +630,16 @@
                                 <h3 style="margin: 6px 0 0 0; font-size: 1.4rem; color: #fff;">{{ item.title }}</h3>
                             </div>
                             
-                            <!-- Skip / move to bottom button if device/machine is busy -->
-                            <button type="button" @click="
-                                const val = exerciseIndices[currentExerciseIndex];
-                                exerciseIndices.splice(currentExerciseIndex, 1);
-                                exerciseIndices.push(val);
-                                if (currentExerciseIndex >= exerciseIndices.length) {
-                                    currentExerciseIndex = exerciseIndices.length - 1;
-                                }
-                            " class="btn btn-glass" style="font-size: 0.78rem; border-color: rgba(255, 171, 0, 0.3); color: #ffab00; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Übung ans Ende verschieben (z.B. wenn das Gerät belegt ist)">
-                                <span>⏬ Später machen</span>
+                            <!-- Shift one position back if device/machine is busy -->
+                            <button type="button" 
+                                    x-show="currentExerciseIndex < exerciseIndices.length - 1"
+                                    @click="
+                                        const temp = exerciseIndices[currentExerciseIndex];
+                                        exerciseIndices[currentExerciseIndex] = exerciseIndices[currentExerciseIndex + 1];
+                                        exerciseIndices[currentExerciseIndex + 1] = temp;
+                                        exerciseIndices = [...exerciseIndices];
+                                    " class="btn btn-glass" style="font-size: 0.78rem; border-color: rgba(255, 171, 0, 0.3); color: #ffab00; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Übung um eine Position nach hinten verschieben (z.B. wenn das Gerät belegt ist)">
+                                <span>➡️ Eins nach hinten verschieben</span>
                             </button>
                         </div>
 

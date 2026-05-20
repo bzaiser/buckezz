@@ -626,6 +626,22 @@ class DeleteItemView(View):
     def post(self, request, pk):
         return self.delete(request, pk)
 
+
+class ReorderItemsView(LoginRequiredMixin, View):
+    def post(self, request, bucket_id):
+        import json
+        bucket = get_object_or_404(BucketList, id=bucket_id)
+        if bucket.owner != request.user:
+            return HttpResponseForbidden()
+        try:
+            data = json.loads(request.body)
+            order = data.get('order', [])  # list of item IDs in new order
+            for idx, item_id in enumerate(order):
+                ListItem.objects.filter(pk=item_id, bucket_list=bucket).update(order=idx)
+            return JsonResponse({'status': 'ok'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 class ShareToggleView(LoginRequiredMixin, View):
     def post(self, request, pk):
         bucket = get_object_or_404(BucketList, id=pk)
