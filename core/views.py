@@ -623,6 +623,9 @@ class DeleteItemView(View):
             return render_item_list(request, bucket, True)
         return HttpResponse("")
 
+    def post(self, request, pk):
+        return self.delete(request, pk)
+
 class ShareToggleView(LoginRequiredMixin, View):
     def post(self, request, pk):
         bucket = get_object_or_404(BucketList, id=pk)

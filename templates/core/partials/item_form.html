@@ -6,7 +6,7 @@
         <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
               hx-target="#item-list" 
               hx-swap="innerHTML"
-              hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); }"
+              hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); {% if bucket.category.template.logic_type == 'workout' or item.bucket_list.category.template.logic_type == 'workout' %} window.location.reload(); {% endif %} }"
               onkeydown="if(event.key === 'Enter' && event.target.tagName === 'INPUT') { event.preventDefault(); return false; }">
         {% csrf_token %}
         {% if not can_edit %}

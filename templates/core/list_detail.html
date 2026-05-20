@@ -394,7 +394,8 @@
             </div>
         </div>
     {% endif %}
-    {% endif %}
+    <!-- Hidden item list div for HTMX targeting without error in workout mode -->
+    <div id="item-list" style="display: none;"></div>
 
     <!-- Exercises & Plans Config Dashboard -->
     <div class="card glass">
@@ -442,7 +443,7 @@
                     {% if can_edit %}
                     <div style="display: flex; gap: 8px;">
                         <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" hx-target="#form-insertion-point" hx-swap="innerHTML" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem;">Bearbeiten</button>
-                        <form hx-post="{% url 'core:delete_item' item.id %}" hx-target="#item-list" hx-swap="innerHTML" hx-confirm="Bist du sicher, dass du diese Übung entfernen willst?" style="margin: 0;">
+                        <form hx-post="{% url 'core:delete_item' item.id %}" hx-target="#item-list" hx-swap="innerHTML" hx-on::after-request="if(event.detail.successful) { window.location.reload(); }" hx-confirm="Bist du sicher, dass du diese Übung entfernen willst?" style="margin: 0;">
                             {% csrf_token %}
                             <button type="submit" class="btn btn-glass" style="padding: 6px 12px; font-size: 0.8rem; color: #ff5252; border-color: rgba(255, 82, 82, 0.2);">Löschen</button>
                         </form>
