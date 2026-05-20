@@ -938,6 +938,15 @@ class WorkoutLogSessionView(View):
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+class DeleteWorkoutSessionView(LoginRequiredMixin, View):
+    def post(self, request, session_id):
+        from core.models import WorkoutSessionLog
+        session = get_object_or_404(WorkoutSessionLog, id=session_id)
+        if session.bucket_list.owner != request.user:
+            return HttpResponseForbidden()
+        session.delete()
+        return JsonResponse({'status': 'ok'})
+
 class ToggleTrackerLogView(View):
     def post(self, request, item_id):
         item = get_object_or_404(ListItem, id=item_id)

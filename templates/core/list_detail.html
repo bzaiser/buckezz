@@ -5,6 +5,7 @@
     showShare: false, 
     showPrintModal: false, 
     showHelpModal: false,
+    showStats: false,
     
     // Gym / Workout Mode States
     gymMode: false,
@@ -306,8 +307,405 @@
             {% endif %}
         {% endfor %}
         this.logs = initialLogs;
+    },
+    
+    // Training stats and analytics variables
+    activeTab: 'frequency',
+    selectedStrengthExercise: '',
+    selectedEnduranceExercise: '',
+    strengthExercises: [],
+    enduranceExercises: [],
+    personalRecords: [],
+    charts: {},
+    statsWatched: false,
+    
+    fmtDur(sec) {
+        let h = Math.floor(sec / 3600);
+        let m = Math.floor((sec % 3600) / 60);
+        if (h > 0) return h + ' Std. ' + m + ' Min.';
+        return m + ' Min.';
+    },
+    
+    async deleteSession(sessionId) {
+        if (!confirm('Diese Trainingseinheit wirklich löschen?')) return;
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        try {
+            let res = await fetch('/workout/session/' + sessionId + '/delete/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': csrfToken }
+            });
+            if (res.ok) window.location.reload();
+            else alert('Fehler beim Löschen.');
+        } catch(e) { alert('Netzwerkfehler.'); }
+    },
+    
+    initStats() {
+        const rawJson = `{{ workout_sessions_json|escapejs }}`;
+        if (!rawJson) return;
+        try {
+            const sessions = JSON.parse(rawJson);
+            if (sessions.length === 0) return;
+            
+            const strengthSet = new Set();
+            const enduranceSet = new Set();
+            
+            sessions.forEach(s => {
+                s.activities.forEach(a => {
+                    if (a.type === 'strength') strengthSet.add(a.title);
+                    if (a.type === 'endurance') enduranceSet.add(a.title);
+                });
+            });
+            
+            this.strengthExercises = Array.from(strengthSet);
+            this.enduranceExercises = Array.from(enduranceSet);
+            
+            if (this.strengthExercises.length > 0 && !this.selectedStrengthExercise) {
+                this.selectedStrengthExercise = this.strengthExercises[0];
+            }
+            if (this.enduranceExercises.length > 0 && !this.selectedEnduranceExercise) {
+                this.selectedEnduranceExercise = this.enduranceExercises[0];
+            }
+            
+            // Calculate KPIs
+            const totalSessions = sessions.length;
+            let totalSeconds = 0;
+            let totalRating = 0;
+            sessions.forEach(s => {
+                totalSeconds += s.duration_minutes * 60;
+                totalRating += s.rating;
+            });
+            
+            const kpiSessions = document.getElementById('kpi-total-sessions');
+            const kpiTime = document.getElementById('kpi-total-time');
+            const kpiRating = document.getElementById('kpi-avg-rating');
+            const kpiFreq = document.getElementById('kpi-frequency');
+            
+            if (kpiSessions) kpiSessions.innerText = totalSessions;
+            if (kpiTime) kpiTime.innerText = Math.round(totalSeconds / 3600) + ' Std.';
+            if (kpiRating) kpiRating.innerText = (totalRating / totalSessions).toFixed(1) + ' ★';
+            
+            if (sessions.length > 0 && kpiFreq) {
+                const firstDate = new Date(sessions[0].isoDate);
+                const lastDate = new Date(sessions[sessions.length - 1].isoDate);
+                const days = Math.max(1, Math.round((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
+                const weeks = Math.max(1, days / 7);
+                kpiFreq.innerText = (totalSessions / weeks).toFixed(1) + ' / Wo.';
+            } else if (kpiFreq) {
+                kpiFreq.innerText = '-';
+            }
+            
+            // Calculate Personal Records (PRs)
+            this.personalRecords = this.calcPRs(sessions);
+            
+            this.redraw(sessions);
+            
+            // Setup watches if not done already
+            if (!this.statsWatched) {
+                this.$watch('activeTab', value => this.redraw(sessions));
+                this.$watch('selectedStrengthExercise', value => this.redraw(sessions));
+                this.$watch('selectedEnduranceExercise', value => this.redraw(sessions));
+                this.statsWatched = true;
+            }
+        } catch (e) {
+            console.error("Fehler beim Initialisieren der Statistiken:", e);
+        }
+    },
+    
+    calcPRs(sessions) {
+        const prs = {};
+        sessions.forEach(s => {
+            s.activities.forEach(a => {
+                if (a.type === 'strength' && a.data.sets) {
+                    if (!prs[a.title]) prs[a.title] = { maxWeight: 0, maxVol: 0, date: '' };
+                    let vol = 0;
+                    a.data.sets.forEach(set => {
+                        const w = parseFloat(set.weight) || 0;
+                        const r = parseInt(set.reps) || 0;
+                        if (w > prs[a.title].maxWeight) {
+                            prs[a.title].maxWeight = w;
+                            prs[a.title].date = s.date;
+                        }
+                        vol += w * r;
+                    });
+                    if (vol > prs[a.title].maxVol) prs[a.title].maxVol = vol;
+                }
+            });
+        });
+        return Object.entries(prs).map(([title, d]) => ({
+            title, maxWeight: d.maxWeight, maxVol: Math.round(d.maxVol), date: d.date
+        })).filter(p => p.maxWeight > 0);
+    },
+    
+    redraw(sessions) {
+        this.destroyCharts();
+        if (this.activeTab === 'frequency') {
+            this.renderFrequencyChart(sessions);
+        } else if (this.activeTab === 'strength') {
+            this.renderStrengthChart(sessions);
+        } else if (this.activeTab === 'endurance') {
+            this.renderEnduranceChart(sessions);
+        }
+    },
+    
+    destroyCharts() {
+        if (this.charts.main) {
+            this.charts.main.destroy();
+            this.charts.main = null;
+        }
+    },
+    
+    renderFrequencyChart(sessions) {
+        const canvas = document.getElementById('analytics-chart-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const labels = sessions.map(s => s.date);
+        const durations = sessions.map(s => s.duration_minutes);
+        const ratings = sessions.map(s => s.rating);
+        
+        this.charts.main = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Dauer (Min.)',
+                        data: durations,
+                        borderColor: '#00b0ff',
+                        backgroundColor: 'rgba(0, 176, 255, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.3,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Bewertung (★)',
+                        data: ratings,
+                        borderColor: '#ffab00',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        tension: 0.1,
+                        pointStyle: 'star',
+                        pointRadius: 6,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Dauer (Min.)', color: '#00b0ff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        min: 1,
+                        max: 5,
+                        title: { display: true, text: 'Bewertung (Sterne)', color: '#ffab00' },
+                        grid: { drawOnChartArea: false },
+                        ticks: { stepSize: 1, color: 'rgba(255, 255, 255, 0.6)' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
+    },
+    
+    renderStrengthChart(sessions) {
+        if (!this.selectedStrengthExercise) return;
+        const canvas = document.getElementById('analytics-chart-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        const labels = [];
+        const maxWeights = [];
+        const volumes = [];
+        
+        sessions.forEach(s => {
+            s.activities.forEach(a => {
+                if (a.title === this.selectedStrengthExercise && a.type === 'strength' && a.data.sets) {
+                    labels.push(s.date);
+                    let maxW = 0;
+                    let vol = 0;
+                    a.data.sets.forEach(set => {
+                        const w = parseFloat(set.weight) || 0;
+                        const r = parseInt(set.reps) || 0;
+                        if (w > maxW) maxW = w;
+                        vol += w * r;
+                    });
+                    maxWeights.push(maxW);
+                    volumes.push(vol);
+                }
+            });
+        });
+        
+        this.charts.main = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Maximalgewicht (kg)',
+                        data: maxWeights,
+                        borderColor: '#00e676',
+                        backgroundColor: 'rgba(0, 230, 118, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Gesamtvolumen (kg)',
+                        data: volumes,
+                        borderColor: '#ff5252',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        borderDash: [3, 3],
+                        tension: 0.2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Maximalgewicht (kg)', color: '#00e676' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: { display: true, text: 'Gesamtvolumen (kg)', color: '#ff5252' },
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
+    },
+    
+    renderEnduranceChart(sessions) {
+        if (!this.selectedEnduranceExercise) return;
+        const canvas = document.getElementById('analytics-chart-canvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        
+        const labels = [];
+        const distances = [];
+        const paces = [];
+        
+        sessions.forEach(s => {
+            s.activities.forEach(a => {
+                if (a.title === this.selectedEnduranceExercise && a.type === 'endurance') {
+                    labels.push(s.date);
+                    distances.push(parseFloat(a.data.distance) || 0);
+                    
+                    let paceMin = 0;
+                    if (a.data.pace) {
+                        const parts = a.data.pace.toString().replace(':', '.').split('.');
+                        const min = parseFloat(parts[0]) || 0;
+                        const sec = parseFloat(parts[1]) || 0;
+                        paceMin = min + (sec / 60);
+                    }
+                    paces.push(paceMin);
+                }
+            });
+        });
+        
+        this.charts.main = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Distanz (km)',
+                        data: distances,
+                        borderColor: '#00b0ff',
+                        backgroundColor: 'rgba(0, 176, 255, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.2,
+                        fill: true,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Pace (Min/km)',
+                        data: paces,
+                        borderColor: '#e040fb',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: { display: true, text: 'Distanz (km)', color: '#00b0ff' },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: 'rgba(255, 255, 255, 0.6)' }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        reverse: true,
+                        title: { display: true, text: 'Pace (Min/km)', color: '#e040fb' },
+                        grid: { drawOnChartArea: false },
+                        ticks: { 
+                            color: 'rgba(255, 255, 255, 0.6)',
+                            callback: function(val) {
+                                const min = Math.floor(val);
+                                const sec = Math.round((val - min) * 60);
+                                return min + ':' + (sec < 10 ? '0' : '') + sec;
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    legend: { labels: { color: '#fff' } }
+                }
+            }
+        });
     }
-}">
+} x-on:click.away="showShare = false">
 
 <!-- Hidden csrf token input for ajax logging -->
 <form style="display:none;">{% csrf_token %}</form>
@@ -357,6 +755,7 @@
 
 {% if bucket.category.template.logic_type == 'workout' %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .drag-handle {
             cursor: grab;
@@ -510,6 +909,95 @@
         </div>
     </div>
 
+    <!-- Workout Stats & Analytics Card -->
+    {% if workout_sessions %}
+    <div class="card glass" style="margin-top: 30px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;" @click="showStats = !showStats; if (showStats) { $nextTick(() => initStats()); }">
+            <h3 style="margin: 0; color: var(--accent); display: flex; align-items: center; gap: 8px;">
+                <span>📊</span> Trainings-Statistik & Analysen
+            </h3>
+            <span style="font-size: 1rem; transition: transform 0.2s; color: var(--accent);" :style="showStats ? 'transform: rotate(90deg);' : ''">▶</span>
+        </div>
+        
+        <div x-show="showStats" style="margin-top: 20px; display: none;" x-transition>
+            <!-- KPI Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 20px;">
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Gesamte Einheiten</div>
+                    <div id="kpi-total-sessions" style="font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-top: 4px;">-</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Trainingszeit gesamt</div>
+                    <div id="kpi-total-time" style="font-size: 1.6rem; font-weight: 800; color: var(--accent); margin-top: 4px;">-</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Ø Bewertung</div>
+                    <div id="kpi-avg-rating" style="font-size: 1.6rem; font-weight: 800; color: #ffab00; margin-top: 4px;">-</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); padding: 12px; border-radius: var(--radius-md); text-align: center;">
+                    <div style="font-size: 0.72rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">Ø Frequenz</div>
+                    <div id="kpi-frequency" style="font-size: 1.6rem; font-weight: 800; color: #00e676; margin-top: 4px;">-</div>
+                </div>
+            </div>
+            
+            <!-- Tab Controls -->
+            <div style="display: flex; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <button type="button" @click="activeTab = 'frequency'" :style="activeTab === 'frequency' ? 'background: var(--accent); color: #000; border-color: var(--accent);' : ''" class="btn btn-glass" style="font-size: 0.8rem; padding: 6px 12px; font-weight: bold;">📈 Frequenz & Dauer</button>
+                <button type="button" @click="activeTab = 'strength'" :style="activeTab === 'strength' ? 'background: var(--accent); color: #000; border-color: var(--accent);' : ''" class="btn btn-glass" style="font-size: 0.8rem; padding: 6px 12px; font-weight: bold;" x-show="strengthExercises.length > 0">💪 Kraft-Steigerung</button>
+                <button type="button" @click="activeTab = 'endurance'" :style="activeTab === 'endurance' ? 'background: var(--accent); color: #000; border-color: var(--accent);' : ''" class="btn btn-glass" style="font-size: 0.8rem; padding: 6px 12px; font-weight: bold;" x-show="enduranceExercises.length > 0">🏃 Ausdauer-Entwicklung</button>
+            </div>
+            
+            <!-- Filters for specific tabs -->
+            <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;" x-show="activeTab === 'strength' && strengthExercises.length > 0">
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Kraftübung auswählen:</span>
+                <select x-model="selectedStrengthExercise" class="glass" style="padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; color: #fff; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); min-width: 150px;">
+                    <template x-for="ex in strengthExercises" :key="ex">
+                        <option :value="ex" x-text="ex" style="background: #111; color: #fff;"></option>
+                    </template>
+                </select>
+            </div>
+            <div style="margin-bottom: 15px; display: flex; gap: 10px; align-items: center;" x-show="activeTab === 'endurance' && enduranceExercises.length > 0">
+                <span style="font-size: 0.82rem; color: var(--text-muted);">Ausdauerübung auswählen:</span>
+                <select x-model="selectedEnduranceExercise" class="glass" style="padding: 6px 12px; font-size: 0.85rem; border-radius: 4px; color: #fff; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); min-width: 150px;">
+                    <template x-for="ex in enduranceExercises" :key="ex">
+                        <option :value="ex" x-text="ex" style="background: #111; color: #fff;"></option>
+                    </template>
+                </select>
+            </div>
+            
+            <!-- Chart Canvas Container -->
+            <div style="position: relative; height: 260px; width: 100%; background: rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03); border-radius: var(--radius-md); padding: 10px;">
+                <canvas id="analytics-chart-canvas"></canvas>
+            </div>
+            
+            <!-- Personal Records Section -->
+            <div x-show="personalRecords.length > 0" style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 15px;">
+                <h4 style="margin: 0 0 12px 0; color: #ffab00; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">🏆 Persönliche Bestleistungen (PRs)</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
+                    <template x-for="pr in personalRecords" :key="pr.title">
+                        <div style="background: rgba(255,171,0,0.06); border: 1px solid rgba(255,171,0,0.15); border-radius: var(--radius-md); padding: 10px 14px;">
+                            <div style="font-weight: 800; color: #fff; font-size: 0.9rem; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+                                <span>💪</span> <span x-text="pr.title"></span>
+                            </div>
+                            <div style="display: flex; gap: 16px; font-size: 0.82rem;">
+                                <div>
+                                    <span style="color: var(--text-muted);">Max:</span>
+                                    <strong style="color: #00e676;" x-text="pr.maxWeight + ' kg'"></strong>
+                                </div>
+                                <div>
+                                    <span style="color: var(--text-muted);">Vol:</span>
+                                    <strong style="color: #00b0ff;" x-text="pr.maxVol + ' kg'"></strong>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 4px;" x-text="'PR am ' + pr.date"></div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Workout Logs Progression History section -->
     <div class="card glass" style="margin-top: 30px;">
         <h3 style="color: var(--primary); margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px; display: flex; align-items: center; gap: 10px;">
@@ -524,9 +1012,12 @@
                             <span style="font-weight: 800; color: var(--primary); font-size: 1.05rem;">📅 Workout am {{ session.date|date:"d.m.Y H:i" }}</span>
                             <span style="background: rgba(0, 230, 118, 0.15); border: 1px solid #00e676; color: #00e676; font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: bold; margin-left: 10px;">Abgeschlossen</span>
                         </div>
-                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 15px;">
-                            <span>Dauer: <strong>{{ session.duration_seconds }}s</strong></span>
+                        <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 15px; align-items: center;">
+                            <span>Dauer: <strong x-text="fmtDur({{ session.duration_seconds }})"></strong></span>
                             <span>Bewertung: <strong style="color: var(--accent);">{% for i in "12345" %}{% if forloop.counter <= session.rating %}★{% else %}☆{% endif %}{% endfor %}</strong></span>
+                            {% if bucket.owner == user %}
+                            <button @click="deleteSession({{ session.id }})" title="Löschen" style="background: none; border: 1px solid rgba(255,82,82,0.2); color: #ff5252; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,82,82,0.15)'" onmouseout="this.style.background='none'">🗑️</button>
+                            {% endif %}
                         </div>
                     </div>
 
