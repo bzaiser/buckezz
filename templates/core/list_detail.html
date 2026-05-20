@@ -39,6 +39,7 @@
 
     // Gym Workout Logs
     logs: {},
+    visibleHistoryLimit: 10,
     
     init() {
         this.initWorkoutLogs();
@@ -517,7 +518,7 @@
         
         <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
             {% for session in workout_sessions %}
-                <div style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md);">
+                <div x-show="visibleHistoryLimit > {{ forloop.counter0 }}" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); transition: all 0.3s ease;">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 8px;">
                         <div>
                             <span style="font-weight: 800; color: var(--primary); font-size: 1.05rem;">📅 Workout am {{ session.date|date:"d.m.Y H:i" }}</span>
@@ -572,6 +573,14 @@
                 </div>
             {% endfor %}
         </div>
+        
+        {% if workout_sessions|length > 10 %}
+            <div x-show="visibleHistoryLimit < {{ workout_sessions|length }}" style="text-align: center; margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                <button type="button" @click="visibleHistoryLimit += 10" class="btn btn-glass" style="font-size: 0.88rem; padding: 8px 24px; border-radius: var(--radius-md); font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+                    <span>⬇️ Mehr anzeigen</span>
+                </button>
+            </div>
+        {% endif %}
     </div>
 
 {% else %}
