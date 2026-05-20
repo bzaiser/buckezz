@@ -55,15 +55,24 @@ class Command(BaseCommand):
                 f'Dein Buckezz Team'
             )
             
-            recipient_list = [item.bucket_list.owner.email]
+            # Collect recipient emails
+            recipients = set()
+            if item.bucket_list.owner.email:
+                recipients.add(item.bucket_list.owner.email)
             
-            if recipient_list[0]:
+            for role in item.person_roles.all():
+                if role.person.user and role.person.user.email:
+                    recipients.add(role.person.user.email)
+                    
+            recipient_list = list(recipients)
+            
+            if recipient_list:
                 try:
                     send_mail(subject, message, None, recipient_list)
                     item.reminder_sent = True
                     item.save()
-                    self.stdout.write(self.style.SUCCESS(f'Erinnerung für "{item.title}" erfolgreich an {recipient_list[0]} gesendet.'))
+                    self.stdout.write(self.style.SUCCESS(f'Erinnerung für "{item.title}" erfolgreich an {", ".join(recipient_list)} gesendet.'))
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f'Fehler beim Senden der Erinnerung für "{item.title}": {str(e)}'))
             else:
-                self.stdout.write(self.style.WARNING(f'Übersprungen: Der Besitzer der Liste "{item.bucket_list.title}" hat keine E-Mail-Adresse hinterlegt.'))
+                self.stdout.write(self.style.WARNING(f'Übersprungen: Es konnte kein Empfänger (weder Listenbesitzer noch zugewiesene Personen) mit E-Mail-Adresse für "{item.title}" gefunden werden.'))
