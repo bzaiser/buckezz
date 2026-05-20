@@ -257,7 +257,31 @@ class BucketListDetailView(DetailView):
         
         # Inject workout specific details
         if bucket.category.template.logic_type == 'workout':
-            context['workout_sessions'] = bucket.workout_sessions.all().prefetch_related('activities')
+            sessions_qs = bucket.workout_sessions.all().prefetch_related('activities')
+            context['workout_sessions'] = sessions_qs
+            
+            import json
+            from django.core.serializers.json import DjangoJSONEncoder
+            sessions_data = []
+            for session in reversed(sessions_qs):
+                session_dict = {
+                    'id': session.id,
+                    'date': session.date.strftime('%d.%m.%Y'),
+                    'isoDate': session.date.strftime('%Y-%m-%d'),
+                    'duration_minutes': round(session.duration_seconds / 60),
+                    'rating': session.rating,
+                    'notes': session.notes,
+                    'activities': []
+                }
+                for act in session.activities.all():
+                    session_dict['activities'].append({
+                        'title': act.title,
+                        'type': act.activity_type,
+                        'data': act.logged_data_json
+                    })
+                sessions_data.append(session_dict)
+            context['workout_sessions_json'] = json.dumps(sessions_data, cls=DjangoJSONEncoder)
+            
             if self.request.user.is_authenticated:
                 from core.models import UserSetting
                 user_settings, _ = UserSetting.objects.get_or_create(user=self.request.user)
