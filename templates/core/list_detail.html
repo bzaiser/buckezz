@@ -355,6 +355,41 @@
 </div>
 
 {% if bucket.category.template.logic_type == 'workout' %}
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <style>
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-muted);
+            padding: 8px;
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.95rem;
+            user-select: none;
+        }
+        .drag-handle:hover {
+            color: var(--primary);
+            background: rgba(255,255,255,0.08);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+        .sortable-ghost {
+            opacity: 0.3;
+            background: rgba(0, 230, 118, 0.05) !important;
+            border: 1px dashed #00e676 !important;
+        }
+        .sortable-chosen {
+            background: rgba(255,255,255,0.06) !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+    </style>
     <!-- Workout Stats Header Widget -->
     {% if user_settings %}
     <div class="card glass" style="margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-md);">
@@ -417,14 +452,18 @@
             {% endif %}
         </div>
 
-        <div style="display: flex; flex-direction: column; gap: var(--spacing-md);">
+        <div id="exercise-sortable-list" style="display: flex; flex-direction: column; gap: var(--spacing-md);">
             {% for item in active_items %}
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-                    <div>
-                        <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
-                            {% if item.workout_type == 'strength' %}💪{% elif item.workout_type == 'endurance' %}🏃{% else %}⏱️{% endif %}
-                            {{ item.title }}
-                        </h4>
+                <div data-id="{{ item.id }}" style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: var(--spacing-md); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                    <div style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;">
+                        {% if can_edit %}
+                        <div class="drag-handle" title="Ziehen zum Verschieben">☰</div>
+                        {% endif %}
+                        <div style="flex: 1;">
+                            <h4 style="margin: 0 0 4px 0; color: #fff; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">
+                                {% if item.workout_type == 'strength' %}💪{% elif item.workout_type == 'endurance' %}🏃{% else %}⏱️{% endif %}
+                                {{ item.title }}
+                            </h4>
                         <div style="font-size: 0.85rem; color: var(--text-muted); display: flex; gap: 10px; flex-wrap: wrap;">
                             {% if item.workout_type == 'strength' %}
                                 <span>Sets: <strong>{{ item.workout_config_json.sets_count|default:3 }}</strong></span>
@@ -449,7 +488,8 @@
                         {% if item.notes %}
                             <p style="margin: 8px 0 0 0; font-size: 0.82rem; font-style: italic; color: rgba(255,255,255,0.4);">💡 Notiz: {{ item.notes }}</p>
                         {% endif %}
-                    </div>
+                        </div> <!-- Closes style="flex: 1;" -->
+                    </div> <!-- Closes style="display: flex; align-items: center; gap: 10px; flex: 1; min-width: 250px;" -->
                     
                     {% if can_edit %}
                     <div style="display: flex; gap: 8px;">
@@ -1048,5 +1088,55 @@
         </div>
     </div>
 </template>
+
+{% if bucket.category.template.logic_type == 'workout' and can_edit %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const el = document.getElementById('exercise-sortable-list');
+        if (el && typeof Sortable !== 'undefined') {
+            new Sortable(el, {
+                handle: '.drag-handle',
+                animation: 150,
+                ghostClass: 'sortable-ghost',
+                chosenClass: 'sortable-chosen',
+                onEnd: function(evt) {
+                    const order = Array.from(el.children)
+                        .map(child => child.getAttribute('data-id'))
+                        .filter(id => id !== null);
+                    
+                    const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                    if (!csrfTokenInput) {
+                        console.error("CSRF-Token nicht gefunden.");
+                        return;
+                    }
+                    
+                    fetch("{% url 'core:reorder_items' bucket.id %}", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRFToken": csrfTokenInput.value
+                        },
+                        body: JSON.stringify({ order: order })
+                    })
+                    .then(res => {
+                        if (!res.ok) {
+                            throw new Error("HTTP error " + res.status);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        if (data.status !== 'ok') {
+                            console.error("Fehler beim Speichern der Reihenfolge:", data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Netzwerkfehler beim Speichern der Reihenfolge:", err);
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endif %}
 
 {% endblock %}
