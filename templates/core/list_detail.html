@@ -258,44 +258,46 @@
     initWorkoutLogs() {
         let initialLogs = {};
         {% for item in active_items %}
+            // Base object with ALL possible fields pre-initialized to safe defaults
+            initialLogs[{{ item.id }}] = {
+                title: '{{ item.title|escapejs }}',
+                type: '{{ item.workout_type|default:"" }}',
+                // strength fields
+                sets: [],
+                // endurance fields
+                distance: '',
+                duration: '',
+                pace: '',
+                laps: [],
+                // interval fields
+                format: '',
+                completed_rounds: '',
+                completed_time: '',
+                // universal
+                done: false
+            };
             {% if item.workout_type == 'strength' %}
-                initialLogs[{{ item.id }}] = {
-                    title: '{{ item.title }}',
-                    type: 'strength',
-                    sets: []
-                };
-                let sets = parseInt('{{ item.workout_config_json.sets_count|default:3 }}') || 3;
-                let repsStr = '{{ item.workout_config_json.target_reps|default:"10" }}';
-                let weightsStr = '{{ item.workout_config_json.target_weight|default:"50" }}';
-                let repsArr = repsStr.split(',');
-                let weightsArr = weightsStr.split(',');
-                for (let i = 0; i < sets; i++) {
-                    initialLogs[{{ item.id }}].sets.push({
-                        reps: repsArr[i] ? repsArr[i].trim() : (repsArr[repsArr.length - 1] || '10').trim(),
-                        weight: weightsArr[i] ? weightsArr[i].trim() : (weightsArr[weightsArr.length - 1] || '50').trim(),
-                        done: false
-                    });
+                {
+                    let sets = parseInt('{{ item.workout_config_json.sets_count|default:3 }}') || 3;
+                    let repsStr = '{{ item.workout_config_json.target_reps|default:"10" }}';
+                    let weightsStr = '{{ item.workout_config_json.target_weight|default:"50" }}';
+                    let repsArr = repsStr.split(',');
+                    let weightsArr = weightsStr.split(',');
+                    for (let i = 0; i < sets; i++) {
+                        initialLogs[{{ item.id }}].sets.push({
+                            reps: (repsArr[i] || repsArr[repsArr.length - 1] || '10').trim(),
+                            weight: (weightsArr[i] || weightsArr[weightsArr.length - 1] || '50').trim(),
+                            done: false
+                        });
+                    }
                 }
             {% elif item.workout_type == 'endurance' %}
-                initialLogs[{{ item.id }}] = {
-                    title: '{{ item.title }}',
-                    type: 'endurance',
-                    distance: '{{ item.workout_config_json.target_distance|default:"" }}',
-                    duration: '{{ item.workout_config_json.target_duration|default:"" }}',
-                    pace: '{{ item.workout_config_json.target_pace|default:"" }}',
-                    laps: [],
-                    done: false
-                };
+                initialLogs[{{ item.id }}].distance = '{{ item.workout_config_json.target_distance|default:"" }}';
+                initialLogs[{{ item.id }}].duration = '{{ item.workout_config_json.target_duration|default:"" }}';
+                initialLogs[{{ item.id }}].pace     = '{{ item.workout_config_json.target_pace|default:"" }}';
             {% elif item.workout_type == 'interval' %}
-                initialLogs[{{ item.id }}] = {
-                    title: '{{ item.title }}',
-                    type: 'interval',
-                    format: '{{ item.workout_config_json.interval_format|default:"AMRAP" }}',
-                    duration: '{{ item.workout_config_json.interval_duration|default:"" }}',
-                    completed_rounds: '',
-                    completed_time: '',
-                    done: false
-                };
+                initialLogs[{{ item.id }}].format   = '{{ item.workout_config_json.interval_format|default:"AMRAP" }}';
+                initialLogs[{{ item.id }}].duration = '{{ item.workout_config_json.interval_duration|default:"" }}';
             {% endif %}
         {% endfor %}
         this.logs = initialLogs;
