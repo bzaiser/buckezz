@@ -435,21 +435,31 @@ class PersonalICalFeedView(View):
             f'REFRESH-INTERVAL;VALUE=DURATION:{refresh_interval}',
         ]
 
-        def format_ical_date(dt):
+        tz_name = user.settings.timezone if hasattr(user, 'settings') else 'Europe/Berlin'
+        try:
+            user_tz = zoneinfo.ZoneInfo(tz_name)
+        except Exception:
+            user_tz = zoneinfo.ZoneInfo('Europe/Berlin')
+
+        def format_ical_local_date(dt):
             if not dt:
                 return ""
             if timezone.is_aware(dt):
-                utc_dt = dt.astimezone(datetime.timezone.utc)
+                local_dt = dt.astimezone(user_tz)
             else:
                 try:
-                    utc_dt = timezone.make_aware(dt).astimezone(datetime.timezone.utc)
+                    local_dt = timezone.make_aware(dt).astimezone(user_tz)
                 except Exception:
-                    utc_dt = timezone.make_aware(dt, datetime.timezone.utc)
-            return utc_dt.strftime("%Y%m%dT%H%M%SZ")
+                    local_dt = timezone.make_aware(dt, user_tz)
+            return local_dt.strftime("%Y%m%dT%H%M%S")
 
         def get_item_dtstamp(item):
             dt = item.updated_at or item.created_at or timezone.now()
-            return format_ical_date(dt)
+            if timezone.is_aware(dt):
+                utc_dt = dt.astimezone(datetime.timezone.utc)
+            else:
+                utc_dt = timezone.make_aware(dt, datetime.timezone.utc)
+            return utc_dt.strftime("%Y%m%dT%H%M%SZ")
 
         for item in items:
             cat_icon = item.bucket_list.category.icon if item.bucket_list.category else "📌"
@@ -461,8 +471,8 @@ class PersonalICalFeedView(View):
                     'BEGIN:VEVENT',
                     f'UID:buckezz-item-range-{item.id}@buckezz.app',
                     f'DTSTAMP:{dtstamp}',
-                    f'DTSTART:{format_ical_date(item.start_date)}',
-                    f'DTEND:{format_ical_date(item.end_date)}',
+                    f'DTSTART;TZID={tz_name}:{format_ical_local_date(item.start_date)}',
+                    f'DTEND;TZID={tz_name}:{format_ical_local_date(item.end_date)}',
                     f'SUMMARY:{cat_icon} {item.title}',
                     f'DESCRIPTION:Liste: {item.bucket_list.title}\\n\\nNotizen:\\n{item.notes or ""}',
                     'END:VEVENT'
@@ -475,8 +485,8 @@ class PersonalICalFeedView(View):
                         'BEGIN:VEVENT',
                         f'UID:buckezz-item-start-{item.id}@buckezz.app',
                         f'DTSTAMP:{dtstamp}',
-                        f'DTSTART:{format_ical_date(item.start_date)}',
-                        f'DTEND:{format_ical_date(end_dt)}',
+                        f'DTSTART;TZID={tz_name}:{format_ical_local_date(item.start_date)}',
+                        f'DTEND;TZID={tz_name}:{format_ical_local_date(end_dt)}',
                         f'SUMMARY:{cat_icon} {item.title} (Start)',
                         f'DESCRIPTION:Liste: {item.bucket_list.title}\\n\\nNotizen:\\n{item.notes or ""}',
                         'END:VEVENT'
@@ -488,8 +498,8 @@ class PersonalICalFeedView(View):
                         'BEGIN:VEVENT',
                         f'UID:buckezz-item-end-{item.id}@buckezz.app',
                         f'DTSTAMP:{dtstamp}',
-                        f'DTSTART:{format_ical_date(start_dt)}',
-                        f'DTEND:{format_ical_date(item.end_date)}',
+                        f'DTSTART;TZID={tz_name}:{format_ical_local_date(start_dt)}',
+                        f'DTEND;TZID={tz_name}:{format_ical_local_date(item.end_date)}',
                         f'SUMMARY:🏁 {cat_icon} {item.title}',
                         f'DESCRIPTION:Liste: {item.bucket_list.title}\\n\\nNotizen:\\n{item.notes or ""}',
                         'END:VEVENT'
@@ -502,8 +512,8 @@ class PersonalICalFeedView(View):
                     'BEGIN:VEVENT',
                     f'UID:buckezz-item-rem-{item.id}@buckezz.app',
                     f'DTSTAMP:{dtstamp}',
-                    f'DTSTART:{format_ical_date(item.reminder_at)}',
-                    f'DTEND:{format_ical_date(end_dt)}',
+                    f'DTSTART;TZID={tz_name}:{format_ical_local_date(item.reminder_at)}',
+                    f'DTEND;TZID={tz_name}:{format_ical_local_date(end_dt)}',
                     f'SUMMARY:⏰ {item.title} (Erinnerung)',
                     f'DESCRIPTION:Liste: {item.bucket_list.title}\\n\\nNotizen:\\n{item.notes or ""}',
                     'BEGIN:VALARM',
