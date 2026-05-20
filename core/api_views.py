@@ -428,7 +428,9 @@ class PersonalICalFeedView(View):
             'PRODID:-//buckezz//Personal Calendar Feed//EN',
             f'X-WR-CALNAME:Buckezz - {person.name}',
             'CALSCALE:GREGORIAN',
-            'METHOD:PUBLISH'
+            'METHOD:PUBLISH',
+            'X-PUBLISHED-TTL:PT15M',  # Refresh every 15 minutes (Outlook / clients support this)
+            'REFRESH-INTERVAL;VALUE=DURATION:PT15M',  # RFC 7986 refresh interval (15 mins)
         ]
 
         def format_ical_date(dt):
@@ -443,17 +445,20 @@ class PersonalICalFeedView(View):
                     utc_dt = timezone.make_aware(dt, datetime.timezone.utc)
             return utc_dt.strftime("%Y%m%dT%H%M%SZ")
 
-        now_str = timezone.now().strftime("%Y%m%dT%H%M%SZ")
+        def get_item_dtstamp(item):
+            dt = item.updated_at or item.created_at or timezone.now()
+            return format_ical_date(dt)
 
         for item in items:
             cat_icon = item.bucket_list.category.icon if item.bucket_list.category else "📌"
+            dtstamp = get_item_dtstamp(item)
             
             # 1. Date Range
             if item.start_date and item.end_date:
                 lines.extend([
                     'BEGIN:VEVENT',
                     f'UID:buckezz-item-range-{item.id}@buckezz.app',
-                    f'DTSTAMP:{now_str}',
+                    f'DTSTAMP:{dtstamp}',
                     f'DTSTART:{format_ical_date(item.start_date)}',
                     f'DTEND:{format_ical_date(item.end_date)}',
                     f'SUMMARY:{cat_icon} {item.title}',
@@ -467,7 +472,7 @@ class PersonalICalFeedView(View):
                     lines.extend([
                         'BEGIN:VEVENT',
                         f'UID:buckezz-item-start-{item.id}@buckezz.app',
-                        f'DTSTAMP:{now_str}',
+                        f'DTSTAMP:{dtstamp}',
                         f'DTSTART:{format_ical_date(item.start_date)}',
                         f'DTEND:{format_ical_date(end_dt)}',
                         f'SUMMARY:{cat_icon} {item.title} (Start)',
@@ -480,7 +485,7 @@ class PersonalICalFeedView(View):
                     lines.extend([
                         'BEGIN:VEVENT',
                         f'UID:buckezz-item-end-{item.id}@buckezz.app',
-                        f'DTSTAMP:{now_str}',
+                        f'DTSTAMP:{dtstamp}',
                         f'DTSTART:{format_ical_date(start_dt)}',
                         f'DTEND:{format_ical_date(item.end_date)}',
                         f'SUMMARY:🏁 {cat_icon} {item.title}',
@@ -494,7 +499,7 @@ class PersonalICalFeedView(View):
                 lines.extend([
                     'BEGIN:VEVENT',
                     f'UID:buckezz-item-rem-{item.id}@buckezz.app',
-                    f'DTSTAMP:{now_str}',
+                    f'DTSTAMP:{dtstamp}',
                     f'DTSTART:{format_ical_date(item.reminder_at)}',
                     f'DTEND:{format_ical_date(end_dt)}',
                     f'SUMMARY:⏰ {item.title} (Erinnerung)',
