@@ -43,7 +43,7 @@
 
     <!-- Create Bucket Modal -->
     <template x-if="showCreateModal">
-        <div class="modal-overlay" @click.self="showCreateModal = false">
+        <div class="modal-overlay" x-show="showCreateModal" style="display: none;">
             <div class="modal-content glass card">
                 <h2>Neuen Bucket erstellen</h2>
                 <form action="{% url 'core:list_create' %}" method="POST">
