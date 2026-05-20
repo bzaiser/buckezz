@@ -434,7 +434,13 @@ class PersonalICalFeedView(View):
         def format_ical_date(dt):
             if not dt:
                 return ""
-            utc_dt = dt.astimezone(timezone.utc) if timezone.is_active(dt) else dt
+            if timezone.is_aware(dt):
+                utc_dt = dt.astimezone(datetime.timezone.utc)
+            else:
+                try:
+                    utc_dt = timezone.make_aware(dt).astimezone(datetime.timezone.utc)
+                except Exception:
+                    utc_dt = timezone.make_aware(dt, datetime.timezone.utc)
             return utc_dt.strftime("%Y%m%dT%H%M%SZ")
 
         now_str = timezone.now().strftime("%Y%m%dT%H%M%SZ")
