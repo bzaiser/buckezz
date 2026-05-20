@@ -2,7 +2,7 @@
 
 {% block content %}
 {# Safe JSON data island – avoids breaking Alpine x-data attribute parsing #}
-<script type="application/json" id="workout-sessions-data">{{ workout_sessions_json|default:"[]" }}</script>
+<script type="application/json" id="workout-sessions-data">{{ workout_sessions_json|default:"[]"|safe }}</script>
 
 <script>
 document.addEventListener('alpine:init', () => {
