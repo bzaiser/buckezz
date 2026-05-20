@@ -334,7 +334,7 @@
             <button @click="showPrintModal = true" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></button>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
-                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass" title="Einstellungen">⚙️ <span class="hide-mobile">Einstellungen</span></a>
+                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass" title="Liste konfigurieren">🔧 <span class="hide-mobile">Liste konfigurieren</span></a>
             {% endif %}
         </div>
     </div>
