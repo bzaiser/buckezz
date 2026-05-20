@@ -12,6 +12,7 @@
     workoutDuration: 0,
     timerInterval: null,
     currentExerciseIndex: 0,
+    exerciseIndices: [{% for item in active_items %}{{ forloop.counter0 }}{% if not forloop.last %}, {% endif %}{% endfor %}],
     rating: 5,
     notes: '',
     activeRestTimer: null,
@@ -43,6 +44,7 @@
         this.workoutStarted = true;
         this.workoutDuration = 0;
         this.currentExerciseIndex = 0;
+        this.exerciseIndices = [{% for item in active_items %}{{ forloop.counter0 }}{% if not forloop.last %}, {% endif %}{% endfor %}];
         this.timerInterval = setInterval(() => {
             this.workoutDuration++;
         }, 1000);
@@ -625,15 +627,27 @@
 
             <!-- Exercises Loop in cockpit -->
             {% for item in active_items %}
-                <div x-show="currentExerciseIndex === {{ forloop.counter0 }}" style="animation: slideIn 0.3s ease-out;">
+                <div x-show="exerciseIndices[currentExerciseIndex] === {{ forloop.counter0 }}" style="animation: slideIn 0.3s ease-out;">
                     <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); border-radius: var(--radius-lg); padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.5);">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                             <div>
                                 <span style="background: var(--primary); color: #000; font-size: 0.72rem; padding: 2px 8px; border-radius: 4px; font-weight: bold; text-transform: uppercase;">
                                     {{ item.get_workout_type_display }}
                                 </span>
                                 <h3 style="margin: 6px 0 0 0; font-size: 1.4rem; color: #fff;">{{ item.title }}</h3>
                             </div>
+                            
+                            <!-- Skip / move to bottom button if device/machine is busy -->
+                            <button type="button" @click="
+                                const val = exerciseIndices[currentExerciseIndex];
+                                exerciseIndices.splice(currentExerciseIndex, 1);
+                                exerciseIndices.push(val);
+                                if (currentExerciseIndex >= exerciseIndices.length) {
+                                    currentExerciseIndex = exerciseIndices.length - 1;
+                                }
+                            " class="btn btn-glass" style="font-size: 0.78rem; border-color: rgba(255, 171, 0, 0.3); color: #ffab00; padding: 6px 12px; display: inline-flex; align-items: center; gap: 4px;" title="Übung ans Ende verschieben (z.B. wenn das Gerät belegt ist)">
+                                <span>⏬ Später machen</span>
+                            </button>
                         </div>
 
                         {% if item.notes %}
