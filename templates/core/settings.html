@@ -157,6 +157,31 @@
                         alert("Automatische Zeitzonen-Erkennung wird von diesem Browser nicht unterstützt.");
                     }
                 }
+
+                function refreshPWA() {
+                    if ('serviceWorker' in navigator) {
+                        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                            for (let registration of registrations) {
+                                registration.unregister();
+                            }
+                        });
+                    }
+                    if ('caches' in window) {
+                        caches.keys().then(function(names) {
+                            for (let name of names) {
+                                caches.delete(name);
+                            }
+                        });
+                    }
+                    const btn = document.getElementById('pwa-refresh-btn');
+                    btn.innerHTML = '🔄 Aktualisiere App...';
+                    btn.style.opacity = '0.7';
+                    btn.style.pointerEvents = 'none';
+                    
+                    setTimeout(() => {
+                        window.location.reload(true);
+                    }, 1000);
+                }
             </script>
             </div>
             
@@ -253,6 +278,15 @@
                         </label>
                     </div>
                 </div>
+            </div>
+
+            <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
+                <h3 style="color: var(--primary); margin-bottom: 4px;">📱 App-Cache & PWA</h3>
+                <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Falls Änderungen oder neue Designs auf deinem Handy oder im Browser nicht direkt angezeigt werden, kannst du hier den Offline-Cache leeren und ein Neuladen erzwingen.</p>
+                
+                <button type="button" id="pwa-refresh-btn" onclick="refreshPWA()" class="btn btn-glass" style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                    🔄 App-Cache leeren & aktualisieren
+                </button>
             </div>
 
             <div class="form-actions">
