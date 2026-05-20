@@ -979,4 +979,21 @@ def sync_microsoft_todo(bucket_list):
         logger = logging.getLogger(__name__)
         logger.error(f"Microsoft To-Do sync failed for list {bucket_list.id}: {e}")
 
+def custom_404_view(request, exception=None):
+    from core.models import UserSetting
+    # Try to load user settings for the theme
+    user_settings = None
+    if request.user.is_authenticated:
+        user_settings, _ = UserSetting.objects.get_or_create(user=request.user)
+    elif request.session.get('person_id'):
+        from core.models import Person
+        try:
+            person = Person.objects.get(id=request.session.get('person_id'))
+            if person.user:
+                user_settings, _ = UserSetting.objects.get_or_create(user=person.user)
+        except Person.DoesNotExist:
+            pass
+
+    return render(request, '404.html', {'user_settings': user_settings}, status=404)
+
 

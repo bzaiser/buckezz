@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}404 - Seite nicht gefunden | Buckezz{% endblock %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: var(--spacing-lg) 0;">
+    <div class="card glass" style="max-width: 500px; padding: var(--spacing-lg); border-radius: var(--radius-lg); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);">
+        <span style="font-size: 5rem; display: block; margin-bottom: var(--spacing-md); filter: drop-shadow(0 0 10px var(--primary));">🔍</span>
+        
+        <h1 style="font-size: 2.5rem; font-weight: 800; background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: var(--spacing-sm);">
+            404
+        </h1>
+        <h2 style="font-size: 1.3rem; margin-bottom: var(--spacing-md); color: var(--text-main);">
+            Hoppla! Diese Seite existiert nicht.
+        </h2>
+        <p class="text-muted" style="margin-bottom: var(--spacing-lg); line-height: 1.6;">
+            Der Pfad, den du aufrufen möchtest, wurde möglicherweise verschoben, gelöscht oder hat sich einfach im Eimer (Bucket) verirrt.
+        </p>
+        
+        <div style="display: flex; gap: var(--spacing-sm); justify-content: center;">
+            <a href="{% url 'core:dashboard' %}" class="btn btn-primary">
+                🏠 Zum Dashboard
+            </a>
+            <button onclick="window.history.back()" class="btn btn-glass">
+                ⬅️ Zurück
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
