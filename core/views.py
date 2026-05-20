@@ -732,6 +732,7 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.calendar_filter_tracker = request.POST.get('calendar_filter_tracker') == 'on'
         settings.calendar_filter_reminder = request.POST.get('calendar_filter_reminder') == 'on'
         settings.calendar_filter_completed = request.POST.get('calendar_filter_completed') == 'on'
+        settings.calendar_refresh_interval = request.POST.get('calendar_refresh_interval', 'PT15M')
         
         settings.save()
         

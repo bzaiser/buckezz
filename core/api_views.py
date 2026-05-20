@@ -422,6 +422,8 @@ class PersonalICalFeedView(View):
             models.Q(reminder_at__isnull=False)
         ).select_related('bucket_list', 'bucket_list__category')
 
+        refresh_interval = user.settings.calendar_refresh_interval if hasattr(user, 'settings') else 'PT15M'
+
         lines = [
             'BEGIN:VCALENDAR',
             'VERSION:2.0',
@@ -429,8 +431,8 @@ class PersonalICalFeedView(View):
             f'X-WR-CALNAME:Buckezz - {person.name}',
             'CALSCALE:GREGORIAN',
             'METHOD:PUBLISH',
-            'X-PUBLISHED-TTL:PT15M',  # Refresh every 15 minutes (Outlook / clients support this)
-            'REFRESH-INTERVAL;VALUE=DURATION:PT15M',  # RFC 7986 refresh interval (15 mins)
+            f'X-PUBLISHED-TTL:{refresh_interval}',
+            f'REFRESH-INTERVAL;VALUE=DURATION:{refresh_interval}',
         ]
 
         def format_ical_date(dt):

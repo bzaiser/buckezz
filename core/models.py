@@ -15,6 +15,7 @@ class UserSetting(models.Model):
     timezone = models.CharField(max_length=50, default='Europe/Berlin')
     calendar_start_hour = models.IntegerField(default=8)
     calendar_end_hour = models.IntegerField(default=22)
+    calendar_refresh_interval = models.CharField(max_length=10, default='PT15M')
     calendar_filter_tracker = models.BooleanField(default=True)
     calendar_filter_reminder = models.BooleanField(default=True)
     calendar_filter_completed = models.BooleanField(default=True)

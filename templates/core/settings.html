@@ -222,6 +222,17 @@
                             <option value="23" {% if settings.calendar_end_hour == 23 %}selected{% endif %}>23:00 Uhr</option>
                         </select>
                     </div>
+                    <div style="flex: 1; min-width: 150px;">
+                        <label>Sync-Intervall (iCal)</label>
+                        <select name="calendar_refresh_interval" class="glass select" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); cursor: pointer;">
+                            <option value="PT1M" {% if settings.calendar_refresh_interval == 'PT1M' %}selected{% endif %}>1 Minute (Echtzeit)</option>
+                            <option value="PT5M" {% if settings.calendar_refresh_interval == 'PT5M' %}selected{% endif %}>5 Minuten (Schnell)</option>
+                            <option value="PT15M" {% if settings.calendar_refresh_interval == 'PT15M' %}selected{% endif %}>15 Minuten (Standard)</option>
+                            <option value="PT30M" {% if settings.calendar_refresh_interval == 'PT30M' %}selected{% endif %}>30 Minuten</option>
+                            <option value="PT1H" {% if settings.calendar_refresh_interval == 'PT1H' %}selected{% endif %}>1 Stunde</option>
+                            <option value="PT2H" {% if settings.calendar_refresh_interval == 'PT2H' %}selected{% endif %}>2 Stunden</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="control-group" style="margin-top: 15px;">
