@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
+{# Safe JSON data island – avoids breaking Alpine x-data attribute parsing #}
+<script type="application/json" id="workout-sessions-data">{{ workout_sessions_json|default:"[]" }}</script>
+
 <div x-data="{ 
     showShare: false, 
     showPrintModal: false, 
@@ -340,8 +343,9 @@
     },
     
     initStats() {
-        const rawJson = `{{ workout_sessions_json|escapejs }}`;
-        if (!rawJson) return;
+        const dataEl = document.getElementById('workout-sessions-data');
+        const rawJson = dataEl ? dataEl.textContent.trim() : '';
+        if (!rawJson || rawJson === '[]' || rawJson === 'null') return;
         try {
             const sessions = JSON.parse(rawJson);
             if (sessions.length === 0) return;
