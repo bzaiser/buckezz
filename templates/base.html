@@ -422,7 +422,7 @@
                     <img src="{% static 'img/logo.svg' %}" alt="buckezz" style="height: 100%; width: auto; display: block;">
                 </a>
                 {% if user.is_authenticated %}
-                    <span class="welcome-text">Willkommen {{ user.username }}</span>
+                    <span class="welcome-text">Willkommen {{ user.person_profile.name|default:user.first_name|default:user.username }}</span>
                 {% elif request.session.guest_name %}
                     <span class="welcome-text">Willkommen {{ request.session.guest_name }} (Gast)</span>
                 {% endif %}
