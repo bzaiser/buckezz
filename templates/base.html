@@ -142,6 +142,33 @@
             transform: translateY(-1px);
         }
 
+        /* Action buttons: uniform height, icon-only at medium widths */
+        .btn-icon-text {
+            height: 38px;
+            padding: 0 14px;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Hide label text at medium screen sizes (show only icon) */
+        @media (max-width: 960px) and (min-width: 481px) {
+            .btn-label {
+                display: none;
+            }
+        }
+
+        /* Also hide on mobile */
+        @media (max-width: 480px) {
+            .btn-label {
+                display: none;
+            }
+            .btn-icon-text {
+                padding: 0 10px;
+            }
+        }
+
         /* Legacy .btn.glass support */
         .btn.glass {
             background: var(--glass-bg);

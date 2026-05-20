@@ -743,18 +743,17 @@ document.addEventListener('alpine:init', () => {
             <p class="text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
         </div>
         
-        <div class="actions">
+        <div class="actions" style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
             {% if bucket.category.template.logic_type == 'workout' and active_items %}
-                <!-- Dynamic Pulsing Training Play Button -->
-                <button @click="startWorkout()" class="btn" style="background: linear-gradient(135deg, #00e676, #00b0ff); border: none; color: #000; font-weight: 900; animation: pulsePlay 2s infinite; font-size: 0.95rem; border-radius: var(--radius-md); padding: 10px 20px; display: inline-flex; align-items: center; gap: 8px;">
-                    ▶️ Training Starten
+                <button @click="startWorkout()" class="btn" style="background: linear-gradient(135deg, #00e676, #00b0ff); border: none; color: #000; font-weight: 900; animation: pulsePlay 2s infinite; font-size: 0.95rem; border-radius: var(--radius-md); padding: 0 18px; height: 38px; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;">
+                    ▶️ <span class="btn-label">Training Starten</span>
                 </button>
             {% endif %}
-            
-            <button @click="showPrintModal = true" class="btn btn-glass" title="PDF Export">📄 <span class="hide-mobile">PDF Export</span></button>
+
+            <button @click="showPrintModal = true" class="btn btn-glass btn-icon-text" title="PDF Export">📄 <span class="btn-label">PDF Export</span></button>
             {% if bucket.owner == user %}
-                <button class="btn btn-glass" @click="showShare = !showShare" title="Teilen">🔗 <span class="hide-mobile">Teilen</span></button>
-                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass" title="Liste konfigurieren">🔧 <span class="hide-mobile">Liste konfigurieren</span></a>
+                <button class="btn btn-glass btn-icon-text" @click="showShare = !showShare" title="Teilen">🔗 <span class="btn-label">Teilen</span></button>
+                <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass btn-icon-text" title="Liste konfigurieren">🔧 <span class="btn-label">Konfigurieren</span></a>
             {% endif %}
         </div>
     </div>
