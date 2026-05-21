@@ -1140,6 +1140,7 @@ document.addEventListener('alpine:init', () => {
         <div class="items-table-container">
             {% if not bucket.category.template.use_tracker %}
             <div class="items-header">
+                {% if can_edit %}<div></div>{% endif %}
                 <div>Status</div>
                 <div>Bezeichnung</div>
                 {% if bucket.category.template.use_amount %}<div>Menge</div>{% endif %}
@@ -1501,6 +1502,7 @@ document.addEventListener('alpine:init', () => {
     .items-header {
         display: grid;
         grid-template-columns:
+            {% if can_edit %}auto{% endif %}
             auto
             1fr
             {% if bucket.category.template.use_amount %}minmax(60px,90px){% endif %}
@@ -1886,52 +1888,75 @@ document.addEventListener('alpine:init', () => {
     </div>
 </template>
 
-{% if bucket.category.template.logic_type == 'workout' and can_edit %}
+{% if can_edit %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const el = document.getElementById('exercise-sortable-list');
-        if (el && typeof Sortable !== 'undefined') {
-            new Sortable(el, {
-                handle: '.drag-handle',
-                animation: 150,
-                ghostClass: 'sortable-ghost',
-                chosenClass: 'sortable-chosen',
-                onEnd: function(evt) {
-                    const order = Array.from(el.children)
-                        .map(child => child.getAttribute('data-id'))
-                        .filter(id => id !== null);
-                    
-                    const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
-                    if (!csrfTokenInput) {
-                        console.error("CSRF-Token nicht gefunden.");
-                        return;
-                    }
-                    
-                    fetch("{% url 'core:reorder_items' bucket.id %}", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json",
-                            "X-CSRFToken": csrfTokenInput.value
-                        },
-                        body: JSON.stringify({ order: order })
-                    })
-                    .then(res => {
-                        if (!res.ok) {
-                            throw new Error("HTTP error " + res.status);
+        function initSortable() {
+            const sortableContainers = [];
+            const exerciseEl = document.getElementById('exercise-sortable-list');
+            if (exerciseEl) sortableContainers.push(exerciseEl);
+            
+            document.querySelectorAll('.sortable-item-list').forEach(el => {
+                sortableContainers.push(el);
+            });
+
+            sortableContainers.forEach(el => {
+                // Prevent duplicate initialization
+                if (el.dataset.sortableInitialized) return;
+                el.dataset.sortableInitialized = 'true';
+
+                if (typeof Sortable !== 'undefined') {
+                    new Sortable(el, {
+                        handle: '.drag-handle',
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        chosenClass: 'sortable-chosen',
+                        onEnd: function(evt) {
+                            const order = Array.from(el.children)
+                                .map(child => child.getAttribute('data-id'))
+                                .filter(id => id !== null);
+                            
+                            if (order.length === 0) return;
+                            
+                            const csrfTokenInput = document.querySelector('[name=csrfmiddlewaretoken]');
+                            if (!csrfTokenInput) {
+                                console.error("CSRF-Token nicht gefunden.");
+                                return;
+                            }
+                            
+                            fetch("{% url 'core:reorder_items' bucket.id %}", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRFToken": csrfTokenInput.value
+                                },
+                                body: JSON.stringify({ order: order })
+                            })
+                            .then(res => {
+                                if (!res.ok) throw new Error("HTTP error " + res.status);
+                                return res.json();
+                            })
+                            .then(data => {
+                                if (data.status !== 'ok') {
+                                    console.error("Fehler beim Speichern der Reihenfolge:", data.message);
+                                }
+                            })
+                            .catch(err => {
+                                console.error("Netzwerkfehler beim Speichern der Reihenfolge:", err);
+                            });
                         }
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (data.status !== 'ok') {
-                            console.error("Fehler beim Speichern der Reihenfolge:", data.message);
-                        }
-                    })
-                    .catch(err => {
-                        console.error("Netzwerkfehler beim Speichern der Reihenfolge:", err);
                     });
                 }
             });
         }
+
+        // Initialize on page load
+        initSortable();
+
+        // Re-initialize after HTMX dynamic swaps
+        document.body.addEventListener('htmx:afterSwap', function(evt) {
+            initSortable();
+        });
     });
 </script>
 {% endif %}

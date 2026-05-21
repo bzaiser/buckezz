@@ -10,7 +10,7 @@
                 {% endif %}
             </h3>
             
-            <div style="display: flex; flex-direction: column;">
+            <div class="sortable-item-list" style="display: flex; flex-direction: column;">
                 {% for item in group.items %}
                     {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
                 {% endfor %}
@@ -48,15 +48,17 @@
 
 {% else %}
     <!-- STANDARD LIST (NOT BUCKET LIST) -->
-    {% for item in active_items %}
-        {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
-    {% empty %}
-        {% if not completed_items %}
-            <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Noch keine Einträge vorhanden.</p>
-        {% else %}
-            <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Keine offenen Einträge.</p>
-        {% endif %}
-    {% endfor %}
+    <div class="sortable-item-list" style="display: flex; flex-direction: column;">
+        {% for item in active_items %}
+            {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
+        {% empty %}
+            {% if not completed_items %}
+                <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Noch keine Einträge vorhanden.</p>
+            {% else %}
+                <p class="text-muted" id="no-items" style="text-align: center; padding: var(--spacing-lg);">Keine offenen Einträge.</p>
+            {% endif %}
+        {% endfor %}
+    </div>
 
     {% if completed_items %}
     <details style="margin-top: var(--spacing-lg);" {% if not active_items %}open{% endif %}>

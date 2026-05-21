@@ -28,13 +28,17 @@
         }
     }
 </style>
-<div class="card glass tracker-card" id="item-{{ item.id }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-sm); border: 1px solid var(--glass-border); border-radius: var(--radius-md); transition: all 0.2s;">
+<div class="card glass tracker-card" id="item-{{ item.id }}" data-id="{{ item.id }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-sm); border: 1px solid var(--glass-border); border-radius: var(--radius-md); transition: all 0.2s;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-md);">
-        <div>
-            <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-color);">{{ item.title }}</h3>
-            {% if item.brand %}
-            <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 2px;">{{ item.brand }}</span>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            {% if can_edit and not item.is_completed %}
+            <div class="drag-handle" style="cursor: grab; padding: 0 4px; color: var(--text-muted); select: none; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
             {% endif %}
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; color: var(--text-color);">{{ item.title }}</h3>
+                {% if item.brand %}
+                <span class="text-muted" style="font-size: 0.8rem; display: block; margin-top: 2px;">{{ item.brand }}</span>
+                {% endif %}
 
             <!-- Dates & Reminders inside Tracker Card -->
             {% if bucket.category.template.use_start_date or bucket.category.template.use_end_date or bucket.category.template.use_reminder %}
@@ -66,6 +70,7 @@
                 {% endif %}
             </div>
             {% endif %}
+            </div>
         </div>
         
         <!-- Controls (Edit/Delete) -->
@@ -172,6 +177,7 @@
     .list-item {
         display: grid;
         grid-template-columns:
+            {% if can_edit and not item.is_completed %}auto{% endif %}
             auto
             1fr
             {% if bucket.category.template.use_amount %}minmax(60px,90px){% endif %}
@@ -190,11 +196,14 @@
     }
     @media (max-width: 640px) {
         .list-item {
-            grid-template-columns: auto 1fr auto !important;
+            grid-template-columns: {% if can_edit and not item.is_completed %}auto {% endif %}auto 1fr auto !important;
             grid-template-areas:
-                "check content actions"
-                {% if bucket.category.template.use_amount or bucket.category.template.use_price or bucket.category.template.use_rating %}". meta meta"{% endif %};
+                "{% if can_edit and not item.is_completed %}drag {% endif %}check content actions"
+                {% if bucket.category.template.use_amount or bucket.category.template.use_price or bucket.category.template.use_rating %}"{% if can_edit and not item.is_completed %}. {% endif %}. meta meta"{% endif %};
         }
+        {% if can_edit and not item.is_completed %}
+        .list-item-drag { grid-area: drag; align-self: start; padding-top: 4px; }
+        {% endif %}
         .list-item-check  { grid-area: check; align-self: start; padding-top: 4px; }
         .list-item-content { grid-area: content; min-width: 0; }
         .list-item-actions { grid-area: actions; }
@@ -219,7 +228,10 @@
         }
     }
 </style>
-<div class="list-item" id="item-{{ item.id }}">
+<div class="list-item" id="item-{{ item.id }}" data-id="{{ item.id }}">
+    {% if can_edit and not item.is_completed %}
+    <div class="drag-handle list-item-drag" style="cursor: grab; padding: 0 4px; color: var(--text-muted); select: none; display: flex; align-items: center; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
+    {% endif %}
     <div class="list-item-check">
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 
