@@ -169,8 +169,11 @@
 </head>
 <body>
     <div class="control-bar no-print">
-        <button onclick="goBackOrClose()" class="btn btn-close">❌ Zurück / Schließen</button>
-        <button onclick="window.print()" class="btn btn-print">📄 PDF speichern / Drucken</button>
+        <button onclick="goBackOrClose()" class="btn btn-close">❌ Zurück zur Liste</button>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <button onclick="window.print()" class="btn btn-close" style="background: rgba(255, 255, 255, 0.08);">🖨️ Drucken</button>
+            <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'core:export_pdf_raw' bucket.id %}" target="_blank" rel="noopener noreferrer" download class="btn btn-print">📥 PDF Herunterladen</a>
+        </div>
     </div>
 
     <div class="header">
