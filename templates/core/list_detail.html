@@ -772,9 +772,7 @@ document.addEventListener('alpine:init', () => {
                 </button>
             {% endif %}
 
-            <a href="{% url 'core:export_pdf' bucket.id %}" class="btn btn-glass btn-icon-text" title="Druck & PDF-Ansicht" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                📄 <span class="btn-label">Druck & PDF</span>
-            </a>
+            <button @click="showPrintModal = true" class="btn btn-glass btn-icon-text" title="PDF Export">📄 <span class="btn-label">PDF Export</span></button>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass btn-icon-text" @click="showShare = !showShare" title="Teilen">🔗 <span class="btn-label">Teilen</span></button>
                 <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass btn-icon-text" title="Liste konfigurieren">🔧 <span class="btn-label">Konfigurieren</span></a>
@@ -1653,7 +1651,127 @@ document.addEventListener('alpine:init', () => {
     }
 </style>
 
+<!-- Print Preview Modal for Screen Mode -->
+<div x-show="showPrintModal" 
+     style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;"
+     class="no-print">
+    <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
+         @click.away="showPrintModal = false">
+        
+        <!-- Modal Header -->
+        <div style="padding: 16px 24px; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
+            <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px;">
+                📄 PDF / Druck-Vorschau
+            </h3>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <button onclick="window.print()" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                    🖨️ Drucken
+                </button>
+                <button @click="showPrintModal = false" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                    &times;
+                </button>
+            </div>
+        </div>
 
+        <!-- Modal Body (Printable Sheet Preview) -->
+        <div id="print-area" style="padding: 30px; overflow-y: auto; flex: 1; background: #fff; color: #333; font-family: Helvetica, Arial, sans-serif; text-align: left;">
+            <div style="border-bottom: 1.5px solid #333; padding-bottom: 6px; margin-bottom: 18px;">
+                <h1 style="font-size: 16pt; font-weight: bold; margin: 0; color: #111;">{{ bucket.title }}</h1>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px; color: #333;">
+                <thead>
+                    <tr>
+                        <th style="background-color: #f2f2f2; text-align: center; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="35">#</th>
+                        {% if bucket.category.template.logic_type == 'workout' %}
+                            <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Übung / Bezeichnung</th>
+                            <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Typ</th>
+                            <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Konfiguration / Ziele</th>
+                        {% else %}
+                            <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;">Eintrag</th>
+                            {% if bucket.category.template.use_amount %}
+                                <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="80">Menge</th>
+                            {% endif %}
+                            {% if bucket.category.template.use_price %}
+                                <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="80">Preis</th>
+                            {% endif %}
+                            {% if bucket.category.template.use_rating %}
+                                <th style="background-color: #f2f2f2; text-align: left; padding: 8px; border-bottom: 1px solid #ddd; font-size: 10pt; text-transform: uppercase; color: #333;" width="100">Bewertung</th>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in bucket.items.all %}
+                    <tr>
+                        <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: middle; text-align: center; color: #333;">
+                            {% if item.is_completed %}
+                                <span class="print-checkbox checked">✓</span>
+                            {% else %}
+                                <span class="print-checkbox"></span>
+                            {% endif %}
+                        </td>
+                        {% if bucket.category.template.logic_type == 'workout' %}
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                                <strong style="color: #333;">{{ item.title }}</strong>
+                                {% if item.notes %}<br/><small style="color: #666;">{{ item.notes }}</small>{% endif %}
+                            </td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.get_workout_type_display }}</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                                {% if item.workout_type == 'strength' %}
+                                    Sets: {{ item.workout_config_json.sets_count|default:3 }} | Ziel: {{ item.workout_config_json.target_reps }} Wdh. bei {{ item.workout_config_json.target_weight }} kg
+                                {% elif item.workout_type == 'endurance' %}
+                                    Distanz: {{ item.workout_config_json.target_distance|default:"-" }} km | Pace: {{ item.workout_config_json.target_pace|default:"-" }} Min/km
+                                {% elif item.workout_type == 'interval' %}
+                                    Format: {{ item.workout_config_json.interval_format|default:"AMRAP" }} | Dauer: {{ item.workout_config_json.interval_duration }} Min.
+                                {% endif %}
+                            </td>
+                        {% else %}
+                            <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                                <strong style="color: #333;">{{ item.title }}</strong>
+                                {% if item.notes %}<br/><small style="color: #666;">{{ item.notes }}</small>{% endif %}
+                            </td>
+                            {% if bucket.category.template.use_amount %}
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{{ item.amount|default:"-" }}</td>
+                            {% endif %}
+                            {% if bucket.category.template.use_price %}
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</td>
+                            {% endif %}
+                            {% if bucket.category.template.use_rating %}
+                                <td style="padding: 8px; border-bottom: 1px solid #eee; vertical-align: top; color: #333;">
+                                    {% if item.rating %}
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= item.rating %}★{% else %}☆{% endif %}
+                                        {% endfor %}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            {% endif %}
+                        {% endif %}
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 20px; color: #999;">Keine Einträge vorhanden.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            
+            <!-- Centered Footer with Template Type and Creation Date -->
+            <div style="text-align: center; font-size: 8pt; color: #777; margin-top: 30px; border-top: 1px dashed #ddd; padding-top: 12px;">
+                Vorlage: {{ bucket.category.name }} &bull; Erstellt am {{ bucket.created_at|date:"d.m.Y" }}
+            </div>
+        </div>
+        
+        <!-- Modal Footer (Download action bar at bottom) -->
+        <div class="no-print" style="padding: 16px 24px; border-top: 1px solid var(--glass-border); display: flex; justify-content: center; background: rgba(255,255,255,0.02);">
+            <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'core:export_pdf' bucket.id %}" target="_blank" rel="noopener noreferrer" download class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.95rem; padding: 10px 24px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                📥 PDF Herunterladen (Interaktiv)
+            </a>
+        </div>
+    </div>
+</div>
 
 <!-- Help Modal -->
 <template x-if="showHelpModal">

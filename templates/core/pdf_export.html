@@ -168,13 +168,6 @@
     </style>
 </head>
 <body>
-    <div class="control-bar no-print">
-        <button onclick="goBackOrClose()" class="btn btn-close">❌ Zurück zur Liste</button>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button onclick="window.print()" class="btn btn-close" style="background: rgba(255, 255, 255, 0.08);">🖨️ Drucken</button>
-            <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'core:export_pdf_raw' bucket.id %}" target="_blank" rel="noopener noreferrer" download class="btn btn-print">📥 PDF Herunterladen</a>
-        </div>
-    </div>
 
     <div class="header">
         <img src="{% static 'img/logo.png' %}" alt="buckezz" style="height: 40px; margin-bottom: 8px;">
@@ -231,18 +224,5 @@
     <div class="footer">
         Generiert mit buckezz am {{ now|date:"d.m.Y H:i" }}
     </div>
-    <script class="no-print">
-        function goBackOrClose() {
-            // Check if there is history to go back to, or if we can close the window
-            if (window.opener || window.history.length > 1) {
-                window.history.back();
-            }
-            window.close();
-            // Secure fallback redirect to the list view in PWA if close/back is blocked
-            setTimeout(function() {
-                window.location.href = "{% url 'core:list_detail' bucket.id %}";
-            }, 250);
-        }
-    </script>
 </body>
 </html>
