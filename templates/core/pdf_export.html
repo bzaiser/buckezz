@@ -166,6 +166,7 @@
     </div>
 
     <div class="header">
+        <img src="img/logo.png" alt="buckezz" style="height: 40px; margin-bottom: 8px;">
         <h1 class="title">{{ bucket.title }}</h1>
         <div class="subtitle">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
     </div>
@@ -185,7 +186,9 @@
         <tbody>
             {% for item in items %}
             <tr>
-                <td>{% if item.is_completed %}[X]{% else %}[ ]{% endif %}</td>
+                <td style="text-align: center; vertical-align: middle;" width="35">
+                    <input type="checkbox" name="item_{{ item.id }}" {% if item.is_completed %}checked="checked"{% endif %}>
+                </td>
                 <td class="{% if item.is_completed %}completed{% endif %}">
                     <strong>{{ item.title }}</strong>
                     {% if item.notes %}<br/><small>{{ item.notes }}</small>{% endif %}
