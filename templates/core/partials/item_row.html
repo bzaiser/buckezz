@@ -227,7 +227,7 @@
 <div class="list-item" id="item-{{ item.id }}" data-id="{{ item.id }}">
     <div class="list-item-check" style="display: flex; align-items: center; gap: 8px;">
         {% if can_edit and not item.is_completed %}
-        <div class="drag-handle" style="cursor: grab; padding: 0 4px; color: var(--text-muted); select: none; display: flex; align-items: center; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
+        <div class="drag-handle" style="cursor: grab; padding: 0 4px; color: var(--text-muted); user-select: none; -webkit-user-select: none; touch-action: none; display: flex; align-items: center; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
         {% endif %}
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 

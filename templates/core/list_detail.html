@@ -785,9 +785,8 @@ document.addEventListener('alpine:init', () => {
     </div>
 </div>
 
-{% if bucket.category.template.logic_type == 'workout' %}
+{% if can_edit %}
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         .drag-handle {
             cursor: grab;
@@ -803,6 +802,8 @@ document.addEventListener('alpine:init', () => {
             border: 1px solid rgba(255,255,255,0.05);
             font-size: 0.95rem;
             user-select: none;
+            -webkit-user-select: none;
+            touch-action: none;
         }
         .drag-handle:hover {
             color: var(--primary);
@@ -822,6 +823,10 @@ document.addEventListener('alpine:init', () => {
             box-shadow: 0 10px 25px rgba(0,0,0,0.3);
         }
     </style>
+{% endif %}
+
+{% if bucket.category.template.logic_type == 'workout' %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Workout Stats Header Widget -->
     {% if user_settings %}
     <div class="card glass" style="margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-md);">
@@ -1909,6 +1914,8 @@ document.addEventListener('alpine:init', () => {
                         animation: 150,
                         ghostClass: 'sortable-ghost',
                         chosenClass: 'sortable-chosen',
+                        forceFallback: true,
+                        fallbackTolerance: 3,
                         onEnd: function(evt) {
                             const order = Array.from(el.children)
                                 .map(child => child.getAttribute('data-id'))
