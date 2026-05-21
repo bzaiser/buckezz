@@ -16,9 +16,7 @@
                     const href = link.getAttribute("href");
                     // Rename and adjust view site link
                     if (href && (href === "/dashboard/" || href === "/" || link.innerText.includes("Webseite") || link.innerText.includes("View site"))) {
-                        link.innerHTML = "💻 Zurück zum Desktop";
-                        link.style.fontWeight = "bold";
-                        link.style.color = "var(--primary, #00adb5)";
+                        link.innerHTML = "Zurück zum Desktop";
                         
                         // Smart back link to referrer if it is inside our domain and not in admin panel
                         const referrer = document.referrer;
