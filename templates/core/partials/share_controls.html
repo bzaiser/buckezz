@@ -57,6 +57,12 @@
             </div>
         {% endif %}
 
+        {% if not bucket.is_public and not bucket.is_secret_santa %}
+            <div style="background: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1); padding: var(--spacing-sm); border-radius: var(--radius-sm); text-align: center; color: var(--text-muted); font-size: 0.82rem; margin: var(--spacing-xs) 0;">
+                🔒 Diese Liste ist aktuell <strong>privat</strong>. Aktiviere oben die „Öffentliche Link-Freigabe“, um einen Link zum Teilen zu generieren.
+            </div>
+        {% endif %}
+
         {% if bucket.category.template.logic_type == 'todo' %}
         <!-- Microsoft To-Do Sync Settings -->
         <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-xs);">
