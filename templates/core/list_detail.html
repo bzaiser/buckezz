@@ -859,7 +859,7 @@ document.addEventListener('alpine:init', () => {
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--glass-border); padding-bottom: 10px;">
             <h3 style="margin: 0; color: var(--primary);">📋 Übungsplan Übersicht</h3>
             {% if can_edit %}
-            <button hx-get="{% url 'core:get_add_form' bucket.id %}" hx-target="#form-insertion-point" hx-swap="innerHTML" class="btn btn-glass" style="font-size: 0.85rem;">+ Übung hinzufügen</button>
+            <button hx-get="{% url 'core:get_add_form' bucket.id %}" hx-target="#form-insertion-point" hx-swap="innerHTML" class="btn btn-glass" style="font-size: 0.85rem; display: inline-flex; align-items: center; gap: 4px;">+<span class="btn-text"> Übung hinzufügen</span></button>
             {% endif %}
         </div>
 
@@ -1111,7 +1111,7 @@ document.addEventListener('alpine:init', () => {
                     hx-swap="innerHTML"
                     class="btn btn-primary" 
                     style="min-height: 42px; border-radius: var(--radius-md); padding: 0 var(--spacing-lg); font-weight: 700; white-space: nowrap; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
-                + Hinzufügen
+                +<span class="btn-text"> Hinzufügen</span>
             </button>
             {% endif %}
         </div>
@@ -1524,6 +1524,18 @@ document.addEventListener('alpine:init', () => {
         }
         .list-category-subtitle {
             display: none !important;
+        }
+        
+        /* Hide add button text and make button a compact plus square on mobile */
+        .btn-text {
+            display: none !important;
+        }
+        .btn-primary:has(.btn-text), .btn-glass:has(.btn-text) {
+            padding: 0 12px !important;
+            min-width: 40px !important;
+            min-height: 40px !important;
+            font-size: 1.25rem !important;
+            font-weight: 900 !important;
         }
         
         /* Remove container side-padding on mobile */
