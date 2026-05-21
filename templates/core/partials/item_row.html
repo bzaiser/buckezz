@@ -236,7 +236,7 @@
         {% endif %}
     </div>
     <div class="list-item-content">
-        <strong style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.title }}</strong>
+        <strong style="{% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.85;{% endif %}">{{ item.title }}</strong>
         
         {% if bucket.category.template.use_milestone and item.target_milestone and not item.is_completed %}
             <span class="milestone-badge-active" style="font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; background: rgba(0, 210, 255, 0.1); border: 1px solid var(--primary); color: var(--primary); padding: 2px 6px; border-radius: 6px; font-weight: bold; margin-left: 6px; vertical-align: middle;">
@@ -257,7 +257,7 @@
             </div>
         {% endif %}
 
-        {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block; {% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ item.brand }}</span>{% endif %}
+        {% if item.brand %}<span class="text-muted" style="font-size: 0.8rem; display: block; {% if item.is_completed and not is_beneficiary %}text-decoration: line-through; opacity: 0.85;{% endif %}">{{ item.brand }}</span>{% endif %}
         
         <!-- Product Link -->
         {% if item.url %}

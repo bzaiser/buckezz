@@ -28,7 +28,7 @@
     {% if completed_items %}
     <details style="margin-top: var(--spacing-lg);" {% if not active_items %}open{% endif %}>
         <summary style="cursor: pointer; color: var(--text-muted); font-weight: 600; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border); list-style-position: inside;">Erledigte Einträge ({{ completed_items|length }})</summary>
-        <div class="completed-items" style="margin-top: var(--spacing-md); opacity: 0.65; display: flex; flex-direction: column; gap: var(--spacing-lg);">
+        <div class="completed-items" style="margin-top: var(--spacing-md); opacity: 0.9; display: flex; flex-direction: column; gap: var(--spacing-lg);">
             {% for group in grouped_completed %}
                 <div>
                     <h4 style="color: var(--primary); margin-bottom: var(--spacing-xs); font-size: 0.95rem; border-bottom: 1px dashed rgba(255,255,255,0.1); padding-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
@@ -61,7 +61,7 @@
     {% if completed_items %}
     <details style="margin-top: var(--spacing-lg);" {% if not active_items %}open{% endif %}>
         <summary style="cursor: pointer; color: var(--text-muted); font-weight: 600; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border); list-style-position: inside;">Erledigte Einträge ({{ completed_items|length }})</summary>
-        <div class="completed-items" style="margin-top: var(--spacing-md); opacity: 0.6;">
+        <div class="completed-items" style="margin-top: var(--spacing-md); opacity: 0.85;">
             {% for item in completed_items %}
                 {% include 'core/partials/item_row.html' with can_edit=can_edit is_beneficiary=is_beneficiary current_person=current_person %}
             {% endfor %}
