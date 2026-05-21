@@ -1766,12 +1766,54 @@ document.addEventListener('alpine:init', () => {
         
         <!-- Modal Footer (Download action bar at bottom) -->
         <div class="no-print" style="padding: 16px 24px; border-top: 1px solid var(--glass-border); display: flex; justify-content: center; background: rgba(255,255,255,0.02);">
-            <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'core:export_pdf' bucket.id %}" target="_blank" rel="noopener noreferrer" download onclick="window.open(this.href, '_blank'); return false;" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.95rem; padding: 10px 24px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+            <a href="javascript:void(0);" id="download-pdf-btn" onclick="downloadPDFBlob('{% url 'core:export_pdf' bucket.id %}', '{{ bucket.title|escapejs }}.pdf')" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.95rem; padding: 10px 24px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                 📥 PDF Herunterladen (Interaktiv)
             </a>
         </div>
     </div>
 </div>
+
+<script>
+    function downloadPDFBlob(url, filename) {
+        const btn = document.getElementById('download-pdf-btn');
+        const originalText = btn.innerHTML;
+        
+        // Visuelles Feedback: Lade-Status auf dem Button anzeigen
+        btn.innerHTML = '⏳ PDF wird generiert...';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+
+        // 100% lokaler Fetch der PDF-Binärdaten von deinem NAS
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Netzwerk-Fehler beim PDF-Download');
+                return response.blob();
+            })
+            .then(blob => {
+                // Erzeugen einer temporären virtuellen Dateiadresse im Arbeitsspeicher
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click(); // iOS-Systemdialog für Download triggern
+                document.body.removeChild(a);
+                
+                // Speicher sofort wieder freigeben
+                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Fehler beim Generieren des PDFs. Bitte versuche es erneut.');
+            })
+            .finally(() => {
+                // Button wieder in den Normalzustand versetzen
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            });
+    }
+</script>
 
 <!-- Help Modal -->
 <template x-if="showHelpModal">
