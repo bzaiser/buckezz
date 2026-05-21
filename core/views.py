@@ -68,6 +68,27 @@ class CreateBucketView(LoginRequiredMixin, View):
         )
         return redirect('core:list_detail', pk=bucket.id)
 
+def get_price_sums(bucket, active_items, completed_items):
+    active_sum = 0.0
+    completed_sum = 0.0
+    
+    if bucket.category.template.use_price:
+        use_amount = bucket.category.template.use_amount
+        for item in active_items:
+            if item.price:
+                amount = float(item.amount) if (use_amount and item.amount is not None) else 1.0
+                active_sum += float(item.price) * amount
+        for item in completed_items:
+            if item.price:
+                amount = float(item.amount) if (use_amount and item.amount is not None) else 1.0
+                completed_sum += float(item.price) * amount
+                
+    return {
+        'active_price_sum': active_sum,
+        'completed_price_sum': completed_sum,
+        'total_price_sum': active_sum + completed_sum
+    }
+
 def get_list_items_for_user(request, bucket):
     # Get current person from session or user profile
     current_person = None
@@ -265,6 +286,9 @@ class BucketListDetailView(DetailView):
         context['current_person'] = current_person
         context['people'] = Person.objects.all()
         
+        sums = get_price_sums(bucket, active_items, completed_items)
+        context.update(sums)
+        
         # Inject workout specific details
         if bucket.category.template.logic_type == 'workout':
             sessions_qs = bucket.workout_sessions.all().prefetch_related('activities')
@@ -316,7 +340,9 @@ def render_item_list(request, bucket, can_edit):
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
                   (bucket.is_public and bucket.allow_public_edit)
                   
-    return render(request, 'core/partials/item_list.html', {
+    sums = get_price_sums(bucket, active_items, completed_items)
+    
+    context = {
         'bucket': bucket,
         'active_items': active_items,
         'completed_items': completed_items,
@@ -325,7 +351,9 @@ def render_item_list(request, bucket, can_edit):
         'can_edit': can_edit,
         'is_beneficiary': is_beneficiary,
         'current_person': current_person
-    })
+    }
+    context.update(sums)
+    return render(request, 'core/partials/item_list.html', context)
 
 class GetItemFormView(View):
     def get(self, request, bucket_id, item_id=None):
