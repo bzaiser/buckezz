@@ -14,28 +14,42 @@ def link_callback(uri, rel):
     Convert HTML images/stylesheets with relative paths to absolute filesystem paths
     so xhtml2pdf can load them from disk.
     """
-    # use finders to find static files in development/production
-    result = finders.find(uri)
+    sUrl = settings.STATIC_URL      # e.g. '/static/'
+    mUrl = settings.MEDIA_URL      # e.g. '/media/'
+
+    # Normalize lead slash and static/media prefixes to prevent SuspiciousFileOperation
+    clean_uri = uri
+    if clean_uri.startswith(sUrl):
+        clean_uri = clean_uri.replace(sUrl, "", 1)
+    elif '/static/' in clean_uri:
+        clean_uri = clean_uri.split('/static/')[-1]
+    elif clean_uri.startswith(mUrl):
+        clean_uri = clean_uri.replace(mUrl, "", 1)
+    elif '/media/' in clean_uri:
+        clean_uri = clean_uri.split('/media/')[-1]
+
+    # Remove leading slashes to keep path relative for safe_join
+    clean_uri = clean_uri.lstrip('/')
+
+    # use finders to find static files safely in development/production
+    result = finders.find(clean_uri)
     if result:
         if not isinstance(result, (list, tuple)):
             result = [result]
         return result[0]
         
     # fallback to static/media roots
-    sUrl = settings.STATIC_URL      # e.g. 'static/' or '/static/'
     sRoot = str(settings.STATIC_ROOT)    # e.g. '/workspace/staticfiles/'
-    mUrl = settings.MEDIA_URL
     mRoot = str(settings.MEDIA_ROOT)
 
     if uri.startswith(mUrl):
-        path = os.path.join(mRoot, uri.replace(mUrl, ""))
+        path = os.path.join(mRoot, uri.replace(mUrl, "", 1).lstrip('/'))
     elif uri.startswith(sUrl) or '/static/' in uri:
-        clean_uri = uri.split('/static/')[-1]
         path = os.path.join(sRoot, clean_uri)
     else:
         # Check in local static directories directly
         for static_dir in settings.STATICFILES_DIRS:
-            test_path = os.path.join(str(static_dir), uri)
+            test_path = os.path.join(str(static_dir), clean_uri)
             if os.path.isfile(test_path):
                 return test_path
         return uri
