@@ -305,6 +305,10 @@
             body {
                 font-size: 14px;
             }
+            /* Prevent iOS Auto-Zoom on form focus (requires min 16px) */
+            input, textarea, select, input.glass, textarea.glass, select.glass {
+                font-size: 16px !important;
+            }
             h1 {
                 font-size: 1.5rem;
             }
