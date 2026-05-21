@@ -1663,10 +1663,7 @@ document.addEventListener('alpine:init', () => {
             <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px;">
                 📄 PDF / Druck-Vorschau
             </h3>
-            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
-                    📥 PDF Herunterladen
-                </a>
+            <div style="display: flex; gap: 12px; align-items: center;">
                 <button onclick="window.print()" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
                     🖨️ Drucken
                 </button>
@@ -1765,6 +1762,13 @@ document.addEventListener('alpine:init', () => {
             <div style="text-align: center; font-size: 8pt; color: #777; margin-top: 30px; border-top: 1px dashed #ddd; padding-top: 12px;">
                 Vorlage: {{ bucket.category.name }} &bull; Erstellt am {{ bucket.created_at|date:"d.m.Y" }}
             </div>
+        </div>
+        
+        <!-- Modal Footer (Download action bar at bottom) -->
+        <div class="no-print" style="padding: 16px 24px; border-top: 1px solid var(--glass-border); display: flex; justify-content: center; background: rgba(255,255,255,0.02);">
+            <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn" style="background: linear-gradient(135deg, var(--primary), var(--accent)); border: none; color: #000; font-weight: 800; font-size: 0.95rem; padding: 10px 24px; border-radius: 10px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 4px 12px rgba(0, 0, 0, 0.3)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                📥 PDF Herunterladen (Interaktiv)
+            </a>
         </div>
     </div>
 </div>
