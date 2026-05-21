@@ -772,8 +772,8 @@ document.addEventListener('alpine:init', () => {
                 </button>
             {% endif %}
 
-            <a href="{% url 'core:export_pdf' bucket.id %}" class="btn btn-glass btn-icon-text" title="Druck & PDF-Ansicht" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                📄 <span class="btn-label">Druck & PDF</span>
+            <a href="{{ request.scheme }}://{{ request.get_host }}{% url 'core:export_pdf' bucket.id %}" target="_blank" rel="noopener noreferrer" download class="btn btn-glass btn-icon-text" title="PDF Export (In Safari öffnen)" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                📄 <span class="btn-label">PDF Export</span>
             </a>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass btn-icon-text" @click="showShare = !showShare" title="Teilen">🔗 <span class="btn-label">Teilen</span></button>

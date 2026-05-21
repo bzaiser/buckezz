@@ -68,5 +68,11 @@ class ExportListPDFView(View):
             'items': bucket.items.all(),
             'template_config': bucket.category.template
         }
-        from django.shortcuts import render
-        return render(request, 'core/pdf_export.html', context)
+        
+        response = render_to_pdf('core/pdf_export.html', context)
+        if response:
+            filename = f"{bucket.title}.pdf"
+            content = f"inline; filename={filename}"
+            response['Content-Disposition'] = content
+            return response
+        return HttpResponse("Fehler bei der PDF-Generierung", status=500)
