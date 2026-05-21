@@ -721,8 +721,8 @@ document.addEventListener('alpine:init', () => {
 <!-- Hidden csrf token input for ajax logging -->
 <form style="display:none;">{% csrf_token %}</form>
 
-<div class="list-header" style="margin-bottom: 30px; position: relative; z-index: 50;">
-    <nav style="margin-bottom: var(--spacing-md);">
+<div class="list-header" style="position: relative; z-index: 50;">
+    <nav class="list-breadcrumb">
         {% if user.is_authenticated %}
             <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
         {% else %}
@@ -733,14 +733,14 @@ document.addEventListener('alpine:init', () => {
         <div>
             <div style="display: flex; align-items: center; gap: var(--spacing-sm);">
                 {% if not bucket.has_icon_in_title %}
-                <span style="font-size: 2rem;">{{ bucket.category.icon }}</span>
+                <span class="list-title-icon" style="font-size: 2rem;">{{ bucket.category.icon }}</span>
                 {% endif %}
-                <h1 style="margin: 0; font-size: 1.8rem;">{{ bucket.title }}</h1>
+                <h1 class="list-title" style="margin: 0; font-size: 1.8rem;">{{ bucket.title }}</h1>
                 <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Ausführliche Anleitung & Beispiele">
                     ❓ <span style="font-size: 0.8rem; font-weight: bold;">Hilfe</span>
                 </button>
             </div>
-            <p class="text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
+            <p class="list-category-subtitle text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
         </div>
         
         <div class="actions" style="display: flex; align-items: center; gap: 8px; flex-wrap: nowrap;">
@@ -1502,8 +1502,29 @@ document.addEventListener('alpine:init', () => {
         min-width: 0;
     }
 
+    .list-breadcrumb {
+        margin-bottom: var(--spacing-md);
+    }
+
     /* ── Mobile: no page padding, better row spacing ── */
     @media (max-width: 640px) {
+        .list-header {
+            margin-bottom: 12px !important;
+        }
+        .list-breadcrumb {
+            margin-bottom: 6px !important;
+            font-size: 0.8rem;
+        }
+        .list-title {
+            font-size: 1.25rem !important;
+        }
+        .list-title-icon {
+            font-size: 1.4rem !important;
+        }
+        .list-category-subtitle {
+            display: none !important;
+        }
+        
         /* Remove container side-padding on mobile */
         main.container {
             padding-left: 0 !important;
