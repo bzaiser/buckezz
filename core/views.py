@@ -43,7 +43,9 @@ class DashboardView(LoginRequiredMixin, ListView):
     def get_queryset(self):
         if self.request.user.is_superuser:
             return BucketList.objects.all()
-        return BucketList.objects.filter(owner=self.request.user)
+        return BucketList.objects.filter(
+            models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)
+        ).distinct()
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
