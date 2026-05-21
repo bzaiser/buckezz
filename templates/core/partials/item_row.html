@@ -177,7 +177,6 @@
     .list-item {
         display: grid;
         grid-template-columns:
-            {% if can_edit and not item.is_completed %}auto{% endif %}
             auto
             1fr
             {% if bucket.category.template.use_amount %}minmax(60px,90px){% endif %}
@@ -196,14 +195,11 @@
     }
     @media (max-width: 640px) {
         .list-item {
-            grid-template-columns: {% if can_edit and not item.is_completed %}auto {% endif %}auto 1fr auto !important;
+            grid-template-columns: auto 1fr auto !important;
             grid-template-areas:
-                "{% if can_edit and not item.is_completed %}drag {% endif %}check content actions"
-                {% if bucket.category.template.use_amount or bucket.category.template.use_price or bucket.category.template.use_rating %}"{% if can_edit and not item.is_completed %}. {% endif %}. meta meta"{% endif %};
+                "check content actions"
+                {% if bucket.category.template.use_amount or bucket.category.template.use_price or bucket.category.template.use_rating %}". meta meta"{% endif %};
         }
-        {% if can_edit and not item.is_completed %}
-        .list-item-drag { grid-area: drag; align-self: start; padding-top: 4px; }
-        {% endif %}
         .list-item-check  { grid-area: check; align-self: start; padding-top: 4px; }
         .list-item-content { grid-area: content; min-width: 0; }
         .list-item-actions { grid-area: actions; }
@@ -229,10 +225,10 @@
     }
 </style>
 <div class="list-item" id="item-{{ item.id }}" data-id="{{ item.id }}">
-    {% if can_edit and not item.is_completed %}
-    <div class="drag-handle list-item-drag" style="cursor: grab; padding: 0 4px; color: var(--text-muted); select: none; display: flex; align-items: center; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
-    {% endif %}
-    <div class="list-item-check">
+    <div class="list-item-check" style="display: flex; align-items: center; gap: 8px;">
+        {% if can_edit and not item.is_completed %}
+        <div class="drag-handle" style="cursor: grab; padding: 0 4px; color: var(--text-muted); select: none; display: flex; align-items: center; font-size: 1.1rem;" title="Ziehen zum Verschieben">☰</div>
+        {% endif %}
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 
                {% if item.is_completed %}checked{% endif %} 
