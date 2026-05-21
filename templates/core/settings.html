@@ -219,7 +219,7 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                     <div class="control-group">
                         <label>Aktuelles Körpergewicht (kg)</label>
-                        <input type="number" step="0.1" name="gym_weight" class="glass input" value="{{ settings.gym_weight|default:'' }}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <input type="number" step="0.1" name="gym_weight" class="glass input" value="{% if settings.gym_weight %}{{ settings.gym_weight|unlocalize }}{% endif %}" style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
                     </div>
                     <div class="control-group">
                         <label>Fitness-Ziel (z.B. Muskelaufbau, Marathon)</label>

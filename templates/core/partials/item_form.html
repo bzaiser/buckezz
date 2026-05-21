@@ -1,3 +1,4 @@
+{% load l10n %}
 <div id="item-form-container" class="modal-overlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); display: flex; align-items: flex-start; justify-content: center; z-index: 99999; backdrop-filter: blur(12px); padding: var(--spacing-md); overflow-y: auto;">
     <div class="modal-content glass card" style="width: 100%; max-width: 600px; padding: var(--spacing-lg); border: 1px solid var(--primary); display: flex; flex-direction: column; gap: var(--spacing-md); position: relative; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); background: var(--bg-surface); margin: auto;">
         <button type="button" class="text-muted" onclick="this.closest('#item-form-container').remove()" style="position: absolute; top: var(--spacing-md); right: var(--spacing-md); background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">×</button>
@@ -92,7 +93,7 @@
                 {% if bucket.category.template.use_price %}
                 <div class="form-group">
                     <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Preis (€)</label>
-                    <input type="number" step="0.01" name="price" value="{{ item.price|default:'' }}" class="glass">
+                    <input type="number" step="0.01" name="price" value="{% if item.price %}{{ item.price|unlocalize }}{% endif %}" class="glass">
                 </div>
                 {% endif %}
             </div>
@@ -204,7 +205,7 @@
 
                     <div class="form-group">
                         <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Verbrauch / Klick</label>
-                        <input type="number" step="any" name="tracker_dosage_per_take" value="{{ item.tracker_dosage_per_take|default:'1' }}" class="glass">
+                        <input type="number" step="any" name="tracker_dosage_per_take" value="{% if item.tracker_dosage_per_take is not None %}{{ item.tracker_dosage_per_take|unlocalize }}{% else %}1{% endif %}" class="glass">
                     </div>
                 </div>
             </div>
