@@ -16,7 +16,7 @@ class ListCategoryAdmin(admin.ModelAdmin):
     def template_creation_guide(self, obj):
         from django.utils.safestring import mark_safe
         return mark_safe("""
-            <div style="background: #1e1e1e; color: #e0e0e0; padding: 22px; border-radius: 8px; border: 1px solid #3c3c3c; line-height: 1.6; font-size: 13px; max-width: 850px; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+            <div style="background: #1e1e1e; color: #e0e0e0; padding: 22px; border-radius: 8px; border: 1px solid #3c3c3c; line-height: 1.6; font-size: 13px; max-width: 1000px; margin-bottom: 20px; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
                 <h3 style="color: #00adb5; margin-top: 0; font-size: 16px; border-bottom: 1px solid #3c3c3c; padding-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 600;">
                     ℹ️ Premium-Leitfaden für Listen-Vorlagen (Admins)
                 </h3>
@@ -24,15 +24,53 @@ class ListCategoryAdmin(admin.ModelAdmin):
                 
                 <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">1. Workflow & Logik-Typ (logic_type) bestimmen:</h4>
                 <p style="margin: 0 0 10px 0;">Wähle unter <strong>Logik-Typ</strong> die passende Verhaltensweise für die Liste aus. Das verändert den gesamten Workflow:</p>
-                <ul style="padding-left: 20px; margin: 0 0 16px 0; list-style-type: square; color: #ccc;">
-                    <li style="margin-bottom: 6px;"><strong>Allgemein (generic):</strong> Klassischer Listen-Workflow. Elemente können als erledigt abgehakt werden.</li>
-                    <li style="margin-bottom: 6px;"><strong>To-Do Liste (todo):</strong> Optimiert für Aufgaben mit Personen-Zuweisung und automatischen Mail-Erinnerungen.</li>
-                    <li style="margin-bottom: 6px;"><strong>Geschenkeliste (gift):</strong> Aktiviert das <strong>Reservierungs- & Wichtelsystem</strong>. Schenkende können Wünsche reservieren (🔒) oder erfüllen (🎁). Der Empfänger der Geschenke (Beschenkte/owner) sieht diese Zuordnungen und Statusänderungen nicht (Überraschungs-Schutz!), während alle anderen Schenkenden sie sehen, um Doppelkäufe zu vermeiden.</li>
-                    <li style="margin-bottom: 6px;"><strong>Bucketliste (bucket):</strong> Für Lebensziele. Ermöglicht Zuordnung zu Lebensabschnitten (Milestones), Prioritäten-Sternen und eine editierbare "Erreicht-am"-Chronik nach dem Abhaken.</li>
-                    <li style="margin-bottom: 6px;"><strong>Veranstaltungsplaner (event):</strong> Ermöglicht Budget- und Kostenkalkulation, Zuordnung von Aufgaben an Personen und exakte Zeiteinteilungen.</li>
-                    <li style="margin-bottom: 6px;"><strong>Tracker / Gewohnheiten (tracker):</strong> Schaltet den Live-Tracker frei, über den Aktionen live und zeitgenau protokolliert werden (z.B. Medikamenteneinnahme, Gießen, Tierfütterung).</li>
-                    <li style="margin-bottom: 6px;"><strong>Trainingsplan / Sport (workout):</strong> Aktiviert den interaktiven **Gym- & Workout-Modus**. Bietet Stoppuhr, automatischen Pausen-Countdown mit Beep-Signal, Rundenzeit-Stopper für Ausdauersport und lückenloses historisches Leistungs-Protokoll!</li>
-                </ul>
+                
+                <table style="width: 100%; border-collapse: collapse; border: 1px solid #3c3c3c; margin-top: 12px; margin-bottom: 20px; font-size: 12px; text-align: left;">
+                    <thead>
+                        <tr style="background-color: #2a2a2a; border-bottom: 2px solid #3c3c3c;">
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 22%;">Logik-Typ (code)</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 43%;">Zweck & Benutzer-Workflow</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; width: 35%;">Cockpit- & Backend-Features</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid #3c3c3c;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Allgemein<br><code style="color: #00adb5;">generic</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Klassischer Checklisten-Workflow für universelle Zwecke (z.B. Packlisten, Weinsammlungen, Wocheneinkauf). Elemente werden als erledigt abgehakt.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;">Einfaches, performantes Standard-Listen-Layout mit Summen-Kalkulation.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">To-Do Liste<br><code style="color: #00adb5;">todo</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Aufgabenverwaltung für Einzelpersonen & Teams. Ermöglicht exakte Zuweisung von Aufgaben an Personen.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Realtime Alexa & To-Do Sync:</strong> Automatischer Outlook/iCal-Link Import alle 10 Sek; Cron-gestützte E-Mail-Erinnerungen.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Geschenkeliste<br><code style="color: #00adb5;">gift</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Wunschzettel & Wichtel-Listen (Secret Santa). Schenkende reservieren (🔒) oder erfüllen (🎁) Wünsche.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Überraschungsschutz:</strong> Der Beschenkte (Besitzer/Begünstigter) sieht keinerlei Reservierungsstatus; andere Schenkende sehen es zur Vermeidung von Doppelkäufen.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Bucketliste<br><code style="color: #00adb5;">bucket</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Lebensziele & Wünsche. Zuordnung zu Meilensteinen (Lebensabschnitten) und Sterne-Wichtigkeit.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;">Sterne-Rating (⭐), Fortschritts-Anzeigen pro Meilenstein; speichert und editiert das Erreicht-am Datum in einer Chronik.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Veranstaltungen<br><code style="color: #00adb5;">event</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Feiern, Partyplaner, Urlaubsplanung mit Budgetkalkulation und Verteilung von Bringschulden/Aufgaben.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Budgetkalkulation:</strong> Summiert Gesamtkosten, offene und bezahlte Beträge separat für das gesamte Event.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Tracker / Routinen<br><code style="color: #00adb5;">tracker</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Gewohnheiten & Routinen mit schnellem Live-Abhaken (z.B. Haustier-Fütterung, Blumen gießen, Medikamente).</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Tracker-Historie:</strong> Ein Klick protokolliert Datum/Uhrzeit sekundengenau; zieht Dosen automatisch von Warnschwellen-Warenbeständen ab.</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid #3c3c3c;">
+                            <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Trainingsplan<br><code style="color: #00adb5;">workout</code></td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Kraftsport, Fitnesspläne, Ausdauer-Logging. Aktiviert den interaktiven Gym-Cockpit Modus am Trainingsgerät.</td>
+                            <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Gym-Cockpit:</strong> Integrierte Stoppuhr, Pausen-Countdown mit Beep, Rundenzähler; **Interaktive Chart.js Auswertungs-Diagramme**.</td>
+                        </tr>
+                    </tbody>
+                </table>
 
                 <h4 style="color: #ff8a5c; margin: 16px 0 8px 0; font-size: 14px; font-weight: 600;">2. Aktive Felder steuern:</h4>
                 <p style="margin: 0 0 10px 0;">Aktiviere durch Anhaken nur die Felder, die für diese Liste wirklich Sinn machen. Das hält die Benutzeroberfläche für deine User extrem schlank:</p>
