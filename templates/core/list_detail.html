@@ -729,9 +729,22 @@ document.addEventListener('alpine:init', () => {
             <a href="{% url 'core:home' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zur Startseite</a>
         {% endif %}
         
-        <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Ausführliche Anleitung & Beispiele">
-            ❓ <span style="font-size: 0.8rem; font-weight: bold;">Hilfe</span>
-        </button>
+        <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <!-- History Back Button -->
+            <button onclick="window.history.back()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Zurück">
+                ⬅️
+            </button>
+            
+            <!-- Sync Button -->
+            <button onclick="window.location.reload()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Aktualisieren">
+                🔄
+            </button>
+            
+            <!-- Help Button (❓ only) -->
+            <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Anleitung & Details">
+                ❓
+            </button>
+        </div>
     </nav>
     <div class="detail-header">
         <div>

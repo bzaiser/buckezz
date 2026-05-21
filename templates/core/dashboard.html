@@ -4,6 +4,7 @@
 <div class="dashboard-container" x-data="{ 
     showCreateModal: {% if request.GET.create %}true{% else %}false{% endif %}, 
     showTemplateHelp: false, 
+    showHelpModal: false, 
     helpTemplateSlug: '',
     helpTemplates: {
         {% for cat in categories %}
@@ -17,6 +18,28 @@
         {% endfor %}
     }
 }">
+    <!-- Navigation / Breadcrumb Row -->
+    <nav class="list-breadcrumb" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; margin-bottom: var(--spacing-md);">
+        <span class="text-muted" style="font-weight: 500;">Übersicht &gt; Dashboard</span>
+        
+        <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <!-- History Back Button -->
+            <button onclick="window.history.back()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Zurück">
+                ⬅️
+            </button>
+            
+            <!-- Sync Button -->
+            <button onclick="window.location.reload()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Aktualisieren">
+                🔄
+            </button>
+            
+            <!-- Help Button (❓ only) -->
+            <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Dashboard-Hilfe anzeigen">
+                ❓
+            </button>
+        </div>
+    </nav>
+
     <div class="header-section">
         <h1>Meine Buckets</h1>
         <button class="btn btn-primary" @click="showCreateModal = true">+ Neuer Bucket</button>
@@ -138,6 +161,49 @@
 
                 <div style="margin-top: var(--spacing-md); display: flex; justify-content: flex-end;">
                     <button type="button" class="btn btn-primary" @click="showTemplateHelp = false" style="min-width: 100px;">Verstanden</button>
+                </div>
+            </div>
+        </div>
+    </template>
+    
+    <!-- Dashboard Help Modal -->
+    <template x-if="showHelpModal">
+        <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
+            <div class="modal-content glass card" style="width: 100%; max-width: 500px; padding: var(--spacing-lg); border: 1px solid var(--accent); position: relative; max-height: 90vh; overflow-y: auto;">
+                <button type="button" @click="showHelpModal = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+                
+                <h2 style="margin: 0 0 var(--spacing-md) 0; font-size: 1.4rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span>📂 Dein Cockpit Dashboard</span>
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.6; font-size: 0.95rem;">
+                    <p>
+                        Hier verwaltest du all deine aktiven <strong>Buckets</strong> an einem zentralen Ort.
+                    </p>
+                    <div>
+                        <strong style="color: var(--accent);">➕ Neuen Bucket anlegen:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Nutze den <strong>"+ Neuer Bucket"</strong> Button, um eine neue Liste zu starten. Jede Vorlage ist speziell für ihren Zweck optimiert.
+                        </p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">⚙️ Funktionen der Vorlagen:</strong>
+                        <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                            <li><strong>Trainingspläne:</strong> Tracke Workouts, Runden, Gewichte und grafische Statistiken.</li>
+                            <li><strong>Veranstaltungsplaner:</strong> Plane Partys, lade Gäste ein und teile Aufgaben ("Wer bringt was mit").</li>
+                            <li><strong>Wunsch- & Geschenkeliste:</strong> Perfekt zum Wichteln (Secret Santa), schützt Geschenke vor neugierigen Augen.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">🔄 PWA-Tipps:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Nutze das 🔄 Pfeil-Icon oben rechts, um die App im Vollbildmodus blitzschnell zu aktualisieren. Der ⬅️ Pfeil führt dich jederzeit einen Schritt zurück.
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: var(--spacing-lg); display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" @click="showHelpModal = false" style="min-width: 100px;">Verstanden</button>
                 </div>
             </div>
         </div>

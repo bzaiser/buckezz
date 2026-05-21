@@ -1,49 +1,116 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<section class="hero">
-    <h1>Ein Bucket für alles.</h1>
-    <p class="text-muted">Kombiniere Einkaufslisten, To-Dos, Merklisten und mehr an einem Ort.</p>
-    
-    <div class="card" style="margin-top: 40px;">
-        {% if user.is_authenticated %}
-            <h2>Willkommen zurück, {{ user.username }}!</h2>
-            <p>Du hast aktuell {{ my_lists.count }} aktive Buckets.</p>
-            <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
-                <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Zum Dashboard</a>
-                <a href="{% url 'core:dashboard' %}?create=1" class="btn glass">+ Neuen Bucket erstellen</a>
-            </div>
-        {% else %}
-            <h2>Bereit für Ordnung?</h2>
-            <p>Erstelle deine erste Liste oder trete einer gemeinsamen Liste bei.</p>
-            <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
-                <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt anmelden</a>
-            </div>
-        {% endif %}
-    </div>
-</section>
-
-{% if user.is_authenticated or request.session.person_id %}
-<section style="margin-top: 40px;">
-    <h3>Deine aktiven Buckets:</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-md);">
-        {% for category in categories %}
-        {% if category.visible_lists %}
-        <div class="card glass">
-            <h4>{{ category.icon }} {{ category.name }}</h4>
-            <ul style="list-style: none; padding: 0; margin-top: var(--spacing-sm);">
-                {% for bucket in category.visible_lists %}
-                    <li style="margin-bottom: 8px;">
-                        <a href="{% url 'core:list_detail' bucket.id %}" style="text-decoration: none; color: var(--text-color); font-weight: 500; display: block; padding: 4px 8px; background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: var(--radius-sm);">
-                            {{ bucket.title }}
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
+<div x-data="{ showHelpModal: false }">
+    <!-- Navigation / Breadcrumb Row -->
+    <nav class="list-breadcrumb" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; margin-bottom: var(--spacing-md);">
+        <span class="text-muted" style="font-weight: 500;">Übersicht &gt; Willkommen</span>
+        
+        <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <!-- History Back Button -->
+            <button onclick="window.history.back()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Zurück">
+                ⬅️
+            </button>
+            
+            <!-- Sync Button -->
+            <button onclick="window.location.reload()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Aktualisieren">
+                🔄
+            </button>
+            
+            <!-- Help Button (❓ only) -->
+            <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Startseite-Hilfe anzeigen">
+                ❓
+            </button>
         </div>
-        {% endif %}
-        {% endfor %}
-    </div>
-</section>
-{% endif %}
+    </nav>
+
+    <section class="hero">
+        <h1>Ein Bucket für alles.</h1>
+        <p class="text-muted">Kombiniere Einkaufslisten, To-Dos, Merklisten und mehr an einem Ort.</p>
+        
+        <div class="card" style="margin-top: 40px;">
+            {% if user.is_authenticated %}
+                <h2>Willkommen zurück, {{ user.username }}!</h2>
+                <p>Du hast aktuell {{ my_lists.count }} aktive Buckets.</p>
+                <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
+                    <a href="{% url 'core:dashboard' %}" class="btn btn-primary">Zum Dashboard</a>
+                    <a href="{% url 'core:dashboard' %}?create=1" class="btn glass">+ Neuen Bucket erstellen</a>
+                </div>
+            {% else %}
+                <h2>Bereit für Ordnung?</h2>
+                <p>Erstelle deine erste Liste oder trete einer gemeinsamen Liste bei.</p>
+                <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
+                    <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt anmelden</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    {% if user.is_authenticated or request.session.person_id %}
+    <section style="margin-top: 40px;">
+        <h3>Deine aktiven Buckets:</h3>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--spacing-lg); margin-top: var(--spacing-md);">
+            {% for category in categories %}
+            {% if category.visible_lists %}
+            <div class="card glass">
+                <h4>{{ category.icon }} {{ category.name }}</h4>
+                <ul style="list-style: none; padding: 0; margin-top: var(--spacing-sm);">
+                    {% for bucket in category.visible_lists %}
+                        <li style="margin-bottom: 8px;">
+                            <a href="{% url 'core:list_detail' bucket.id %}" style="text-decoration: none; color: var(--text-color); font-weight: 500; display: block; padding: 4px 8px; background: color-mix(in srgb, var(--primary) 10%, transparent); border-radius: var(--radius-sm);">
+                                {{ bucket.title }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Startseite Help Modal -->
+    <template x-if="showHelpModal">
+        <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
+            <div class="modal-content glass card" style="width: 100%; max-width: 500px; padding: var(--spacing-lg); border: 1px solid var(--accent); position: relative; max-height: 90vh; overflow-y: auto;">
+                <button type="button" @click="showHelpModal = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+                
+                <h2 style="margin: 0 0 var(--spacing-md) 0; font-size: 1.4rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span>💡 Willkommen bei Buckezz!</span>
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.6; font-size: 0.95rem;">
+                    <p>
+                        <strong>Buckezz</strong> ist dein hochmodernes, kollaboratives Cockpit zur Organisation von Listen, Plänen und Aktivitäten.
+                    </p>
+                    <div>
+                        <strong style="color: var(--accent);">🚀 Deine ersten Schritte:</strong>
+                        <ul style="margin: 4px 0 0 0; padding-left: 20px;">
+                            <li>Melde dich an oder erstelle ein Profil.</li>
+                            <li>Erstelle deinen ersten <strong>Bucket</strong> (eine intelligente Liste).</li>
+                            <li>Wähle aus maßgeschneiderten Vorlagen (Einkäufe, To-Dos, Gym-Trainingspläne oder Wichteln).</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">👥 Teilen leicht gemacht:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Lade Freunde, Familie oder Gäste über persönliche Links ein. Deine Gäste können Listen sofort und <strong>ohne Registrierung</strong> einsehen und bearbeiten!
+                        </p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">📲 PWA (App auf Tablet & Smartphone):</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Nutze das "Teilen"- oder "Einstellungen"-Menü deines Browsers und wähle <strong>"Zum Startbildschirm hinzufügen"</strong>, um Buckezz als vollwertige, schnelle App ohne störende Browserleisten zu installieren.
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: var(--spacing-lg); display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" @click="showHelpModal = false" style="min-width: 100px;">Verstanden</button>
+                </div>
+            </div>
+        </div>
+    </template>
+</div>
 {% endblock %}
