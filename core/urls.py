@@ -19,7 +19,7 @@ urlpatterns = [
     path('list/create/', views.CreateBucketView.as_view(), name='list_create'),
     path('list/<uuid:pk>/', views.BucketListDetailView.as_view(), name='list_detail'),
     path('list/<uuid:pk>/calendar/', api_views.ICalExportView.as_view(), name='export_calendar'),
-    path('list/<uuid:pk>/pdf/', pdf_views.ExportListPDFView.as_view(), name='export_pdf'),
+    path('list/<uuid:pk>/pdf/export.pdf', pdf_views.ExportListPDFView.as_view(), name='export_pdf'),
     
     # Item CRUD
     path('list/<uuid:bucket_id>/add-form/', views.GetItemFormView.as_view(), name='get_add_form'),
