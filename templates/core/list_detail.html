@@ -1790,17 +1790,30 @@ document.addEventListener('alpine:init', () => {
                 return response.blob();
             })
             .then(blob => {
-                // Erzeugen einer temporären virtuellen Dateiadresse im Arbeitsspeicher
-                const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = blobUrl;
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click(); // iOS-Systemdialog für Download triggern
-                document.body.removeChild(a);
-                
-                // Speicher sofort wieder freigeben
-                setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                // 1. Erzeuge ein echtes File-Objekt im Speicher des iPhones
+                const file = new File([blob], filename, { type: 'application/pdf' });
+
+                // 2. Prüfen, ob das iPhone das direkte Teilen von Dateien unterstützt (iOS tut dies voll!)
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    // Hier übergeben wir NUR die Datei. Keine URL!
+                    navigator.share({
+                        files: [file],
+                        title: filename
+                    })
+                    .catch(error => {
+                        console.log('Teilen abgebrochen oder fehlgeschlagen:', error);
+                    });
+                } else {
+                    // Fallback für Browser, die kein Web Share API unterstützen (z.B. Desktop)
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                }
             })
             .catch(error => {
                 console.error(error);
