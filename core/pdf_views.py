@@ -68,26 +68,5 @@ class ExportListPDFView(View):
             'items': bucket.items.all(),
             'template_config': bucket.category.template
         }
-        
-        response = render_to_pdf('core/pdf_export.html', context)
-        if response:
-            filename = f"{bucket.title}.pdf"
-            content = f"attachment; filename={filename}"
-            response['Content-Disposition'] = content
-            return response
-        return HttpResponse("Fehler bei der PDF-Generierung", status=500)
-
-class DownloadLandingPageView(View):
-    def get(self, request, pk):
-        bucket = get_object_or_404(BucketList, id=pk)
-        # Check access
-        is_owner = bucket.owner == request.user
-        is_shared = request.user.is_authenticated and request.user in bucket.shared_with.all()
-        if not (is_owner or is_shared or bucket.is_public):
-            return HttpResponseForbidden("Zugriff verweigert.")
-            
-        context = {
-            'bucket': bucket,
-        }
         from django.shortcuts import render
-        return render(request, 'core/pdf_download_landing.html', context)
+        return render(request, 'core/pdf_export.html', context)

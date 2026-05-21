@@ -1,8 +1,16 @@
+{% load static %}
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        :root {
+            --bg-main: {{ user_settings.bg_color|default:"#0a0e14" }};
+            --primary: {{ user_settings.primary_color|default:"#00d2ff" }};
+            --accent: {{ user_settings.accent_color|default:"#ffab00" }};
+            --text-main: {{ user_settings.text_color|default:"#ffffff" }};
+        }
         @page {
             size: A4;
             margin: 2cm;
@@ -75,14 +83,14 @@
         
         @media screen {
             body {
-                background-color: #0a0e14;
-                color: #ffffff;
+                background-color: var(--bg-main);
+                color: var(--text-main);
                 padding-top: 80px;
                 padding-left: 20px;
                 padding-right: 20px;
                 background-image: 
-                    radial-gradient(circle at 10% 20%, rgba(0, 210, 255, 0.08) 0%, transparent 50%),
-                    radial-gradient(circle at 90% 80%, rgba(255, 171, 0, 0.06) 0%, transparent 50%);
+                    radial-gradient(circle at 10% 20%, color-mix(in srgb, var(--primary) 8%, transparent) 0%, transparent 50%),
+                    radial-gradient(circle at 90% 80%, color-mix(in srgb, var(--accent) 6%, transparent) 0%, transparent 50%);
                 background-attachment: fixed;
             }
             .header {
@@ -147,14 +155,14 @@
                 border-color: rgba(255, 255, 255, 0.3);
             }
             .control-bar .btn-print {
-                background: linear-gradient(135deg, #00d2ff, #ffab00);
+                background: linear-gradient(135deg, var(--primary), var(--accent));
                 border: none;
                 color: #000;
                 font-weight: 800;
             }
             .control-bar .btn-print:hover {
                 transform: translateY(-1px);
-                box-shadow: 0 4px 12px rgba(0, 210, 255, 0.3);
+                box-shadow: 0 4px 12px rgba(var(--primary), 0.3);
             }
         }
     </style>
@@ -166,7 +174,7 @@
     </div>
 
     <div class="header">
-        <img src="img/logo.png" alt="buckezz" style="height: 40px; margin-bottom: 8px;">
+        <img src="{% static 'img/logo.png' %}" alt="buckezz" style="height: 40px; margin-bottom: 8px;">
         <h1 class="title">{{ bucket.title }}</h1>
         <div class="subtitle">{{ bucket.category.name }} - Erstellt am {{ bucket.created_at|date:"d.m.Y" }}</div>
     </div>
