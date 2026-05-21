@@ -28,45 +28,53 @@ class ListCategoryAdmin(admin.ModelAdmin):
                 <table style="width: 100%; border-collapse: collapse; border: 1px solid #3c3c3c; margin-top: 12px; margin-bottom: 20px; font-size: 12px; text-align: left;">
                     <thead>
                         <tr style="background-color: #2a2a2a; border-bottom: 2px solid #3c3c3c;">
-                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 22%;">Logik-Typ (code)</th>
-                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 43%;">Zweck & Benutzer-Workflow</th>
-                            <th style="padding: 10px; color: #00adb5; font-weight: bold; width: 35%;">Cockpit- & Backend-Features</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 18%;">Logik-Typ (code)</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 38%;">Zweck & Benutzer-Workflow</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; border-right: 1px solid #3c3c3c; width: 22%;">Personen / Teilnehmer?</th>
+                            <th style="padding: 10px; color: #00adb5; font-weight: bold; width: 22%;">Cockpit- & Backend-Features</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr style="border-bottom: 1px solid #3c3c3c;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Allgemein<br><code style="color: #00adb5;">generic</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Klassischer Checklisten-Workflow für universelle Zwecke (z.B. Packlisten, Weinsammlungen, Wocheneinkauf). Elemente werden als erledigt abgehakt.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #a0a0a0;">Nein (standardmäßig aus; kann über <code style="color: #ff8a5c;">use_persons</code> zugeschaltet werden)</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;">Einfaches, performantes Standard-Listen-Layout mit Summen-Kalkulation.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">To-Do Liste<br><code style="color: #00adb5;">todo</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Aufgabenverwaltung für Einzelpersonen & Teams. Ermöglicht exakte Zuweisung von Aufgaben an Personen.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #fff;"><strong>Ja (Aktiviert)</strong><br>Zur direkten Zuweisung von Aufgaben an bestimmte Personen.</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Realtime Alexa & To-Do Sync:</strong> Automatischer Outlook/iCal-Link Import alle 10 Sek; Cron-gestützte E-Mail-Erinnerungen.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Geschenkeliste<br><code style="color: #00adb5;">gift</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Wunschzettel & Wichtel-Listen (Secret Santa). Schenkende reservieren (🔒) oder erfüllen (🎁) Wünsche.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #fff;"><strong>Ja (Erforderlich)</strong><br>Steuert die Schenkenden (Teilnehmer) und den Beschenkten (Begünstigten).</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Überraschungsschutz:</strong> Der Beschenkte (Besitzer/Begünstigter) sieht keinerlei Reservierungsstatus; andere Schenkende sehen es zur Vermeidung von Doppelkäufen.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Bucketliste<br><code style="color: #00adb5;">bucket</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Lebensziele & Wünsche. Zuordnung zu Meilensteinen (Lebensabschnitten) und Sterne-Wichtigkeit.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #a0a0a0;">Nein (standardmäßig aus; kann über <code style="color: #ff8a5c;">use_persons</code> zugeschaltet werden)</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;">Sterne-Rating (⭐), Fortschritts-Anzeigen pro Meilenstein; speichert und editiert das Erreicht-am Datum in einer Chronik.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Veranstaltungen<br><code style="color: #00adb5;">event</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Feiern, Partyplaner, Urlaubsplanung mit Budgetkalkulation und Verteilung von Bringschulden/Aufgaben.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #fff;"><strong>Ja (Aktiviert)</strong><br>Zur Einladung von Gästen & Zuweisung von Bringschulden/Aufgaben.</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Budgetkalkulation:</strong> Summiert Gesamtkosten, offene und bezahlte Beträge separat für das gesamte Event.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c; background-color: #242424;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Tracker / Routinen<br><code style="color: #00adb5;">tracker</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Gewohnheiten & Routinen mit schnellem Live-Abhaken (z.B. Haustier-Fütterung, Blumen gießen, Medikamente).</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #a0a0a0;">Nein (standardmäßig aus; kann über <code style="color: #ff8a5c;">use_persons</code> zugeschaltet werden)</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Tracker-Historie:</strong> Ein Klick protokolliert Datum/Uhrzeit sekundengenau; zieht Dosen automatisch von Warnschwellen-Warenbeständen ab.</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #3c3c3c;">
                             <td style="padding: 10px; font-weight: bold; border-right: 1px solid #3c3c3c; color: #ccc;">Trainingsplan<br><code style="color: #00adb5;">workout</code></td>
                             <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5;">Kraftsport, Fitnesspläne, Ausdauer-Logging. Aktiviert den interaktiven Gym-Cockpit Modus am Trainingsgerät.</td>
+                            <td style="padding: 10px; border-right: 1px solid #3c3c3c; line-height: 1.5; color: #a0a0a0;">Nein (standardmäßig aus; rein persönliches Trainings-Cockpit)</td>
                             <td style="padding: 10px; line-height: 1.5; color: #a0a0a0;"><strong>Gym-Cockpit:</strong> Integrierte Stoppuhr, Pausen-Countdown mit Beep, Rundenzähler; **Interaktive Chart.js Auswertungs-Diagramme**.</td>
                         </tr>
                     </tbody>
