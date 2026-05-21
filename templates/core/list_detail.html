@@ -1640,7 +1640,7 @@ document.addEventListener('alpine:init', () => {
             <div style="display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 1.5px solid #333; padding-bottom: 8px; margin-bottom: 18px;">
                 <h1 style="font-size: 16pt; font-weight: bold; margin: 0; color: #111;">{{ bucket.title }}</h1>
                 <div style="font-size: 8.5pt; color: #777; font-style: italic; font-weight: 500;">
-                    {{ bucket.category.name }} &bull; Erstellt am {{ bucket.created_at|date:"d.m.Y" }}
+                    {{ bucket.category.name }}
                 </div>
             </div>
 
@@ -1722,6 +1722,11 @@ document.addEventListener('alpine:init', () => {
                     {% endfor %}
                 </tbody>
             </table>
+            
+            <!-- Centered Footer with Creation Date -->
+            <div style="text-align: center; font-size: 8pt; color: #777; margin-top: 30px; border-top: 1px dashed #ddd; padding-top: 12px;">
+                Erstellt am {{ bucket.created_at|date:"d.m.Y" }}
+            </div>
         </div>
     </div>
 </div>
