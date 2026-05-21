@@ -20,7 +20,11 @@
 }">
     <!-- Navigation / Breadcrumb Row -->
     <nav class="list-breadcrumb" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; margin-bottom: var(--spacing-md);">
-        <span class="text-muted" style="font-weight: 500;">Übersicht &gt; Dashboard</span>
+        <div style="font-size: 0.88rem; display: flex; align-items: center; gap: 4px;">
+            <a href="{% url 'core:home' %}" class="text-muted" style="text-decoration: none; font-weight: 500;">Start</a>
+            <span class="text-muted" style="opacity: 0.5;">&gt;</span>
+            <span class="text-muted" style="font-weight: 500;">Dashboard</span>
+        </div>
         
         <div style="display: inline-flex; align-items: center; gap: 6px;">
             <!-- History Back Button -->

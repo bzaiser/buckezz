@@ -10,9 +10,36 @@
         text: '{{ settings.text_color|default:"#ffffff" }}',
         input_bg: '{{ settings.input_bg_color|default:"#000000" }}',
         input_text: '{{ settings.input_text_color|default:"#ffffff" }}',
-        opacity: {{ settings.glass_opacity|default:0.15|unlocalize }}
+        opacity: {{ settings.glass_opacity|default:0.15|unlocalize }},
+        showHelpModal: false
      }">
     
+    <!-- Navigation / Breadcrumb Row -->
+    <nav class="list-breadcrumb" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px; margin-bottom: var(--spacing-md);">
+        <div style="font-size: 0.88rem; display: flex; align-items: center; gap: 4px;">
+            <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none; font-weight: 500;">Dashboard</a>
+            <span class="text-muted" style="opacity: 0.5;">&gt;</span>
+            <span class="text-muted" style="font-weight: 500;">Einstellungen</span>
+        </div>
+        
+        <div style="display: inline-flex; align-items: center; gap: 6px;">
+            <!-- History Back Button -->
+            <button onclick="window.history.back()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Zurück">
+                ⬅️
+            </button>
+            
+            <!-- Sync Button -->
+            <button onclick="window.location.reload()" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Aktualisieren">
+                🔄
+            </button>
+            
+            <!-- Help Button (❓ only) -->
+            <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); width: 32px; height: 32px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Einstellungen-Hilfe anzeigen">
+                ❓
+            </button>
+        </div>
+    </nav>
+
     <!-- Inline style to override colors in real-time -->
     <style x-text="`
         :root {
@@ -26,8 +53,8 @@
         }
     `"></style>
 
-    <h1>🎨 Design-Einstellungen</h1>
-    <p class="text-muted" style="margin-bottom: var(--spacing-lg);">Hier kannst du alle Farben inkl. der Textfarbe anpassen.</p>
+    <h1>🎨 Design & Profileinstellungen</h1>
+    <p class="text-muted" style="margin-bottom: var(--spacing-lg);">Hier kannst du alle Farben, Profil- und Kalendereinstellungen konfigurieren.</p>
 
     <div class="settings-layout">
         <form action="{% url 'core:settings' %}" method="POST" class="card glass settings-form">
@@ -181,8 +208,8 @@
                     setTimeout(() => {
                         window.location.reload(true);
                     }, 1000);
+                }
             </script>
-            </div>
 
             <!-- Gym & Sport settings -->
             <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
@@ -377,6 +404,52 @@
             </div>
         </div>
     </div>
+    <!-- Settings Help Modal -->
+    <template x-if="showHelpModal">
+        <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
+            <div class="modal-content glass card" style="width: 100%; max-width: 500px; padding: var(--spacing-lg); border: 1px solid var(--accent); position: relative; max-height: 90vh; overflow-y: auto;">
+                <button type="button" @click="showHelpModal = false" style="position: absolute; top: 16px; right: 16px; background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">&times;</button>
+                
+                <h2 style="margin: 0 0 var(--spacing-md) 0; font-size: 1.4rem; color: var(--primary); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                    <span>⚙️ Deine App-Einstellungen</span>
+                </h2>
+                
+                <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.6; font-size: 0.95rem;">
+                    <p>
+                        Passe Buckezz an deine Bedürfnisse an. Änderungen werden in Echtzeit im rechten Vorschaufenster visualisiert!
+                    </p>
+                    <div>
+                        <strong style="color: var(--accent);">🎨 Design & Farbpaletten:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Wähle deine Primär-, Hintergrund- und Textfarben. Du kannst die Glas-Transparenz regeln, um das perfekte Verhältnis von Eleganz und Lesbarkeit zu erhalten.
+                        </p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">🏋️‍♂️ Fitness & Körperdaten:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Hinterlege dein Körpergewicht, Fitnessziele und Körpermaße. Diese Daten werden direkt in die Trainingsstatistik und Gym-Berechnungen einbezogen.
+                        </p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">📅 Kalender-Zeiten & Sync:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Konfiguriere, zu welchen Uhrzeiten deine Tagesansicht im Kalender beginnt und endet, und wähle, welche Einträge standardmäßig geladen werden.
+                        </p>
+                    </div>
+                    <div>
+                        <strong style="color: var(--accent);">📱 App-Cache & PWA:</strong>
+                        <p style="margin: 4px 0 0 0;">
+                            Sollte dein Tablet offline-gespeicherte Daten haben, die nicht mit dem Server übereinstimmen, leert der Button <strong>"App-Cache leeren"</strong> den Browser-Speicher und erzwingt einen frischen Datenabgleich.
+                        </p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: var(--spacing-lg); display: flex; justify-content: flex-end;">
+                    <button type="button" class="btn btn-primary" @click="showHelpModal = false" style="min-width: 100px;">Verstanden</button>
+                </div>
+            </div>
+        </div>
+    </template>
 </div>
 
 <style>
