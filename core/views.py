@@ -68,19 +68,38 @@ class CreateBucketView(LoginRequiredMixin, View):
         )
         return redirect('core:list_detail', pk=bucket.id)
 
+import re
+
 def get_price_sums(bucket, active_items, completed_items):
     active_sum = 0.0
     completed_sum = 0.0
+    
+    def parse_amount(amount_str):
+        if not amount_str:
+            return 1.0
+        s = amount_str.strip()
+        if not s:
+            return 1.0
+        # Search for first integer or decimal number (supporting both dot and comma)
+        match = re.search(r'([0-9]+(?:[.,][0-9]+)?)', s)
+        if match:
+            num_str = match.group(1).replace(',', '.')
+            try:
+                val = float(num_str)
+                return val if val > 0 else 1.0
+            except ValueError:
+                pass
+        return 1.0
     
     if bucket.category.template.use_price:
         use_amount = bucket.category.template.use_amount
         for item in active_items:
             if item.price:
-                amount = float(item.amount) if (use_amount and item.amount is not None) else 1.0
+                amount = parse_amount(item.amount) if use_amount else 1.0
                 active_sum += float(item.price) * amount
         for item in completed_items:
             if item.price:
-                amount = float(item.amount) if (use_amount and item.amount is not None) else 1.0
+                amount = parse_amount(item.amount) if use_amount else 1.0
                 completed_sum += float(item.price) * amount
                 
     return {
