@@ -86,6 +86,7 @@ class BucketListAdmin(admin.ModelAdmin):
     list_display = ('title', 'category', 'owner', 'created_at', 'is_secret_santa', 'beneficiary')
     list_filter = ('category', 'owner', 'is_secret_santa')
     search_fields = ('title',)
+    filter_horizontal = ('shared_with',)
     inlines = [ListItemInline, ListParticipantInline]
     actions = ['duplicate_bucket_lists']
 

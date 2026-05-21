@@ -694,7 +694,9 @@ class ReorderItemsView(LoginRequiredMixin, View):
 class ShareToggleView(LoginRequiredMixin, View):
     def post(self, request, pk):
         bucket = get_object_or_404(BucketList, id=pk)
-        if bucket.owner != request.user:
+        is_owner = bucket.owner == request.user
+        is_admin = request.user.is_authenticated and request.user.is_superuser
+        if not (is_owner or is_admin):
             return HttpResponseForbidden()
         
         action = request.POST.get('action')
