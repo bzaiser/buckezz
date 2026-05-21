@@ -1591,7 +1591,12 @@ document.addEventListener('alpine:init', () => {
             background: #fff !important;
             color: #000 !important;
         }
-        body > *:not([x-show="showPrintModal"]):not(.no-print) {
+        /* Hide top level header, footer and other no-print items */
+        header, footer, .no-print {
+            display: none !important;
+        }
+        /* Hide all descendants of main container except the active print modal */
+        main.container > *:not([x-show="showPrintModal"]) {
             display: none !important;
         }
         /* Style modal as a flat print sheet */
@@ -1658,11 +1663,14 @@ document.addEventListener('alpine:init', () => {
             <h3 style="margin: 0; font-size: 1.2rem; color: #fff; display: flex; align-items: center; gap: 8px;">
                 📄 PDF / Druck-Vorschau
             </h3>
-            <div style="display: flex; gap: 12px; align-items: center;">
-                <button onclick="window.print()" class="btn" style="background: linear-gradient(135deg, #00d2ff, #ffab00); border: none; color: #000; font-weight: 800; font-size: 0.9rem; padding: 8px 16px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
-                    🖨️ Drucken / PDF speichern
+            <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                <a href="{% url 'core:export_pdf' bucket.id %}" target="_blank" class="btn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #fff; font-weight: 600; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.06)'">
+                    📥 PDF Herunterladen
+                </a>
+                <button onclick="window.print()" class="btn" style="background: linear-gradient(135deg, #00d2ff, #ffab00); border: none; color: #000; font-weight: 800; font-size: 0.85rem; padding: 8px 14px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                    🖨️ Drucken / PDF
                 </button>
-                <button @click="showPrintModal = false" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                <button @click="showPrintModal = false" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15); color: #fff; border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,0,0,0.3)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
                     &times;
                 </button>
             </div>
