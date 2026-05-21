@@ -722,12 +722,16 @@ document.addEventListener('alpine:init', () => {
 <form style="display:none;">{% csrf_token %}</form>
 
 <div class="list-header" style="position: relative; z-index: 50;">
-    <nav class="list-breadcrumb">
+    <nav class="list-breadcrumb" style="display: flex; justify-content: space-between; align-items: center; width: 100%; gap: 10px;">
         {% if user.is_authenticated %}
             <a href="{% url 'core:dashboard' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zum Dashboard</a>
         {% else %}
             <a href="{% url 'core:home' %}" class="text-muted" style="text-decoration: none;">&larr; Zurück zur Startseite</a>
         {% endif %}
+        
+        <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Ausführliche Anleitung & Beispiele">
+            ❓ <span style="font-size: 0.8rem; font-weight: bold;">Hilfe</span>
+        </button>
     </nav>
     <div class="detail-header">
         <div>
@@ -736,9 +740,6 @@ document.addEventListener('alpine:init', () => {
                 <span class="list-title-icon" style="font-size: 2rem;">{{ bucket.category.icon }}</span>
                 {% endif %}
                 <h1 class="list-title" style="margin: 0; font-size: 1.8rem;">{{ bucket.title }}</h1>
-                <button @click="showHelpModal = true" class="glass" style="border: none; background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: var(--radius-sm); cursor: pointer; color: var(--primary); font-size: 0.9rem; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='rgba(255,255,255,0.05)'" title="Ausführliche Anleitung & Beispiele">
-                    ❓ <span style="font-size: 0.8rem; font-weight: bold;">Hilfe</span>
-                </button>
             </div>
             <p class="list-category-subtitle text-muted" style="margin: 2px 0 0 0;">{{ bucket.category.name }}</p>
         </div>
