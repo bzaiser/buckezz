@@ -185,6 +185,9 @@
         min-width: 0;
         word-break: break-word;
     }
+    .list-item-meta-group {
+        display: contents;
+    }
     @media (max-width: 640px) {
         .list-item {
             grid-template-columns: auto 1fr auto !important;
@@ -195,16 +198,24 @@
         .list-item-check  { grid-area: check; align-self: start; padding-top: 4px; }
         .list-item-content { grid-area: content; min-width: 0; }
         .list-item-actions { grid-area: actions; }
+        
+        .list-item-meta-group {
+            grid-area: meta;
+            display: flex !important;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+            padding-top: var(--spacing-md) !important; /* Significantly more top padding for visual breathing room */
+            padding-bottom: var(--spacing-xs);
+            min-width: 0;
+        }
+        
         .list-item-amount,
         .list-item-price,
         .list-item-rating {
-            grid-area: meta;
+            font-size: 0.82rem;
             display: inline-flex !important;
-            gap: 12px;
-            flex-wrap: wrap;
-            font-size: 0.8rem;
-            padding-top: var(--spacing-sm);
-            padding-bottom: var(--spacing-xs);
+            align-items: center;
+            gap: 4px;
         }
     }
 </style>
@@ -362,23 +373,25 @@
             {% endif %}
         </div>
     </div>
-    {% if bucket.category.template.use_amount %}
-        <div class="text-muted list-item-amount">{{ item.amount|default:"-" }}</div>
-    {% endif %}
-    {% if bucket.category.template.use_price %}
-        <div class="text-muted list-item-price">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
-    {% endif %}
-    {% if bucket.category.template.use_rating %}
-        <div class="list-item-rating" style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
-            {% if item.rating %}
-                {% for i in "12345" %}
-                    {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
-                {% endfor %}
-            {% else %}
-                <span style="opacity: 0.15;">-</span>
-            {% endif %}
-        </div>
-    {% endif %}
+    <div class="list-item-meta-group">
+        {% if bucket.category.template.use_amount %}
+            <div class="text-muted list-item-amount">{{ item.amount|default:"-" }}</div>
+        {% endif %}
+        {% if bucket.category.template.use_price %}
+            <div class="text-muted list-item-price">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
+        {% endif %}
+        {% if bucket.category.template.use_rating %}
+            <div class="list-item-rating" style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
+                {% if item.rating %}
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
+                    {% endfor %}
+                {% else %}
+                    <span style="opacity: 0.15;">-</span>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
     <div class="list-item-actions" style="display: flex; gap: var(--spacing-sm);">
         {% if can_edit %}
         <button hx-get="{% url 'core:get_edit_form' bucket.id item.id %}" 
