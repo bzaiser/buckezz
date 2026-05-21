@@ -310,7 +310,29 @@
             }
         }
 
-        /* Custom Tom Select Glassmorphism Overrides */
+        /* Prevent horizontal overflow sitewide */
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        .card {
+            min-width: 0;
+            word-break: break-word;
+        }
+        @media (max-width: 768px) {
+            .card {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                border-radius: var(--radius-sm);
+            }
+            /* Make list item containers full-width */
+            #item-list, .list-item {
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+            }
+        }
         .ts-wrapper .ts-control {
             background: var(--input-bg) !important;
             border: 1px solid rgba(255, 255, 255, 0.1) !important;

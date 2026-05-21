@@ -20,6 +20,13 @@
     .tracker-badge.done:hover {
         box-shadow: 0 4px 15px rgba(0, 230, 118, 0.3) !important;
     }
+    @media (max-width: 768px) {
+        .tracker-card {
+            width: 100% !important;
+            max-width: 100% !important;
+            box-sizing: border-box !important;
+        }
+    }
 </style>
 <div class="card glass tracker-card" id="item-{{ item.id }}" style="margin-bottom: var(--spacing-md); padding: var(--spacing-md); display: flex; flex-direction: column; gap: var(--spacing-sm); border: 1px solid var(--glass-border); border-radius: var(--radius-md); transition: all 0.2s;">
     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: var(--spacing-md);">
@@ -161,7 +168,46 @@
     {% endif %}
 </div>
 {% else %}
-<div class="list-item" id="item-{{ item.id }}" style="display: grid; grid-template-columns: auto 1fr {% if bucket.category.template.use_amount %}100px{% endif %} {% if bucket.category.template.use_price %}80px{% endif %} {% if bucket.category.template.use_rating %}100px{% endif %} auto; gap: var(--spacing-md); align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--glass-border);">
+<style>
+    .list-item {
+        display: grid;
+        grid-template-columns:
+            auto
+            1fr
+            {% if bucket.category.template.use_amount %}minmax(60px,90px){% endif %}
+            {% if bucket.category.template.use_price %}minmax(55px,70px){% endif %}
+            {% if bucket.category.template.use_rating %}minmax(80px,100px){% endif %}
+            auto;
+        gap: var(--spacing-sm);
+        align-items: start;
+        padding: var(--spacing-sm) 0;
+        border-bottom: 1px solid var(--glass-border);
+        min-width: 0;
+        word-break: break-word;
+    }
+    @media (max-width: 640px) {
+        .list-item {
+            grid-template-columns: auto 1fr auto !important;
+            grid-template-areas:
+                "check content actions"
+                {% if bucket.category.template.use_amount or bucket.category.template.use_price or bucket.category.template.use_rating %}". meta meta"{% endif %};
+        }
+        .list-item-check  { grid-area: check; align-self: start; padding-top: 4px; }
+        .list-item-content { grid-area: content; min-width: 0; }
+        .list-item-actions { grid-area: actions; }
+        .list-item-amount,
+        .list-item-price,
+        .list-item-rating {
+            grid-area: meta;
+            display: inline-flex !important;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            padding-bottom: var(--spacing-xs);
+        }
+    }
+</style>
+<div class="list-item" id="item-{{ item.id }}">
     <div class="list-item-check">
         {% if not bucket.is_secret_santa or is_beneficiary or request.user == bucket.owner %}
         <input type="checkbox" 
