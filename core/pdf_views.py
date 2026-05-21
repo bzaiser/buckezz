@@ -72,7 +72,7 @@ class ExportListPDFView(View):
         response = render_to_pdf('core/pdf_export.html', context)
         if response:
             filename = f"{bucket.title}.pdf"
-            content = f"inline; filename={filename}"
+            content = f"attachment; filename={filename}"
             response['Content-Disposition'] = content
             return response
         return HttpResponse("Fehler bei der PDF-Generierung", status=500)
