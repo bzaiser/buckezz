@@ -1790,11 +1790,14 @@ document.addEventListener('alpine:init', () => {
                 return response.blob();
             })
             .then(blob => {
-                // 1. Erzeuge ein echtes File-Objekt im Speicher des iPhones
+                // 1. Erzeuge ein echtes File-Objekt im Speicher des Geräts
                 const file = new File([blob], filename, { type: 'application/pdf' });
 
-                // 2. Prüfen, ob das iPhone das direkte Teilen von Dateien unterstützt (iOS tut dies voll!)
-                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                // 2. Prüfen, ob es sich um ein Mobilgerät handelt (iPhone, iPad, Android)
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                // 3. Nur auf Mobilgeräten das Teilen-Menü erzwingen (schützt vor URL-Leak)
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
                     // Hier übergeben wir NUR die Datei. Keine URL!
                     navigator.share({
                         files: [file],
@@ -1804,7 +1807,7 @@ document.addEventListener('alpine:init', () => {
                         console.log('Teilen abgebrochen oder fehlgeschlagen:', error);
                     });
                 } else {
-                    // Fallback für Browser, die kein Web Share API unterstützen (z.B. Desktop)
+                    // Auf PCs: Direkter, verlässlicher Standard-Download in den Downloads-Ordner (garantiert Dateinamen für Outlook)
                     const blobUrl = URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = blobUrl;
