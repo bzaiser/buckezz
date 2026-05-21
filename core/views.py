@@ -15,10 +15,14 @@ class HomeView(TemplateView):
         person_id = self.request.session.get('person_id')
         
         if user.is_authenticated:
-            context['my_lists'] = BucketList.objects.filter(owner=user)
-            allowed_lists = BucketList.objects.filter(
-                models.Q(owner=user) | models.Q(shared_with=user) | models.Q(participants__person__user=user)
-            ).distinct()
+            if user.is_superuser:
+                context['my_lists'] = BucketList.objects.all()
+                allowed_lists = BucketList.objects.all()
+            else:
+                context['my_lists'] = BucketList.objects.filter(owner=user)
+                allowed_lists = BucketList.objects.filter(
+                    models.Q(owner=user) | models.Q(shared_with=user) | models.Q(participants__person__user=user)
+                ).distinct()
         elif person_id:
             allowed_lists = BucketList.objects.filter(
                 participants__person_id=person_id
@@ -37,6 +41,8 @@ class DashboardView(LoginRequiredMixin, ListView):
     context_object_name = 'lists'
 
     def get_queryset(self):
+        if self.request.user.is_superuser:
+            return BucketList.objects.all()
         return BucketList.objects.filter(owner=self.request.user)
     
     def get_context_data(self, **kwargs):
@@ -167,9 +173,10 @@ class BucketListDetailView(DetailView):
         # Check permissions
         is_owner = obj.owner == self.request.user
         is_shared = self.request.user.is_authenticated and self.request.user in obj.shared_with.all()
+        is_admin = self.request.user.is_authenticated and self.request.user.is_superuser
         
-        # If public or is_secret_santa (which works with personalized links)
-        if not (is_owner or is_shared or obj.is_public or obj.is_secret_santa):
+        # If public or is_secret_santa (which works with personalized links) or superuser/admin
+        if not (is_owner or is_shared or obj.is_public or obj.is_secret_santa or is_admin):
             raise PermissionDenied("Zugriff verweigert.")
         return obj
 
@@ -239,10 +246,11 @@ class BucketListDetailView(DetailView):
             grouped_active, grouped_completed, _ = group_items_by_milestone(active_items, completed_items, beneficiary)
         
         is_owner = bucket.owner == self.request.user
+        is_admin = self.request.user.is_authenticated and self.request.user.is_superuser
         if bucket.is_secret_santa:
-            can_edit = is_owner or is_beneficiary
+            can_edit = is_owner or is_beneficiary or is_admin
         else:
-            can_edit = is_owner or \
+            can_edit = is_owner or is_admin or \
                       (self.request.user.is_authenticated and self.request.user in bucket.shared_with.all()) or \
                       (bucket.is_public and bucket.allow_public_edit)
                       
@@ -324,6 +332,7 @@ class GetItemFormView(View):
         # 1. View Permission Check
         is_owner = bucket.owner == request.user
         is_shared = request.user.is_authenticated and request.user in bucket.shared_with.all()
+        is_admin = request.user.is_authenticated and request.user.is_superuser
         
         # Secret Santa session checks
         person_id = request.session.get('person_id')
@@ -338,15 +347,15 @@ class GetItemFormView(View):
         if bucket.is_secret_santa and bucket.beneficiary and current_person == bucket.beneficiary:
             is_beneficiary = True
 
-        can_view = is_owner or is_shared or bucket.is_public or (bucket.is_secret_santa and (is_owner or person_id))
+        can_view = is_owner or is_shared or bucket.is_public or (bucket.is_secret_santa and (is_owner or person_id)) or is_admin
         if not can_view:
             return HttpResponseForbidden("Zugriff verweigert.")
             
         # 2. Edit Permission Check
         if bucket.is_secret_santa:
-            can_edit = is_owner or is_beneficiary
+            can_edit = is_owner or is_beneficiary or is_admin
         else:
-            can_edit = is_owner or is_shared or (bucket.is_public and bucket.allow_public_edit)
+            can_edit = is_owner or is_shared or (bucket.is_public and bucket.allow_public_edit) or is_admin
             
         item = None
         gift_status = "open"
@@ -375,7 +384,8 @@ class AddItemView(View):
         bucket = get_object_or_404(BucketList, id=bucket_id)
         can_edit = bucket.owner == request.user or \
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
         if not can_edit:
             return HttpResponseForbidden()
 
@@ -485,7 +495,8 @@ class EditItemView(View):
         bucket = item.bucket_list
         can_edit = bucket.owner == request.user or \
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
         if not can_edit:
             return HttpResponseForbidden()
  
@@ -615,7 +626,8 @@ class ToggleItemView(View):
         bucket = item.bucket_list
         can_edit = bucket.owner == request.user or \
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
-                  (bucket.is_public and bucket.allow_public_edit)
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
         if not can_edit:
             return HttpResponseForbidden()
         
@@ -645,7 +657,10 @@ class DeleteItemView(View):
     def _do_delete(self, request, pk):
         item = get_object_or_404(ListItem, pk=pk)
         bucket = item.bucket_list
-        if bucket.owner != request.user and not (bucket.is_public and bucket.allow_public_edit):
+        is_owner = bucket.owner == request.user
+        is_admin = request.user.is_authenticated and request.user.is_superuser
+        is_public_editable = bucket.is_public and bucket.allow_public_edit
+        if not (is_owner or is_admin or is_public_editable):
             return HttpResponseForbidden()
 
         item.delete()
@@ -661,7 +676,9 @@ class ReorderItemsView(LoginRequiredMixin, View):
     def post(self, request, bucket_id):
         import json
         bucket = get_object_or_404(BucketList, id=bucket_id)
-        if bucket.owner != request.user:
+        is_owner = bucket.owner == request.user
+        is_admin = request.user.is_authenticated and request.user.is_superuser
+        if not (is_owner or is_admin):
             return HttpResponseForbidden()
         try:
             data = json.loads(request.body)
@@ -954,7 +971,8 @@ class ToggleTrackerLogView(View):
         can_edit = bucket.owner == request.user or \
                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
                   (bucket.is_public and bucket.allow_public_edit) or \
-                  (request.session.get('person_id') is not None)
+                  (request.session.get('person_id') is not None) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
         if not can_edit:
             return HttpResponseForbidden()
 
@@ -1009,9 +1027,12 @@ class CalendarView(LoginRequiredMixin, TemplateView):
         context['person'] = person
 
         # Fetch all lists where user is owner or shared_with
-        lists = BucketList.objects.filter(
-            models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)
-        ).distinct()
+        if self.request.user.is_superuser:
+            lists = BucketList.objects.all()
+        else:
+            lists = BucketList.objects.filter(
+                models.Q(owner=self.request.user) | models.Q(shared_with=self.request.user)
+            ).distinct()
 
         # Fetch all items with dates or tracker times from these lists
         items = ListItem.objects.filter(
