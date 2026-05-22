@@ -17,7 +17,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://nas.sunfish-universe.ts.net/api/alexa-skill/"
+          "uri": "https://nas.sunfish-universe.ts.net/api/alexa-skill/?token=buckezz2026!1234Bernd&list_id=0fed74d6-7902-488c-8eb6-2e84382b7e6c"
         },
         "interfaces": []
       }
