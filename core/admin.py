@@ -116,8 +116,18 @@ class UserSettingAdmin(admin.ModelAdmin):
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('name', 'birth_date', 'email', 'user', 'access_token')
+    list_display = ('name', 'get_bucket_lists', 'birth_date', 'email', 'user')
+    list_filter = ('participating_in__bucket_list', 'beneficiary_lists')
     search_fields = ('name', 'email')
+
+    def get_bucket_lists(self, obj):
+        lists = [p.bucket_list.title for p in obj.participating_in.all()]
+        beneficiary = [l.title for l in obj.beneficiary_lists.all()]
+        all_lists = list(set(lists + beneficiary))
+        if not all_lists:
+            return "-"
+        return ", ".join(all_lists)
+    get_bucket_lists.short_description = 'Zugeordnete Listen'
 
 class ListItemInline(admin.TabularInline):
     model = ListItem
