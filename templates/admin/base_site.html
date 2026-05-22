@@ -359,6 +359,32 @@
             window.addEventListener('load', initFoldableApps);
             // Run again shortly after load to be absolutely sure
             setTimeout(initFoldableApps, 300);
+
+            // --- Collapsible Inlines (Tabular/Stacked) Bugfix ---
+            document.addEventListener('click', function(event) {
+                const toggle = event.target.closest('.collapse-toggle');
+                if (!toggle) return;
+                
+                event.preventDefault();
+                event.stopPropagation();
+                
+                const fieldset = toggle.closest('.collapse, .module, fieldset');
+                if (fieldset) {
+                    fieldset.classList.toggle('collapsed');
+                    const isCollapsed = fieldset.classList.contains('collapsed');
+                    
+                    const txt = toggle.textContent.trim().toLowerCase();
+                    if (isCollapsed) {
+                        if (txt === 'hide') toggle.textContent = 'Show';
+                        else if (txt === 'ausblenden') toggle.textContent = 'Einblenden';
+                        else if (txt === 'listeneinträge ausblenden') toggle.textContent = 'Listeneinträge einblenden';
+                    } else {
+                        if (txt === 'show') toggle.textContent = 'Hide';
+                        else if (txt === 'einblenden') toggle.textContent = 'Ausblenden';
+                        else if (txt === 'listeneinträge einblenden') toggle.textContent = 'Listeneinträge ausblenden';
+                    }
+                }
+            });
         });
     </script>
 {% endblock extrahead %}
