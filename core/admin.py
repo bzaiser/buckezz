@@ -117,7 +117,7 @@ class UserSettingAdmin(admin.ModelAdmin):
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
     list_display = ('name', 'get_bucket_lists', 'birth_date', 'email', 'user')
-    list_filter = ('participating_in__bucket_list', 'beneficiary_lists')
+    list_filter = ('name', 'participating_in__bucket_list')
     search_fields = ('name', 'email')
 
     def get_bucket_lists(self, obj):
