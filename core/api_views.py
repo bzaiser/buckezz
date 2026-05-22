@@ -222,6 +222,28 @@ class AlexaSkillView(View):
             
         try:
             data = json.loads(request.body)
+            
+            # Get the Alexa user ID from the request body!
+            alexa_user_id = data.get('session', {}).get('user', {}).get('userId') or data.get('context', {}).get('System', {}).get('user', {}).get('userId')
+            log_alexa(f"Eingehende Alexa User ID: {alexa_user_id}")
+            
+            # Smart User / List Routing: Check if this User ID is mapped to any UserSetting
+            if alexa_user_id:
+                from core.models import UserSetting
+                user_setting = UserSetting.objects.filter(alexa_user_id=alexa_user_id).first()
+                if user_setting:
+                    # Find first shopping list owned by this user
+                    matched_bucket = BucketList.objects.filter(owner=user_setting.user, category__name='Einkaufsliste').first()
+                    if matched_bucket:
+                        list_id = str(matched_bucket.id)
+                        log_alexa(f"Dynamisches Routing aktiv! Gefundene Einkaufsliste für {user_setting.user.username}: {matched_bucket.title} ({list_id})")
+                    else:
+                        # Fallback to any list owned by this user
+                        matched_bucket = BucketList.objects.filter(owner=user_setting.user).first()
+                        if matched_bucket:
+                            list_id = str(matched_bucket.id)
+                            log_alexa(f"Dynamisches Routing aktiv! Gefundene Fallback-Liste für {user_setting.user.username}: {matched_bucket.title} ({list_id})")
+
             req_type = data.get('request', {}).get('type')
             
             # 1. LaunchRequest ("Alexa, öffne Buckezz")

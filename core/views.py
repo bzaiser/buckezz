@@ -906,6 +906,7 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.header_text_color = request.POST.get('header_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.timezone = request.POST.get('timezone', 'Europe/Berlin')
+        settings.alexa_user_id = request.POST.get('alexa_user_id', '').strip() or None
         
         try:
             settings.calendar_start_hour = int(request.POST.get('calendar_start_hour', 8))

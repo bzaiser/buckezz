@@ -164,6 +164,14 @@
                         ✓ Zeitzone erkannt und ausgewählt!
                     </p>
                 </div>
+
+                <div class="control-group" style="margin-top: 15px;">
+                    <label>Alexa User ID (für Haushalts-Steuerung)</label>
+                    <input type="text" name="alexa_user_id" class="glass input" value="{{ settings.alexa_user_id|default:'' }}" placeholder="z.B. amzn1.ask.account.AM3B..." style="width: 100%; padding: 10px 14px; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1);">
+                    <p class="text-muted" style="margin: 4px 0 0 0; font-size: 0.72rem;">
+                        Trage hier deine Alexa User-ID ein, um Einkäufe automatisch deiner persönlichen Einkaufsliste zuzuordnen. Deine Alexa User-ID findest du im <a href="/api/alexa-log/" target="_blank" style="color: var(--primary); text-decoration: underline;">Alexa-Log</a>, nachdem du den Skill aufgerufen hast.
+                    </p>
+                </div>
             </div>
             
             <script>

@@ -21,6 +21,9 @@ class UserSetting(models.Model):
     calendar_filter_tracker = models.BooleanField(default=True)
     calendar_filter_reminder = models.BooleanField(default=True)
     calendar_filter_completed = models.BooleanField(default=True)
+    
+    # Alexa Integration
+    alexa_user_id = models.CharField(max_length=255, blank=True, null=True, unique=True, verbose_name="Alexa User ID")
 
     # Gym & Workout settings
     gym_weight = models.FloatField(null=True, blank=True)
