@@ -217,8 +217,13 @@ class BucketListAdmin(admin.ModelAdmin):
 
 @admin.register(ItemPersonRole)
 class ItemPersonRoleAdmin(admin.ModelAdmin):
-    list_display = ('item', 'person', 'role')
-    list_filter = ('role', 'person')
+    list_display = ('item', 'get_bucket_list', 'person', 'role')
+    list_filter = ('item__bucket_list', 'role', 'person')
+
+    def get_bucket_list(self, obj):
+        return obj.item.bucket_list
+    get_bucket_list.short_description = 'Liste'
+    get_bucket_list.admin_order_field = 'item__bucket_list'
 
 
 @admin.register(ListItem)
