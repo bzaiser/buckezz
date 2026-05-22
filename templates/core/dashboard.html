@@ -6,6 +6,34 @@
     showTemplateHelp: false, 
     showHelpModal: false, 
     helpTemplateSlug: '',
+    searchQuery: '',
+    sortBy: 'last_used',
+    lists: [
+        {% for list in lists %}
+            {
+                id: '{{ list.id }}',
+                title: '{{ list.title|escapejs }}',
+                category: '{{ list.category.name|escapejs }}',
+                itemsCount: {{ list.items.count }},
+                updatedAt: {{ list.updated_at|date:'U' }},
+                url: '{% url 'core:list_detail' list.id %}'
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ],
+    get filteredLists() {
+        let result = this.lists.filter(list => {
+            return this.searchQuery === '' || 
+                   list.title.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                   list.category.toLowerCase().includes(this.searchQuery.toLowerCase());
+        });
+        
+        if (this.sortBy === 'last_used') {
+            result.sort((a, b) => b.updatedAt - a.updatedAt);
+        } else if (this.sortBy === 'alphabetical') {
+            result.sort((a, b) => a.title.localeCompare(b.title));
+        }
+        return result;
+    },
     helpTemplates: {
         {% for cat in categories %}
             '{{ cat.slug }}': {
@@ -49,23 +77,68 @@
         <button class="btn btn-primary" @click="showCreateModal = true">+ Neuer Bucket</button>
     </div>
 
+    <!-- Search and Sort Toolbar -->
+    {% if lists %}
+    <div class="toolbar-row glass" style="display: flex; gap: var(--spacing-md); align-items: center; justify-content: space-between; padding: 10px 14px; border-radius: var(--radius-md); margin-bottom: var(--spacing-lg); border: 1px solid var(--glass-border); flex-wrap: wrap; width: 100%;">
+        <!-- Search input field -->
+        <div class="search-container" style="position: relative; flex: 1; min-width: 240px;">
+            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); opacity: 0.6; font-size: 0.95rem;">🔍</span>
+            <input type="text" 
+                   x-model="searchQuery" 
+                   placeholder="Buckets nach Name oder Vorlage durchsuchen..." 
+                   class="glass" 
+                   style="width: 100%; padding: 8px 12px 8px 36px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(255,255,255,0.03); color: var(--text-color); font-size: 0.9rem; outline: none; transition: border-color 0.2s;"
+                   onfocus="this.style.borderColor='var(--primary)'"
+                   onblur="this.style.borderColor='var(--glass-border)'">
+            <button x-show="searchQuery !== ''" 
+                    @click="searchQuery = ''" 
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.1rem; line-height: 1;"
+                    onmouseover="this.style.color='var(--primary)'"
+                    onmouseout="this.style.color='var(--text-muted)'">
+                &times;
+            </button>
+        </div>
+        
+        <!-- Sorting dropdown switcher -->
+        <div class="sort-container" style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+            <span class="text-muted" style="font-weight: 500;">Sortierung:</span>
+            <select x-model="sortBy" 
+                    class="glass" 
+                    style="padding: 7px 12px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(0,0,0,0.2); color: var(--text-color); font-size: 0.9rem; outline: none; cursor: pointer; transition: border-color 0.2s;"
+                    onfocus="this.style.borderColor='var(--primary)'"
+                    onblur="this.style.borderColor='var(--glass-border)'">
+                <option value="last_used">🕒 Zuletzt benutzt</option>
+                <option value="alphabetical">🔤 Alphabetisch</option>
+            </select>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="list-grid">
-        {% for list in lists %}
-            <a href="{% url 'core:list_detail' list.id %}" class="card glass bucket-card">
-                <div class="card-content">
-                    <h3>{{ list.title }}</h3>
-                    <p class="text-muted">{{ list.category.name }}</p>
-                    <div class="stats">
-                        <span>{{ list.items.count }} Einträge</span>
-                    </div>
-                </div>
-            </a>
-        {% empty %}
+        {% if not lists %}
             <div class="empty-state glass card">
                 <p>Du hast noch keine Buckets erstellt.</p>
                 <button class="btn btn-primary" @click="showCreateModal = true">Ersten Bucket anlegen</button>
             </div>
-        {% endfor %}
+        {% else %}
+            <!-- Alpine.js List Grid -->
+            <template x-for="list in filteredLists" :key="list.id">
+                <a :href="list.url" class="card glass bucket-card">
+                    <div class="card-content">
+                        <h3 x-text="list.title"></h3>
+                        <p class="text-muted" x-text="list.category"></p>
+                        <div class="stats">
+                            <span x-text="list.itemsCount + (list.itemsCount === 1 ? ' Eintrag' : ' Einträge')"></span>
+                        </div>
+                    </div>
+                </a>
+            </template>
+            
+            <!-- Empty search results state -->
+            <div x-show="filteredLists.length === 0" class="empty-state glass card" style="grid-column: 1 / -1; text-align: center; padding: var(--spacing-lg);">
+                <p>Keine Buckets gefunden, die zu deiner Suche passen.</p>
+            </div>
+        {% endif %}
     </div>
 
     <!-- Create Bucket Modal -->
