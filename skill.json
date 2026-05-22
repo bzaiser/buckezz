@@ -1,0 +1,51 @@
+{
+  "manifest": {
+    "publishingInformation": {
+      "locales": {
+        "de-DE": {
+          "name": "Buckezz Einkaufsliste",
+          "summary": "Synchronisiert die Alexa Einkaufsliste mit Buckezz.",
+          "description": "Mit diesem Skill kannst du deine Alexa Einkaufsliste direkt mit deinen Buckets in Buckezz synchronisieren.",
+          "examplePhrases": [
+            "Alexa, setze Milch auf die Liste"
+          ]
+        }
+      },
+      "category": "SHOPPING",
+      "testingInstructions": "Teste den Skill, indem du ein Element auf deine Einkaufsliste setzt."
+    },
+    "apis": {
+      "custom": {
+        "endpoint": {
+          "uri": "https://buckezz.zaisers.myds.me/api/alexa-skill/"
+        },
+        "interfaces": []
+      }
+    },
+    "manifestVersion": "1.0",
+    "permissions": [
+      {
+        "name": "alexa::household:lists:read"
+      },
+      {
+        "name": "alexa::household:lists:write"
+      }
+    ],
+    "events": {
+      "endpoint": {
+        "uri": "https://buckezz.zaisers.myds.me/api/alexa-skill/"
+      },
+      "subscriptions": [
+        {
+          "eventName": "AlexaLists.ItemsCreated"
+        },
+        {
+          "eventName": "AlexaLists.ItemsUpdated"
+        },
+        {
+          "eventName": "AlexaLists.ItemsDeleted"
+        }
+      ]
+    }
+  }
+}
