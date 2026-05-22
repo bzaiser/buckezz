@@ -172,6 +172,45 @@
         .module h2, .module caption {
             background-color: rgba(255, 255, 255, 0.05) !important;
         }
+        
+        /* Remove alternating row colors and add separator lines like in the app */
+        tr.row1, tr.row2, 
+        .results table tbody tr.row1, 
+        .results table tbody tr.row2,
+        #changelist-form tbody tr.row1,
+        #changelist-form tbody tr.row2,
+        .tabular tbody tr.row1,
+        .tabular tbody tr.row2 {
+            background-color: transparent !important;
+            background: none !important;
+        }
+        
+        /* Add a subtle bottom border to cells instead of striping, and remove other borders */
+        .results table tbody td, 
+        .results table tbody th,
+        #changelist-form tbody td,
+        #changelist-form tbody th,
+        .tabular tbody td,
+        .tabular tbody th,
+        tbody td, 
+        tbody th {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+        }
+        
+        /* Adjust table headers */
+        .results table thead th,
+        #changelist-form thead th,
+        .tabular thead th,
+        thead th {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.15) !important;
+            border-top: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
         {% endif %}
         
         {% if user_settings.text_color %}
