@@ -145,6 +145,8 @@
             {% if user_settings.bg_color %}
                 --body-bg: {{ user_settings.bg_color }} !important;
                 --admin-interface-module-background-color: {{ user_settings.bg_color }} !important;
+                --darkened-bg: {{ user_settings.bg_color }} !important;
+                --admin-interface-darkened-bg: {{ user_settings.bg_color }} !important;
             {% endif %}
             
             {% if user_settings.text_color %}
@@ -205,8 +207,8 @@
         .tabular tbody tr.row2 td,
         .row1 td, .row2 td,
         .row1 th, .row2 th {
-            background-color: transparent !important;
-            background: none !important;
+            background-color: {{ user_settings.bg_color }} !important;
+            background: {{ user_settings.bg_color }} !important;
         }
         
         /* Add a subtle bottom border to cells instead of striping, and remove other borders */
