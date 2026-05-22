@@ -283,7 +283,7 @@ class AlexaSkillView(View):
                             # based on the keywords in their voice command!
                             target_category = None
                             lower_title = title.lower()
-                            if any(kw in lower_title for kw in ['todo', 'to-do', 'aufgabe', 'hausaufgabe', 'arbeit', 'erledigen']):
+                            if any(kw in lower_title for kw in ['todo', 'to-do', 'to do', 'aufgabe', 'hausaufgabe', 'arbeit', 'erledigen']):
                                 target_category = 'To-Do Liste'
                             elif any(kw in lower_title for kw in ['wunsch', 'geschenk', 'wichtel']):
                                 target_category = 'Wunschliste'
@@ -308,7 +308,7 @@ class AlexaSkillView(View):
                             # Let's clean the category keywords from the item title so we don't save it in the task name
                             clean_title = title
                             if bucket.category.name == 'To-Do Liste':
-                                clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:todo|to-do|aufgaben?)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
+                                clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:todo|to-do|to\s+do|aufgaben?)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
                             elif bucket.category.name == 'Wunschliste':
                                 clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:wunsch|geschenk)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
                             elif bucket.category.name == 'Einkaufsliste':
