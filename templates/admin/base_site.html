@@ -174,6 +174,12 @@
         }
         
         /* Remove alternating row colors and add separator lines like in the app */
+        body.admin-interface #content-main .module table tr.row1,
+        body.admin-interface #content-main .module table tr.row2,
+        body.admin-interface #content-main .module table tbody tr.row1,
+        body.admin-interface #content-main .module table tbody tr.row2,
+        .admin-interface #content-main .module table tr.row1,
+        .admin-interface #content-main .module table tr.row2,
         tr.row1, tr.row2, 
         .results table tbody tr.row1, 
         .results table tbody tr.row2,
@@ -186,6 +192,10 @@
         }
         
         /* Add a subtle bottom border to cells instead of striping, and remove other borders */
+        body.admin-interface #content-main .module table tbody td,
+        body.admin-interface #content-main .module table tbody th,
+        .admin-interface #content-main .module table tbody td,
+        .admin-interface #content-main .module table tbody th,
         .results table tbody td, 
         .results table tbody th,
         #changelist-form tbody td,
@@ -201,6 +211,8 @@
         }
         
         /* Adjust table headers */
+        body.admin-interface #content-main .module table thead th,
+        .admin-interface #content-main .module table thead th,
         .results table thead th,
         #changelist-form thead th,
         .tabular thead th,
