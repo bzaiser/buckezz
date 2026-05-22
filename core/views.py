@@ -902,6 +902,8 @@ class ThemeSettingsView(LoginRequiredMixin, View):
         settings.text_color = request.POST.get('text_color')
         settings.input_bg_color = request.POST.get('input_bg_color', '#000000')
         settings.input_text_color = request.POST.get('input_text_color', '#ffffff')
+        settings.header_bg_color = request.POST.get('header_bg_color', '#543D62')
+        settings.header_text_color = request.POST.get('header_text_color', '#ffffff')
         settings.glass_opacity = request.POST.get('glass_opacity')
         settings.timezone = request.POST.get('timezone', 'Europe/Berlin')
         

@@ -10,6 +10,8 @@
         text: '{{ settings.text_color|default:"#ffffff" }}',
         input_bg: '{{ settings.input_bg_color|default:"#000000" }}',
         input_text: '{{ settings.input_text_color|default:"#ffffff" }}',
+        header_bg: '{{ settings.header_bg_color|default:"#543D62" }}',
+        header_text: '{{ settings.header_text_color|default:"#ffffff" }}',
         opacity: {{ settings.glass_opacity|default:0.15|unlocalize }},
         showHelpModal: false
      }">
@@ -105,6 +107,22 @@
                 <div class="picker-row">
                     <input type="color" name="input_text_color" x-model="input_text" class="color-input">
                     <code x-text="input_text"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Header Hintergrund (Admin)</label>
+                <div class="picker-row">
+                    <input type="color" name="header_bg_color" x-model="header_bg" class="color-input">
+                    <code x-text="header_bg"></code>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Header Textfarbe (Admin)</label>
+                <div class="picker-row">
+                    <input type="color" name="header_text_color" x-model="header_text" class="color-input">
+                    <code x-text="header_text"></code>
                 </div>
             </div>
 
