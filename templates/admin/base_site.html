@@ -120,15 +120,6 @@
     {% if user_settings %}
     <style id="dynamic-user-settings-colors">
         :root, :root .admin-interface {
-            {% if user_settings.primary_color %}
-                --admin-interface-save-button-background-color: {{ user_settings.primary_color }} !important;
-                --admin-interface-save-button-background-hover-color: {{ user_settings.primary_color }} !important;
-                --admin-interface-generic-link-color: {{ user_settings.primary_color }} !important;
-                --admin-interface-module-link-color: {{ user_settings.primary_color }} !important;
-                --primary: {{ user_settings.primary_color }} !important;
-                --breadcrumbs-bg: {{ user_settings.primary_color }} !important;
-            {% endif %}
-            
             {% if user_settings.header_bg_color %}
                 --admin-interface-header-background-color: {{ user_settings.header_bg_color }} !important;
                 --header-bg: {{ user_settings.header_bg_color }} !important;
@@ -147,11 +138,6 @@
                 --admin-interface-module-background-color: {{ user_settings.bg_color }} !important;
                 --darkened-bg: {{ user_settings.bg_color }} !important;
                 --admin-interface-darkened-bg: {{ user_settings.bg_color }} !important;
-            {% endif %}
-            
-            {% if user_settings.text_color %}
-                --body-fg: {{ user_settings.text_color }} !important;
-                --admin-interface-module-text-color: {{ user_settings.text_color }} !important;
             {% endif %}
         }
         
@@ -242,12 +228,6 @@
             border-left: none !important;
             border-right: none !important;
             background: rgba(255, 255, 255, 0.02) !important;
-        }
-        {% endif %}
-        
-        {% if user_settings.text_color %}
-        body, #container, #content, .module, td, th, label, .help {
-            color: {{ user_settings.text_color }} !important;
         }
         {% endif %}
     </style>
