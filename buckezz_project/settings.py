@@ -175,6 +175,7 @@ PWA_APP_SPLASH_SCREEN = [
 ]
 PWA_APP_DIR = 'ltr'
 PWA_APP_LANG = 'de-DE'
+PWA_SERVICE_WORKER_PATH = os.path.join(BASE_DIR, 'static', 'js', 'serviceworker.js')
 
 # Email Settings
 EMAIL_BACKEND = env('EMAIL_BACKEND', default=env('MAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend'))
