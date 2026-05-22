@@ -147,6 +147,27 @@
             {% endif %}
         }
         
+        {% if user_settings.input_bg_color and user_settings.input_text_color %}
+        #changelist-filter select,
+        #changelist-filter .list-filter-dropdown select,
+        .changelist-filter select,
+        select,
+        input[type="text"],
+        input[type="password"],
+        input[type="email"],
+        input[type="number"],
+        input[type="url"],
+        textarea {
+            background-color: {{ user_settings.input_bg_color }} !important;
+            color: {{ user_settings.input_text_color }} !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        }
+        select option {
+            background-color: {{ user_settings.input_bg_color }} !important;
+            color: {{ user_settings.input_text_color }} !important;
+        }
+        {% endif %}
+        
         {% if user_settings.header_bg_color %}
         #header, .header {
             background-color: {{ user_settings.header_bg_color }} !important;
