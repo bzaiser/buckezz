@@ -278,10 +278,44 @@ class AlexaSkillView(View):
                     
                     if title:
                         try:
-                            # Run our ultra-smart German shopping natural language parser!
-                            parsed_amount, parsed_shop, parsed_price, parsed_title = parse_german_amount(title)
+                            # 🧠 SMART DYNAMIC LIST CATEGORY ROUTING:
+                            # Let's check if the user wanted to route to a specific category
+                            # based on the keywords in their voice command!
+                            target_category = None
+                            lower_title = title.lower()
+                            if any(kw in lower_title for kw in ['todo', 'to-do', 'aufgabe', 'hausaufgabe', 'arbeit', 'erledigen']):
+                                target_category = 'To-Do Liste'
+                            elif any(kw in lower_title for kw in ['wunsch', 'geschenk', 'wichtel']):
+                                target_category = 'Wunschliste'
+                            elif any(kw in lower_title for kw in ['einkauf', 'lebensmittel', 'supermarkt', 'eimer']):
+                                target_category = 'Einkaufsliste'
                             
-                            bucket = BucketList.objects.get(id=list_id)
+                            bucket = None
+                            # If we matched a target category and we have the Alexa User ID, find their specific list!
+                            if target_category and alexa_user_id:
+                                from core.models import UserSetting
+                                user_setting = UserSetting.objects.filter(alexa_user_id=alexa_user_id).first()
+                                if user_setting:
+                                    matched_bucket = BucketList.objects.filter(owner=user_setting.user, category__name=target_category).first()
+                                    if matched_bucket:
+                                        bucket = matched_bucket
+                                        list_id = str(bucket.id)
+                                        log_alexa(f"Dynamische Kategorie-Erkennung! Gefundene Liste '{bucket.title}' für Kategorie '{target_category}'")
+
+                            if not bucket:
+                                bucket = BucketList.objects.get(id=list_id)
+
+                            # Let's clean the category keywords from the item title so we don't save it in the task name
+                            clean_title = title
+                            if bucket.category.name == 'To-Do Liste':
+                                clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:todo|to-do|aufgaben?)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
+                            elif bucket.category.name == 'Wunschliste':
+                                clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:wunsch|geschenk)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
+                            elif bucket.category.name == 'Einkaufsliste':
+                                clean_title = re.sub(r'\b(?:auf\s+meine\s+)?(?:einkaufs?|supermarkt)(?:\s+liste)?\b', '', clean_title, flags=re.IGNORECASE).strip()
+
+                            # Run our ultra-smart German shopping natural language parser!
+                            parsed_amount, parsed_shop, parsed_price, parsed_title = parse_german_amount(clean_title)
                             item = ListItem.objects.create(
                                 bucket_list=bucket, 
                                 title=parsed_title,
