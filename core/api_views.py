@@ -230,16 +230,22 @@ class AlexaSkillView(View):
             # Smart User / List Routing: Check if this User ID is mapped to any UserSetting
             if alexa_user_id:
                 from core.models import UserSetting
+                from django.db.models import Q
                 user_setting = UserSetting.objects.filter(alexa_user_id=alexa_user_id).first()
                 if user_setting:
-                    # Find first shopping list owned by this user
-                    matched_bucket = BucketList.objects.filter(owner=user_setting.user, category__name='Einkaufsliste').first()
+                    # Find first shopping list owned by or shared with this user
+                    matched_bucket = BucketList.objects.filter(
+                        Q(owner=user_setting.user) | Q(shared_with=user_setting.user),
+                        category__name='Einkaufsliste'
+                    ).distinct().first()
                     if matched_bucket:
                         list_id = str(matched_bucket.id)
                         log_alexa(f"Dynamisches Routing aktiv! Gefundene Einkaufsliste für {user_setting.user.username}: {matched_bucket.title} ({list_id})")
                     else:
-                        # Fallback to any list owned by this user
-                        matched_bucket = BucketList.objects.filter(owner=user_setting.user).first()
+                        # Fallback to any list owned by or shared with this user
+                        matched_bucket = BucketList.objects.filter(
+                            Q(owner=user_setting.user) | Q(shared_with=user_setting.user)
+                        ).distinct().first()
                         if matched_bucket:
                             list_id = str(matched_bucket.id)
                             log_alexa(f"Dynamisches Routing aktiv! Gefundene Fallback-Liste für {user_setting.user.username}: {matched_bucket.title} ({list_id})")
@@ -294,9 +300,13 @@ class AlexaSkillView(View):
                             # If we matched a target category and we have the Alexa User ID, find their specific list!
                             if target_category and alexa_user_id:
                                 from core.models import UserSetting
+                                from django.db.models import Q
                                 user_setting = UserSetting.objects.filter(alexa_user_id=alexa_user_id).first()
                                 if user_setting:
-                                    matched_bucket = BucketList.objects.filter(owner=user_setting.user, category__name=target_category).first()
+                                    matched_bucket = BucketList.objects.filter(
+                                        Q(owner=user_setting.user) | Q(shared_with=user_setting.user),
+                                        category__name=target_category
+                                    ).distinct().first()
                                     if matched_bucket:
                                         bucket = matched_bucket
                                         list_id = str(bucket.id)
