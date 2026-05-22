@@ -303,6 +303,62 @@
                     }
                 }
             }
+
+            // --- Collapsible / Foldable Apps Bugfix ---
+            const initFoldableApps = function() {
+                const modules = document.querySelectorAll('.admin-interface [class^="app-"].module, .admin-interface .module[class*="app-"]');
+                modules.forEach(function(moduleEl) {
+                    let moduleAppClass = null;
+                    const moduleCollapsedClass = 'collapsed';
+                    
+                    moduleEl.classList.forEach(function(className) {
+                        if (className.startsWith('app-')) {
+                            moduleAppClass = className;
+                        }
+                    });
+                    
+                    if (!moduleAppClass) return;
+                    
+                    const moduleAppKey = 'admin-interface.foldable-apps_' + moduleAppClass + '_collapsed';
+                    
+                    // Apply stored collapsed state
+                    const moduleCollapsed = localStorage.getItem(moduleAppKey) === '1';
+                    if (moduleCollapsed) {
+                        moduleEl.classList.add(moduleCollapsedClass);
+                    } else {
+                        moduleEl.classList.remove(moduleCollapsedClass);
+                    }
+                    
+                    const captionEl = moduleEl.querySelector('caption, h2');
+                    if (captionEl && !captionEl.dataset.foldableBound) {
+                        captionEl.dataset.foldableBound = 'true';
+                        captionEl.style.cursor = 'pointer';
+                        captionEl.style.userSelect = 'none';
+                        captionEl.style.position = 'relative';
+                        
+                        // Soft hover feedback
+                        captionEl.style.transition = 'opacity 0.2s ease';
+                        captionEl.addEventListener('mouseenter', () => { captionEl.style.opacity = '0.8'; });
+                        captionEl.addEventListener('mouseleave', () => { captionEl.style.opacity = '1'; });
+                        
+                        // Toggle handler (binds to heading and any child links/text)
+                        captionEl.addEventListener('click', function(event) {
+                            event.preventDefault();
+                            event.stopPropagation();
+                            
+                            moduleEl.classList.toggle(moduleCollapsedClass);
+                            const nowCollapsed = moduleEl.classList.contains(moduleCollapsedClass);
+                            localStorage.setItem(moduleAppKey, nowCollapsed ? '1' : '0');
+                        });
+                    }
+                });
+            };
+            
+            // Run instantly and register for window load to override library defaults
+            initFoldableApps();
+            window.addEventListener('load', initFoldableApps);
+            // Run again shortly after load to be absolutely sure
+            setTimeout(initFoldableApps, 300);
         });
     </script>
 {% endblock extrahead %}
