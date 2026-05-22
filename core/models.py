@@ -11,6 +11,8 @@ class UserSetting(models.Model):
     text_color = models.CharField(max_length=7, default='#ffffff')
     input_bg_color = models.CharField(max_length=7, default='#000000')
     input_text_color = models.CharField(max_length=7, default='#ffffff')
+    header_bg_color = models.CharField(max_length=7, default='#543D62')
+    header_text_color = models.CharField(max_length=7, default='#ffffff')
     glass_opacity = models.DecimalField(max_digits=3, decimal_places=2, default=0.15)
     timezone = models.CharField(max_length=50, default='Europe/Berlin')
     calendar_start_hour = models.IntegerField(default=8)

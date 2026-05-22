@@ -111,7 +111,7 @@ from .models import UserSetting
 
 @admin.register(UserSetting)
 class UserSettingAdmin(admin.ModelAdmin):
-    list_display = ('user', 'primary_color', 'bg_color')
+    list_display = ('user', 'primary_color', 'bg_color', 'header_bg_color', 'header_text_color')
     search_fields = ('user__username',)
 
 @admin.register(Person)

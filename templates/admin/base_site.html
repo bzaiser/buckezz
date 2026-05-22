@@ -121,13 +121,25 @@
     <style id="dynamic-user-settings-colors">
         :root, :root .admin-interface {
             {% if user_settings.primary_color %}
-                --admin-interface-header-background-color: {{ user_settings.primary_color }} !important;
                 --admin-interface-save-button-background-color: {{ user_settings.primary_color }} !important;
                 --admin-interface-save-button-background-hover-color: {{ user_settings.primary_color }} !important;
                 --admin-interface-generic-link-color: {{ user_settings.primary_color }} !important;
                 --admin-interface-module-link-color: {{ user_settings.primary_color }} !important;
                 --primary: {{ user_settings.primary_color }} !important;
                 --breadcrumbs-bg: {{ user_settings.primary_color }} !important;
+            {% endif %}
+            
+            {% if user_settings.header_bg_color %}
+                --admin-interface-header-background-color: {{ user_settings.header_bg_color }} !important;
+                --header-bg: {{ user_settings.header_bg_color }} !important;
+            {% endif %}
+            
+            {% if user_settings.header_text_color %}
+                --admin-interface-header-text-color: {{ user_settings.header_text_color }} !important;
+                --admin-interface-header-link-color: {{ user_settings.header_text_color }} !important;
+                --admin-interface-header-link-hover-color: {{ user_settings.header_text_color }} !important;
+                --header-color: {{ user_settings.header_text_color }} !important;
+                --header-link-color: {{ user_settings.header_text_color }} !important;
             {% endif %}
             
             {% if user_settings.bg_color %}
@@ -140,6 +152,18 @@
                 --admin-interface-module-text-color: {{ user_settings.text_color }} !important;
             {% endif %}
         }
+        
+        {% if user_settings.header_bg_color %}
+        #header, .header {
+            background-color: {{ user_settings.header_bg_color }} !important;
+        }
+        {% endif %}
+        
+        {% if user_settings.header_text_color %}
+        #header *, .header * {
+            color: {{ user_settings.header_text_color }} !important;
+        }
+        {% endif %}
         
         {% if user_settings.bg_color %}
         body, #container, #content, .module {
