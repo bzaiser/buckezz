@@ -30,5 +30,22 @@
       {
         "name": "alexa::household:lists:write"
       }
+    ],
+    "events": {
+      "endpoint": {
+        "uri": "https://buckezz.zaisers.myds.me/api/alexa-skill/"
+      },
+      "subscriptions": [
+        {
+          "eventName": "AlexaHouseholdListEvent.ItemsCreated"
+        },
+        {
+          "eventName": "AlexaHouseholdListEvent.ItemsUpdated"
+        },
+        {
+          "eventName": "AlexaHouseholdListEvent.ItemsDeleted"
+        }
+      ]
+    }
   }
 }
