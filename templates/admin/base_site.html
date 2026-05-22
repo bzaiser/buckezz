@@ -257,6 +257,13 @@
             border-right: none !important;
             background: rgba(255, 255, 255, 0.02) !important;
         }
+        
+        /* Collapsible inlines display rules */
+        .admin-interface fieldset.collapsed > :not(h2):not(h3):not(caption):not(.inline-heading),
+        .admin-interface .module.collapsed > :not(h2):not(h3):not(caption):not(.inline-heading),
+        .admin-interface .inline-related.collapsed > :not(h2):not(h3):not(caption):not(.inline-heading) {
+            display: none !important;
+        }
         {% endif %}
     </style>
     {% endif %}
