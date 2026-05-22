@@ -17,7 +17,7 @@
     "apis": {
       "custom": {
         "endpoint": {
-          "uri": "https://buckezz.zaisers.myds.me/api/alexa-skill/"
+          "uri": "https://nas.sunfish-universe.ts.net/api/alexa-skill/"
         },
         "interfaces": []
       }
