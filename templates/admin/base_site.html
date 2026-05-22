@@ -264,6 +264,11 @@
         .admin-interface .inline-related.collapsed > :not(h2):not(h3):not(caption):not(.inline-heading) {
             display: none !important;
         }
+        
+        /* Hide native Django theme switcher toggle */
+        #theme-toggle, .theme-toggle {
+            display: none !important;
+        }
         {% endif %}
     </style>
     {% endif %}
