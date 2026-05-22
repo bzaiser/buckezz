@@ -121,6 +121,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 class ListItemInline(admin.TabularInline):
     model = ListItem
+    fields = ('title', 'amount', 'price', 'is_completed', 'status')
     extra = 1
 
 class ListParticipantInline(admin.TabularInline):
