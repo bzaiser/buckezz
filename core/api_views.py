@@ -336,7 +336,10 @@ class AlexaSkillView(View):
                             if parsed_price:
                                 details.append(f"für {parsed_price:.2f} Euro".replace('.', ','))
                                 
-                            response_text = f"Ich habe {' '.join(details)} auf deine Liste {bucket.title} gesetzt."
+                            # Clean emojis and double spacing from the list title for smooth speech synthesis
+                            speech_title = re.sub(r'[^\w\s\däöüÄÖÜß.,!?-]', '', bucket.title).strip()
+                            speech_title = re.sub(r'\s+', ' ', speech_title)
+                            response_text = f"Ich habe {' '.join(details)} auf {speech_title} gesetzt."
                         except BucketList.DoesNotExist:
                             response_text = "Ich konnte deine Liste leider nicht finden. Bitte prüfe die Listen ID."
                     else:
