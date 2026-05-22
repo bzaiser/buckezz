@@ -361,11 +361,64 @@
                 });
             };
             
+            // --- Collapsible Inlines Default State Fix ---
+            const initCollapsibleInlines = function() {
+                const isStackedCollapsed = document.body.classList.contains('collapsible-stacked-inlines-collapsed');
+                const isTabularCollapsed = document.body.classList.contains('collapsible-tabular-inlines-collapsed');
+                
+                if (isStackedCollapsed) {
+                    const stackedFieldsets = document.querySelectorAll('.inline-group[data-inline-type="stacked"] fieldset.module');
+                    stackedFieldsets.forEach(function(fieldset) {
+                        // Skip if it contains validation errors
+                        if (fieldset.querySelector('.errors, .errorlist, .errornote')) return;
+                        
+                        fieldset.classList.add('collapsed');
+                        const toggle = fieldset.querySelector('.collapse-toggle');
+                        if (toggle) {
+                            const txt = toggle.textContent.trim().toLowerCase();
+                            if (txt === 'hide') toggle.textContent = 'Show';
+                            else if (txt === 'ausblenden') toggle.textContent = 'Einblenden';
+                            else if (txt === 'listeneinträge ausblenden') toggle.textContent = 'Listeneinträge einblenden';
+                        }
+                    });
+                }
+                
+                if (isTabularCollapsed) {
+                    const tabularFieldsets = document.querySelectorAll('.inline-group[data-inline-type="tabular"] fieldset.module');
+                    tabularFieldsets.forEach(function(fieldset) {
+                        // Skip if it contains validation errors
+                        if (fieldset.querySelector('.errors, .errorlist, .errornote')) return;
+                        
+                        fieldset.classList.add('collapsed');
+                        const toggle = fieldset.querySelector('.collapse-toggle');
+                        if (toggle) {
+                            const txt = toggle.textContent.trim().toLowerCase();
+                            if (txt === 'hide') toggle.textContent = 'Show';
+                            else if (txt === 'ausblenden') toggle.textContent = 'Einblenden';
+                            else if (txt === 'listeneinträge ausblenden') toggle.textContent = 'Listeneinträge einblenden';
+                        }
+                    });
+                }
+            };
+
             // Run instantly and register for window load to override library defaults
             initFoldableApps();
-            window.addEventListener('load', initFoldableApps);
+            initCollapsibleInlines();
+            
+            window.addEventListener('load', function() {
+                initFoldableApps();
+                initCollapsibleInlines();
+            });
+            
             // Run again shortly after load to be absolutely sure
-            setTimeout(initFoldableApps, 300);
+            setTimeout(function() {
+                initFoldableApps();
+                initCollapsibleInlines();
+            }, 300);
+            setTimeout(function() {
+                initFoldableApps();
+                initCollapsibleInlines();
+            }, 800);
 
             // --- Collapsible Inlines (Tabular/Stacked) Bugfix ---
             document.addEventListener('click', function(event) {
