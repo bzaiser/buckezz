@@ -8,6 +8,7 @@ urlpatterns = [
     # Auth
     path('login/', auth_views.LoginView.as_view(template_name='core/login.html'), name='login'),
     path('logout/', auth_views.LogoutView.as_view(next_page='core:home'), name='logout'),
+    path('register/', views.RegisterTenantView.as_view(), name='register'),
     
     path('api/add/', api_views.AlexaAddItemView.as_view(), name='alexa_add'),
     path('api/alexa-skill/', api_views.AlexaSkillView.as_view(), name='alexa_skill'),

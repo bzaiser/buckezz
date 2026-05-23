@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog, WorkoutSessionLog, WorkoutActivityLog
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog, WorkoutSessionLog, WorkoutActivityLog, Tenant
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -274,3 +274,11 @@ class WorkoutSessionLogAdmin(admin.ModelAdmin):
         seconds = obj.duration_seconds % 60
         return f"{minutes} Min. {seconds} Sek."
     duration_display.short_description = "Dauer"
+
+
+@admin.register(Tenant)
+class TenantAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'owner_email', 'is_active', 'created_at')
+    search_fields = ('name', 'slug', 'owner_email')
+    prepopulated_fields = {'slug': ('name',)}
+

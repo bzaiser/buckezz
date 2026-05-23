@@ -24,7 +24,7 @@ DEBUG = env('DEBUG')
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 # Always allow Tailscale Funnel domains and localhost as guaranteed fallback
-ALLOWED_HOSTS += ['localhost', '127.0.0.1', '.ts.net', 'nas.sunfish-universe.ts.net']
+ALLOWED_HOSTS += ['localhost', '127.0.0.1', '.ts.net', 'nas.sunfish-universe.ts.net', '.localhost', '.buckezz.zaisers.myds.me', '.zaisers.myds.me']
 CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
 CSRF_TRUSTED_ORIGINS += ['https://nas.sunfish-universe.ts.net']
 
@@ -58,6 +58,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'core.middleware.TenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -100,6 +101,9 @@ DATABASES = {
         'NAME': env('DB_PATH', default=BASE_DIR / 'db.sqlite3'),
     }
 }
+
+DATABASE_ROUTERS = ['core.router.TenantRouter']
+
 
 
 # Password validation

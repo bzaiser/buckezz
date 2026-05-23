@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Registrierung erfolgreich! - Buckezz{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 40px auto; text-align: center;">
+    
+    <!-- Big Celebratory Icon -->
+    <div style="font-size: 4rem; margin-bottom: var(--spacing-md); animation: pulse 2s infinite;">
+        🎉
+    </div>
+
+    <!-- Title & Success Message -->
+    <h1 style="font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; margin-bottom: var(--spacing-sm); background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Instanz erfolgreich erstellt!
+    </h1>
+    <p class="text-muted" style="font-size: 1.1rem; margin-bottom: var(--spacing-lg);">
+        Die Buckezz-Instanz für deine Familie wurde in Sekundenbruchteilen initialisiert und steht ab sofort bereit.
+    </p>
+
+    <!-- Details Card (Glass Box) -->
+    <div class="card glass" style="border-radius: var(--radius-lg); padding: var(--spacing-lg); border: 1px solid var(--glass-border); text-align: left; margin-bottom: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md);">
+        <h3 style="color: var(--primary); font-size: 1.15rem; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: var(--spacing-xs); margin-bottom: 4px;">
+            📋 Deine Instanz-Details
+        </h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; letter-spacing: 0.5px;">Name der Instanz</span>
+                <strong style="font-size: 1.05rem; color: var(--text-main);">{{ instance_name }}</strong>
+            </div>
+            
+            <div>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); display: block; letter-spacing: 0.5px;">Eure persönliche URL (Subdomain)</span>
+                <a href="{{ tenant_url }}" style="font-size: 1.05rem; font-weight: 700; color: var(--primary); word-break: break-all;">
+                    {{ tenant_url }}
+                </a>
+            </div>
+        </div>
+
+        <div style="background: rgba(255, 171, 0, 0.05); padding: var(--spacing-md); border-radius: var(--radius-sm); border: 1px solid rgba(255, 171, 0, 0.15); margin-top: 8px;">
+            <strong style="color: var(--accent); display: block; margin-bottom: 4px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">🛡️ Erste Schritte für dich</strong>
+            <p style="font-size: 0.82rem; line-height: 1.5; color: var(--text-main);">
+                Klicke auf den Button unten, um zu eurer neuen Familien-Instanz zu wechseln. Logge dich dort mit dem Administrator-Konto und Passwort ein, das du gerade erstellt hast.
+            </p>
+        </div>
+    </div>
+
+    <!-- Actions Row -->
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-md); align-items: center;">
+        <a href="{{ tenant_url }}" class="btn btn-primary" style="width: 100%; min-height: 48px; font-size: 1.05rem; border-radius: var(--radius-sm);">
+            🔑 Jetzt in deiner Instanz einloggen
+        </a>
+        <a href="{% url 'core:home' %}" style="font-size: 0.85rem; color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+            Zurück zur Haupt-Startseite
+        </a>
+    </div>
+
+</div>
+
+<style>
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+    100% { transform: scale(1); }
+}
+</style>
+{% endblock %}

@@ -244,6 +244,7 @@ class ListItem(models.Model):
     involved_persons = models.ManyToManyField(Person, through='ItemPersonRole', related_name='items', blank=True)
     notes = models.TextField(blank=True)
     
+    is_invitation = models.BooleanField(default=False, verbose_name=_("Ist eine Einladung"))
     is_completed = models.BooleanField(default=False)
     order = models.PositiveIntegerField(default=0)
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_items')
@@ -345,3 +346,19 @@ class WorkoutActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.activity_type})"
+
+
+class Tenant(models.Model):
+    slug = models.SlugField(unique=True, verbose_name=_("Subdomain-Slug"))
+    name = models.CharField(max_length=255, verbose_name=_("Instanz-Name"))
+    owner_email = models.EmailField(verbose_name=_("Besitzer-E-Mail"))
+    is_active = models.BooleanField(default=True, verbose_name=_("Aktiv"))
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name=_("Erstellt am"))
+
+    def __str__(self):
+        return f"{self.name} ({self.slug})"
+
+    class Meta:
+        verbose_name = _("Mandant")
+        verbose_name_plural = _("Mandanten")
+

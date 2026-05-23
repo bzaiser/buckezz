@@ -39,8 +39,8 @@ echo "📦 Synchronisiere Requirements..."
 docker compose exec web pip install -q --no-cache-dir -r requirements.txt
 
 # Database migrations
-echo "⚙️ Datenbank Migrationen..."
-docker compose exec web python manage.py migrate
+echo "⚙️ Datenbank Migrationen (Registry & alle Mandanten)..."
+docker compose exec web python manage.py migrate_all
 
 # Assets
 echo "🎨 Sammle statische Dateien..."

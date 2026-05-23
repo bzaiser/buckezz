@@ -27,8 +27,8 @@ mkdir -p "$ROOT_DIR/data"
 chmod -R 777 "$ROOT_DIR/data"
 
 # Database migrations
-echo "⚙️ Prüfe Datenbank Migrationen..."
-docker compose exec web python manage.py migrate
+echo "⚙️ Prüfe Datenbank Migrationen (Registry & alle Mandanten)..."
+docker compose exec web python manage.py migrate_all
 
 # Collect static files
 echo "🎨 Sammle statische Dateien..."

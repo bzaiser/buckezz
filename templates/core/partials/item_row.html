@@ -319,6 +319,20 @@
         </div>
         {% endif %}
         
+        <!-- Event List Task Claim (Handheben) Button -->
+        {% if bucket.category.template.logic_type == 'event' and not bucket.is_secret_santa and not item.is_invitation and not item.person_roles.exists and current_person %}
+        <div style="margin-top: 6px;">
+            <button type="button" class="glass" style="border: none; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; color: var(--primary); font-weight: bold; cursor: pointer; border: 1px solid var(--primary); display: inline-flex; align-items: center; gap: 6px;"
+                    hx-post="{% url 'core:toggle_reservation' item.id %}"
+                    hx-target="#item-list"
+                    hx-swap="innerHTML"
+                    title="Bringe ich mit! / Mache ich! / Übernehme ich! 🙋">
+                <span style="font-size: 0.95rem;">🙋</span>
+                <span>Übernehmen</span>
+            </button>
+        </div>
+        {% endif %}
+        
         <!-- Badges/Roles (hidden from beneficiary) -->
         {% if item.person_roles.exists and not is_beneficiary %}
         <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px;">

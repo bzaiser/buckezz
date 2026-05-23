@@ -39,8 +39,11 @@
             {% else %}
                 <h2>Bereit für Ordnung?</h2>
                 <p>Erstelle deine erste Liste oder trete einer gemeinsamen Liste bei.</p>
-                <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md);">
+                <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
                     <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt anmelden</a>
+                    {% if not request.tenant %}
+                        <a href="{% url 'core:register' %}" class="btn btn-glass" style="border: 1px solid var(--accent); color: var(--accent); font-weight: 600;">🏡 Neue Familie anlegen</a>
+                    {% endif %}
                 </div>
             {% endif %}
         </div>

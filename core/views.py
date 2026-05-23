@@ -493,6 +493,8 @@ class AddItemView(View):
                 'interval_format': data.get('workout_interval_format', 'AMRAP').strip(),
                 'interval_duration': data.get('workout_interval_duration', '').strip(),
             }
+        is_invitation = request.POST.get('is_invitation') == 'true'
+        item.is_invitation = is_invitation
         item.save()
         
         # Handle persons
@@ -500,6 +502,14 @@ class AddItemView(View):
         if person_ids:
             for pid in person_ids:
                 ItemPersonRole.objects.create(item=item, person_id=pid)
+                
+        # Auto-invite all other participants if event list and is_invitation is True
+        if bucket.category.template.logic_type == 'event' and is_invitation:
+            participant_pids = set(bucket.participants.values_list('person_id', flat=True))
+            organizer_pids = set(int(pid) for pid in person_ids)
+            invited_pids = participant_pids - organizer_pids
+            for pid in invited_pids:
+                ItemPersonRole.objects.get_or_create(item=item, person_id=pid, defaults={'role': 'invited'})
         
         # Handle custom status box
         item_status = request.POST.get('item_status')
@@ -611,13 +621,9 @@ class EditItemView(View):
                 'interval_duration': data.get('workout_interval_duration', '').strip(),
             }
         
-        if request.user.is_authenticated:
-            item.updated_by = request.user
-            item.guest_updated_by = None
-        else:
-            item.updated_by = None
-            item.guest_updated_by = request.session.get('guest_name')
-            
+        was_completed = item.is_completed
+        is_invitation = request.POST.get('is_invitation') == 'true'
+        item.is_invitation = is_invitation
         item.save()
         
         # Handle persons
@@ -625,12 +631,51 @@ class EditItemView(View):
         new_pids = set(int(p) for p in person_ids)
         current_pids = set(item.person_roles.values_list('person_id', flat=True))
         
-        # Remove persons not in the new list (except reserved/fulfilled roles which are status-tracked)
-        ItemPersonRole.objects.filter(item=item, person_id__in=current_pids - new_pids).exclude(role__in=['reserved', 'fulfilled']).delete()
+        is_event_invitation = (bucket.category.template.logic_type == 'event' and is_invitation)
         
-        # Add new persons
-        for pid in new_pids - current_pids:
-            ItemPersonRole.objects.create(item=item, person_id=pid)
+        # Remove persons not in the new list (except reserved/fulfilled roles which are status-tracked,
+        # and also except invited/attending/declined/maybe if it's an event invitation!)
+        if is_event_invitation:
+            participant_pids = set(bucket.participants.values_list('person_id', flat=True))
+            # Delete roles for people who are NOT in the organizer selection AND are NOT list participants
+            # (unless they have status-tracked roles like reserved/fulfilled)
+            ItemPersonRole.objects.filter(
+                item=item,
+                person_id__in=current_pids - new_pids
+            ).exclude(
+                person_id__in=participant_pids
+            ).exclude(
+                role__in=['reserved', 'fulfilled']
+            ).delete()
+        else:
+            ItemPersonRole.objects.filter(
+                item=item,
+                person_id__in=current_pids - new_pids
+            ).exclude(
+                role__in=['reserved', 'fulfilled']
+            ).delete()
+            
+        # Add new persons or update existing role to 'assigned' if they were selected in the form
+        for pid in new_pids:
+            role_obj, created = ItemPersonRole.objects.get_or_create(item=item, person_id=pid)
+            if created:
+                role_obj.role = 'assigned'
+                role_obj.save()
+            elif role_obj.role == 'invited':
+                # If they were previously invited but now selected as organizer/responsible, upgrade them
+                role_obj.role = 'assigned'
+                role_obj.save()
+                
+        # If it is an event invitation, automatically ensure all other list participants have 'invited' (or status) role
+        if is_event_invitation:
+            participant_pids = set(bucket.participants.values_list('person_id', flat=True))
+            invited_pids = participant_pids - new_pids
+            for pid in invited_pids:
+                ItemPersonRole.objects.get_or_create(
+                    item=item,
+                    person_id=pid,
+                    defaults={'role': 'invited'}
+                )
             
         # Handle custom status box
         item_status = request.POST.get('item_status')
@@ -663,6 +708,11 @@ class EditItemView(View):
                 elif item_status == 'open':
                     item.is_completed = False
                     item.status = 'active'
+            
+            # Reset RSVP status if an invitation is reopened
+            if was_completed and not item.is_completed and is_event_invitation:
+                item.person_roles.exclude(role='assigned').update(role='invited')
+                
             item.save()
         
         if request.htmx:
@@ -683,6 +733,10 @@ class ToggleItemView(View):
         item.is_completed = not item.is_completed
         item.status = 'done' if item.is_completed else 'active'
         
+        # Reset guest RSVP roles back to 'invited' if reopened
+        if not item.is_completed and item.is_invitation and bucket.category.template.logic_type == 'event':
+            item.person_roles.exclude(role='assigned').update(role='invited')
+            
         if request.user.is_authenticated:
             item.updated_by = request.user
             item.guest_updated_by = None
@@ -1269,5 +1323,172 @@ def custom_404_view(request, exception=None):
             pass
 
     return render(request, '404.html', {'user_settings': user_settings}, status=404)
+
+
+import os
+import shutil
+import re
+from django.views import View
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.conf import settings
+from core.models import Tenant, UserSetting, Person
+from core.router import set_active_tenant
+
+class RegisterTenantView(View):
+    def get(self, request, *args, **kwargs):
+        # Wenn bereits auf einer Subdomain, umleiten zur Hauptdomain
+        if request.tenant is not None:
+            host = request.get_host().split(':')[0]
+            parts = host.split('.')
+            if len(parts) > 3:
+                main_host = '.'.join(parts[1:])
+                return redirect(f"{request.scheme}://{main_host}/register/")
+            return redirect('/')
+            
+        return render(request, 'register_tenant.html')
+
+    def post(self, request, *args, **kwargs):
+        if request.tenant is not None:
+            return redirect('/')
+
+        instance_name = request.POST.get('instance_name', '').strip()
+        instance_slug = request.POST.get('instance_slug', '').strip().lower()
+        admin_username = request.POST.get('admin_username', '').strip()
+        admin_email = request.POST.get('admin_email', '').strip()
+        admin_password = request.POST.get('admin_password', '')
+
+        errors = {}
+
+        # 1. Validierungen
+        if not instance_name:
+            errors['instance_name'] = 'Bitte gib einen Namen für deine Instanz ein.'
+        
+        if not instance_slug:
+            errors['instance_slug'] = 'Bitte gib eine gewünschte Subdomain ein.'
+        elif not re.match(r'^[a-z0-9-]+$', instance_slug):
+            errors['instance_slug'] = 'Die Subdomain darf nur Kleinbuchstaben, Zahlen und Bindestriche enthalten.'
+        elif len(instance_slug) < 3:
+            errors['instance_slug'] = 'Die Subdomain muss mindestens 3 Zeichen lang sein.'
+        elif instance_slug in ['www', 'admin', 'api', 'register', 'static', 'media', 'localhost', 'default', 'test', 'sys']:
+            errors['instance_slug'] = 'Diese Subdomain ist reserviert. Bitte wähle eine andere.'
+        elif Tenant.objects.using('default').filter(slug=instance_slug).exists():
+            errors['instance_slug'] = 'Diese Subdomain ist bereits vergeben.'
+
+        if not admin_username:
+            errors['admin_username'] = 'Bitte gib einen Administrator-Nutzernamen ein.'
+        elif len(admin_username) < 3:
+            errors['admin_username'] = 'Der Nutzername muss mindestens 3 Zeichen lang sein.'
+
+        if not admin_email:
+            errors['admin_email'] = 'Bitte gib eine gültige E-Mail-Adresse ein.'
+
+        if not admin_password:
+            errors['admin_password'] = 'Bitte gib ein Passwort ein.'
+        elif len(admin_password) < 8:
+            errors['admin_password'] = 'Das Passwort muss mindestens 8 Zeichen lang sein.'
+
+        if errors:
+            return render(request, 'register_tenant.html', {
+                'errors': errors,
+                'instance_name': instance_name,
+                'instance_slug': instance_slug,
+                'admin_username': admin_username,
+                'admin_email': admin_email,
+            })
+
+        # 2. Registrierung ausführen
+        try:
+            default_db_path = settings.DATABASES['default']['NAME']
+            db_dir = os.path.dirname(default_db_path)
+            template_db_path = os.path.join(db_dir, 'db_template.sqlite3')
+            tenant_db_path = os.path.join(db_dir, f'db_tenant_{instance_slug}.sqlite3')
+
+            if not os.path.exists(template_db_path):
+                errors['global'] = 'Systemfehler: Die Datenbankvorlage existiert nicht. Bitte wende dich an den Systemadministrator.'
+                return render(request, 'register_tenant.html', {
+                    'errors': errors,
+                    'instance_name': instance_name,
+                    'instance_slug': instance_slug,
+                    'admin_username': admin_username,
+                    'admin_email': admin_email,
+                })
+
+            # Klonen der Template-DB
+            shutil.copyfile(template_db_path, tenant_db_path)
+            # Berechtigungen auf 777 setzen, damit der Webserver schreiben darf
+            os.chmod(tenant_db_path, 0o777)
+
+            # Tenant-Registry Eintrag in default-DB anlegen
+            tenant = Tenant.objects.using('default').create(
+                slug=instance_slug,
+                name=instance_name,
+                owner_email=admin_email,
+                is_active=True
+            )
+
+            # Temporär auf die neue Mandanten-Datenbank umschalten, um den Admin anzulegen
+            set_active_tenant(instance_slug)
+            try:
+                # Admin-Superuser erstellen
+                user = User.objects.create_superuser(
+                    username=admin_username,
+                    email=admin_email,
+                    password=admin_password
+                )
+                
+                # UserSetting für den Admin erstellen/holen
+                UserSetting.objects.get_or_create(user=user)
+                
+                # Person-Eintrag für den Admin erstellen
+                Person.objects.create(
+                    name=admin_username,
+                    email=admin_email,
+                    user=user
+                )
+            finally:
+                # Unbedingt wieder auf Standard zurücksetzen
+                set_active_tenant(None)
+
+            # Erfolgs-Subdomain-URL zusammensetzen
+            host = request.get_host()
+            port_suffix = ""
+            if ":" in host:
+                port_suffix = ":" + host.split(':')[1]
+                host_only = host.split(':')[0]
+            else:
+                host_only = host
+
+            parts = host_only.split('.')
+            if parts[-1] == 'localhost':
+                tenant_domain = f"{instance_slug}.localhost{port_suffix}"
+            else:
+                tenant_domain = f"{instance_slug}.{host_only}{port_suffix}"
+
+            tenant_url = f"{request.scheme}://{tenant_domain}/login/"
+
+            return render(request, 'register_tenant_success.html', {
+                'instance_name': instance_name,
+                'tenant_url': tenant_url,
+            })
+
+        except Exception as e:
+            # Im Fehlerfall aufräumen
+            if os.path.exists(tenant_db_path):
+                try:
+                    os.remove(tenant_db_path)
+                except:
+                    pass
+            Tenant.objects.using('default').filter(slug=instance_slug).delete()
+            
+            errors['global'] = f'Registrierungsfehler: {str(e)}'
+            return render(request, 'register_tenant.html', {
+                'errors': errors,
+                'instance_name': instance_name,
+                'instance_slug': instance_slug,
+                'admin_username': admin_username,
+                'admin_email': admin_email,
+            })
+
 
 
