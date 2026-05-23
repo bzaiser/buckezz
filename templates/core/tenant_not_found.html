@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Instanz nicht gefunden - Buckezz{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 60px auto; text-align: center;">
+    
+    <!-- Big Warning Icon with Animation -->
+    <div style="font-size: 4.5rem; margin-bottom: var(--spacing-md); filter: drop-shadow(0 0 15px rgba(255, 171, 0, 0.2));">
+        🔍
+    </div>
+
+    <!-- Title -->
+    <h1 style="font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; margin-bottom: var(--spacing-sm); background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        Instanz nicht gefunden
+    </h1>
+    
+    <p class="text-muted" style="font-size: 1.1rem; margin-bottom: var(--spacing-lg);">
+        Die gesuchte Familien-Instanz <strong style="color: var(--accent);">"{{ invalid_slug }}"</strong> existiert nicht oder ist zurzeit inaktiv.
+    </p>
+
+    <!-- Help Card -->
+    <div class="card glass" style="border-radius: var(--radius-lg); padding: var(--spacing-lg); border: 1px solid var(--glass-border); text-align: left; margin-bottom: var(--spacing-lg); display: flex; flex-direction: column; gap: var(--spacing-md);">
+        <h3 style="color: var(--primary); font-size: 1.15rem; font-weight: 800; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: var(--spacing-xs); margin-bottom: 4px;">
+            💡 Was kannst du tun?
+        </h3>
+        
+        <div style="display: flex; flex-direction: column; gap: 14px; font-size: 0.95rem; line-height: 1.6; color: var(--text-main);">
+            <div>
+                <strong style="color: var(--text-main); display: block;">1. Schreibweise überprüfen</strong>
+                Stelle sicher, dass der Name der Subdomain in der Adresszeile deines Browsers korrekt geschrieben ist (z. B. <code>familie.localhost:8006</code>).
+            </div>
+            
+            <div>
+                <strong style="color: var(--text-main); display: block;">2. Eine neue Instanz registrieren</strong>
+                Falls du diese Instanz gerade gelöscht hast oder eine neue Familie für Buckezz anlegen möchtest, kannst du dies in wenigen Sekunden auf unserer zentralen Registrierungsseite tun.
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Actions Row -->
+    <div style="display: flex; flex-direction: column; gap: var(--spacing-md); align-items: center;">
+        <a href="{{ register_url }}" class="btn btn-primary" style="width: 100%; min-height: 48px; font-size: 1.05rem; border-radius: var(--radius-sm); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            🚀 Neue Familie registrieren
+        </a>
+        <a href="{{ home_url }}" style="font-size: 0.9rem; color: var(--text-muted); text-decoration: none;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='var(--text-muted)'">
+            Zurück zur Haupt-Startseite
+        </a>
+    </div>
+
+</div>
+{% endblock %}

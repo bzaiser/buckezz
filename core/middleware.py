@@ -50,13 +50,32 @@ class TenantMiddleware:
                 set_active_tenant(tenant_slug)
                 request.tenant = tenant
             else:
-                # Mandant existiert nicht -> Umleitung zur Hauptseite
+                # Mandant existiert nicht -> Schöne Fehlermeldung mit Hilfestellung und Registrierungs-Link
                 set_active_tenant(None)
                 parts = host.split('.')
-                if len(parts) > 3:
-                    main_host = '.'.join(parts[1:])
-                    return HttpResponseRedirect(f"{request.scheme}://{main_host}/")
-                return HttpResponseNotFound("<h3>Dieser Mandant existiert nicht oder ist inaktiv.</h3>")
+                
+                # Port ermitteln, um auch in lokaler Entwicklung richtig umzuleiten
+                full_host = request.get_host()
+                port_suffix = ""
+                if ":" in full_host:
+                    port_suffix = ":" + full_host.split(":")[1]
+                
+                # Haupt-Host bestimmen
+                if parts[-1] == 'localhost':
+                    main_host = f"localhost{port_suffix}"
+                else:
+                    # Hauptdomain im Live-Betrieb
+                    main_host = f"buckezz.zaisers.myds.me{port_suffix}"
+                
+                register_url = f"{request.scheme}://{main_host}/register/"
+                home_url = f"{request.scheme}://{main_host}/"
+                
+                from django.shortcuts import render
+                return render(request, 'core/tenant_not_found.html', {
+                    'register_url': register_url,
+                    'home_url': home_url,
+                    'invalid_slug': tenant_slug
+                }, status=404)
         else:
             # Hauptseite (Standard-DB)
             set_active_tenant(None)
@@ -82,8 +101,10 @@ class TenantMiddleware:
             return None
 
         # Wildcard-Erkennung für buckezz.zaisers.myds.me
-        if host.endswith('buckezz.zaisers.myds.me') and len(parts) > 4:
-            return parts[0]
+        if host.endswith('buckezz.zaisers.myds.me'):
+            if len(parts) > 4:
+                return parts[0]
+            return None
 
         # Allgemeiner Fall
         if len(parts) > 3:
