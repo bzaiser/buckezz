@@ -223,6 +223,13 @@
             gap: 4px;
         }
     }
+    .interactive-rating:hover .star-btn {
+        color: rgba(255,255,255,0.15) !important;
+    }
+    .interactive-rating .star-btn:hover,
+    .interactive-rating .star-btn:hover ~ .star-btn {
+        color: var(--accent) !important;
+    }
 </style>
 <div class="list-item" id="item-{{ item.id }}" data-id="{{ item.id }}">
     <div class="list-item-check" style="display: flex; align-items: center; gap: 8px;">
@@ -474,15 +481,25 @@
             <div class="text-muted list-item-price">{% if item.price %}{{ item.price }} €{% else %}-{% endif %}</div>
         {% endif %}
         {% if bucket.category.template.use_rating %}
-            <div class="list-item-rating" style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
-                {% if item.rating %}
-                    {% for i in "12345" %}
-                        {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
-                    {% endfor %}
-                {% else %}
-                    <span style="opacity: 0.15;">-</span>
-                {% endif %}
-            </div>
+            {% if can_edit and not item.is_completed %}
+                <div class="list-item-rating interactive-rating" style="display: inline-flex; flex-direction: row-reverse; justify-content: flex-end; align-items: center; gap: 2px; color: var(--accent); font-size: 1.15rem; letter-spacing: 2px; white-space: nowrap;">
+                    <button type="button" hx-post="{% url 'core:adjust_rating' item.id %}" hx-vals='{"rating": "5"}' hx-target="#item-list" hx-swap="innerHTML" class="star-btn" style="background: none; border: none; padding: 0; margin: 0; color: {% if item.rating and item.rating >= 5 %}var(--accent){% else %}rgba(255,255,255,0.15){% endif %}; font-size: 1.15rem; cursor: pointer; transition: all 0.15s; outline: none;" onmouseover="this.style.transform='scale(1.35)';" onmouseout="this.style.transform='scale(1)';" title="5 Sterne (zum Entfernen erneut klicken)">★</button>
+                    <button type="button" hx-post="{% url 'core:adjust_rating' item.id %}" hx-vals='{"rating": "4"}' hx-target="#item-list" hx-swap="innerHTML" class="star-btn" style="background: none; border: none; padding: 0; margin: 0; color: {% if item.rating and item.rating >= 4 %}var(--accent){% else %}rgba(255,255,255,0.15){% endif %}; font-size: 1.15rem; cursor: pointer; transition: all 0.15s; outline: none;" onmouseover="this.style.transform='scale(1.35)';" onmouseout="this.style.transform='scale(1)';" title="4 Sterne (zum Entfernen erneut klicken)">★</button>
+                    <button type="button" hx-post="{% url 'core:adjust_rating' item.id %}" hx-vals='{"rating": "3"}' hx-target="#item-list" hx-swap="innerHTML" class="star-btn" style="background: none; border: none; padding: 0; margin: 0; color: {% if item.rating and item.rating >= 3 %}var(--accent){% else %}rgba(255,255,255,0.15){% endif %}; font-size: 1.15rem; cursor: pointer; transition: all 0.15s; outline: none;" onmouseover="this.style.transform='scale(1.35)';" onmouseout="this.style.transform='scale(1)';" title="3 Sterne (zum Entfernen erneut klicken)">★</button>
+                    <button type="button" hx-post="{% url 'core:adjust_rating' item.id %}" hx-vals='{"rating": "2"}' hx-target="#item-list" hx-swap="innerHTML" class="star-btn" style="background: none; border: none; padding: 0; margin: 0; color: {% if item.rating and item.rating >= 2 %}var(--accent){% else %}rgba(255,255,255,0.15){% endif %}; font-size: 1.15rem; cursor: pointer; transition: all 0.15s; outline: none;" onmouseover="this.style.transform='scale(1.35)';" onmouseout="this.style.transform='scale(1)';" title="2 Sterne (zum Entfernen erneut klicken)">★</button>
+                    <button type="button" hx-post="{% url 'core:adjust_rating' item.id %}" hx-vals='{"rating": "1"}' hx-target="#item-list" hx-swap="innerHTML" class="star-btn" style="background: none; border: none; padding: 0; margin: 0; color: {% if item.rating and item.rating >= 1 %}var(--accent){% else %}rgba(255,255,255,0.15){% endif %}; font-size: 1.15rem; cursor: pointer; transition: all 0.15s; outline: none;" onmouseover="this.style.transform='scale(1.35)';" onmouseout="this.style.transform='scale(1)';" title="1 Stern (zum Entfernen erneut klicken)">★</button>
+                </div>
+            {% else %}
+                <div class="list-item-rating" style="color: var(--accent); font-size: 1.1rem; letter-spacing: 1px; white-space: nowrap;">
+                    {% if item.rating %}
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= item.rating %}★{% else %}<span style="opacity: 0.15;">★</span>{% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <span style="opacity: 0.15;">-</span>
+                    {% endif %}
+                </div>
+            {% endif %}
         {% endif %}
     </div>
     <div class="list-item-actions" style="display: flex; gap: var(--spacing-sm);">

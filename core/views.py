@@ -1185,6 +1185,41 @@ class AdjustAmountView(View):
         return HttpResponse(status=204)
 
 
+class AdjustRatingView(View):
+    def post(self, request, item_id):
+        item = get_object_or_404(ListItem, id=item_id)
+        bucket = item.bucket_list
+        can_edit = bucket.owner == request.user or \
+                   (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                   (bucket.is_public and bucket.allow_public_edit) or \
+                   (request.user.is_authenticated and request.user.is_superuser)
+        if not can_edit:
+            return HttpResponseForbidden()
+
+        rating_val = request.POST.get('rating')
+        if rating_val is not None:
+            try:
+                rating_val = int(rating_val)
+                if 0 <= rating_val <= 5:
+                    if item.rating == rating_val:
+                        item.rating = None
+                    else:
+                        item.rating = rating_val
+                    if request.user.is_authenticated:
+                        item.updated_by = request.user
+                        item.guest_updated_by = None
+                    else:
+                        item.updated_by = None
+                        item.guest_updated_by = request.session.get('guest_name')
+                    item.save()
+            except ValueError:
+                pass
+
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)
+
+
 from django.urls import reverse
 import json
 
