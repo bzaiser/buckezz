@@ -31,6 +31,9 @@ CSRF_TRUSTED_ORIGINS += ['https://nas.sunfish-universe.ts.net']
 # Trust the reverse proxy to determine the scheme (http vs https)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
+# Allow iframe-based modals in the Admin Interface
+X_FRAME_OPTIONS = 'SAMEORIGIN'
+
 # Authentication Redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/dashboard/'
