@@ -1459,6 +1459,13 @@ class RegisterTenantView(View):
             else:
                 host_only = host
 
+            # Falls wir uns bereits auf einer Mandanten-Subdomain befinden (z.B. simon.zaisers.myds.me),
+            # müssen wir den aktuellen Mandanten-Präfix abschneiden, um eine verschachtelte Subdomain zu verhindern.
+            if getattr(request, 'tenant', None) and request.tenant.slug:
+                prefix = f"{request.tenant.slug}."
+                if host_only.lower().startswith(prefix.lower()):
+                    host_only = host_only[len(prefix):]
+
             parts = host_only.split('.')
             if parts[-1] == 'localhost':
                 tenant_domain = f"{instance_slug}.localhost{port_suffix}"
