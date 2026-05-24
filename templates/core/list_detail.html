@@ -1911,8 +1911,6 @@ document.addEventListener('alpine:init', () => {
                         animation: 150,
                         ghostClass: 'sortable-ghost',
                         chosenClass: 'sortable-chosen',
-                        forceFallback: true,
-                        fallbackTolerance: 3,
                         onEnd: function(evt) {
                             const order = Array.from(el.children)
                                 .map(child => child.getAttribute('data-id'))
