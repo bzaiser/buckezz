@@ -25,7 +25,7 @@
 
     <!-- Main Registration Form (Glass Container) -->
     <div class="card glass" style="border-radius: var(--radius-lg); padding: var(--spacing-lg); border: 1px solid var(--glass-border);">
-        <form method="post" action="{% url 'core:register' %}" style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
+        <form method="post" action="{% url 'core:register' %}" autocomplete="off" style="display: flex; flex-direction: column; gap: var(--spacing-lg);">
             {% csrf_token %}
 
             <!-- Section 1: Instanz-Einstellungen -->
@@ -40,7 +40,7 @@
                         <label for="instance_name" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
                             Name der Instanz / Familie <span style="color: var(--accent);">*</span>
                         </label>
-                        <input type="text" id="instance_name" name="instance_name" value="{{ instance_name|default:'' }}" placeholder="z. B. Familie Schmidt" class="glass" required style="margin-bottom: 4px;">
+                        <input type="text" id="instance_name" name="instance_name" value="{{ instance_name|default:'' }}" placeholder="z. B. Familie Schmidt" class="glass" required autocomplete="off" style="margin-bottom: 4px;">
                         {% if errors.instance_name %}
                             <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.instance_name }}</span>
                         {% else %}
@@ -54,7 +54,7 @@
                             Gewünschte Subdomain <span style="color: var(--accent);">*</span>
                         </label>
                         <div style="display: flex; align-items: center; width: 100%; position: relative;">
-                            <input type="text" id="instance_slug" name="instance_slug" value="{{ instance_slug|default:'' }}" placeholder="schmidt" class="glass" required style="margin-bottom: 4px; padding-right: 120px;" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '')">
+                            <input type="text" id="instance_slug" name="instance_slug" value="{{ instance_slug|default:'' }}" placeholder="schmidt" class="glass" required autocomplete="off" style="margin-bottom: 4px; padding-right: 120px;" oninput="this.value = this.value.toLowerCase().replace(/[^a-z0-9-]/g, '')">
                             <span style="position: absolute; right: 12px; top: 12px; font-size: 0.85rem; color: var(--text-muted); pointer-events: none; opacity: 0.7;">
                                 .buckezz...
                             </span>
@@ -80,7 +80,7 @@
                         <label for="admin_username" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
                             Administrator-Nutzername <span style="color: var(--accent);">*</span>
                         </label>
-                        <input type="text" id="admin_username" name="admin_username" value="{{ admin_username|default:'' }}" placeholder="z. B. admin" class="glass" required style="margin-bottom: 4px;">
+                        <input type="text" id="admin_username" name="admin_username" value="{{ admin_username|default:'' }}" placeholder="z. B. admin" class="glass" required autocomplete="username" style="margin-bottom: 4px;">
                         {% if errors.admin_username %}
                             <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.admin_username }}</span>
                         {% endif %}
@@ -91,7 +91,7 @@
                         <label for="admin_email" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
                             E-Mail-Adresse <span style="color: var(--accent);">*</span>
                         </label>
-                        <input type="email" id="admin_email" name="admin_email" value="{{ admin_email|default:'' }}" placeholder="admin@familienschmidt.de" class="glass" required style="margin-bottom: 4px;">
+                        <input type="email" id="admin_email" name="admin_email" value="{{ admin_email|default:'' }}" placeholder="admin@familienschmidt.de" class="glass" required autocomplete="email" style="margin-bottom: 4px;">
                         {% if errors.admin_email %}
                             <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.admin_email }}</span>
                         {% endif %}
@@ -102,7 +102,7 @@
                         <label for="admin_password" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
                             Passwort <span style="color: var(--accent);">*</span>
                         </label>
-                        <input type="password" id="admin_password" name="admin_password" placeholder="Mindestens 8 Zeichen" class="glass" required style="margin-bottom: 4px;">
+                        <input type="password" id="admin_password" name="admin_password" placeholder="Mindestens 8 Zeichen" class="glass" required autocomplete="new-password" style="margin-bottom: 4px;">
                         {% if errors.admin_password %}
                             <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.admin_password }}</span>
                         {% endif %}
