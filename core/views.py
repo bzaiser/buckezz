@@ -100,11 +100,11 @@ def get_price_sums(bucket, active_items, completed_items):
         use_amount = bucket.category.template.use_amount
         for item in active_items:
             if item.price:
-                amount = parse_amount(item.amount) if use_amount else 1.0
+                amount = float(item.amount_value) if (use_amount and item.amount_value is not None) else (parse_amount(item.amount) if use_amount else 1.0)
                 active_sum += float(item.price) * amount
         for item in completed_items:
             if item.price:
-                amount = parse_amount(item.amount) if use_amount else 1.0
+                amount = float(item.amount_value) if (use_amount and item.amount_value is not None) else (parse_amount(item.amount) if use_amount else 1.0)
                 completed_sum += float(item.price) * amount
                 
     return {
@@ -421,6 +421,8 @@ class GetItemFormView(View):
                 gift_status = gift_role.role
                 gift_person = gift_role.person
         
+        from core.models import Unit
+        units = Unit.objects.all()
         people = Person.objects.all()
         return render(request, 'core/partials/item_form.html', {
             'bucket': bucket,
@@ -430,7 +432,8 @@ class GetItemFormView(View):
             'is_beneficiary': is_beneficiary,
             'current_person': current_person,
             'gift_status': gift_status,
-            'gift_person': gift_person
+            'gift_person': gift_person,
+            'units': units
         })
 
 class AddItemView(View):
@@ -445,10 +448,21 @@ class AddItemView(View):
 
         data = request.POST
         guest_name = request.session.get('guest_name')
+        
+        from decimal import Decimal
+        amount_value = None
+        if data.get('amount_value'):
+            try:
+                amount_value = Decimal(data.get('amount_value').replace(',', '.'))
+            except Exception:
+                pass
+                
         item = ListItem.objects.create(
             bucket_list=bucket,
             title=data.get('title'),
             amount=data.get('amount'),
+            amount_value=amount_value,
+            unit_id=data.get('unit_id') if data.get('unit_id') else None,
             price=data.get('price') if data.get('price') else None,
             brand=data.get('brand'),
             shop=data.get('shop'),
@@ -566,7 +580,21 @@ class EditItemView(View):
  
         data = request.POST
         item.title = data.get('title')
-        item.amount = data.get('amount')
+        
+        from decimal import Decimal
+        amount_value = None
+        if data.get('amount_value'):
+            try:
+                amount_value = Decimal(data.get('amount_value').replace(',', '.'))
+            except Exception:
+                pass
+        item.amount_value = amount_value
+        item.unit_id = data.get('unit_id') if data.get('unit_id') else None
+        
+        # Keep amount text set to None if amount_value is cleared
+        if amount_value is None:
+            item.amount = None
+            
         item.price = data.get('price') if data.get('price') else None
         item.brand = data.get('brand')
         item.shop = data.get('shop')
@@ -1130,10 +1158,10 @@ class AdjustAmountView(View):
             return HttpResponseForbidden()
 
         action = request.POST.get('action')
-        current_amount = item.amount or 0
+        current_amount = item.amount_value or 0
 
         if action == 'increment':
-            item.amount = current_amount + 1
+            item.amount_value = current_amount + 1
             if request.user.is_authenticated:
                 item.updated_by = request.user
                 item.guest_updated_by = None
@@ -1143,7 +1171,7 @@ class AdjustAmountView(View):
             item.save()
         elif action == 'decrement':
             if current_amount > 0:
-                item.amount = current_amount - 1
+                item.amount_value = max(0, current_amount - 1)
                 if request.user.is_authenticated:
                     item.updated_by = request.user
                     item.guest_updated_by = None

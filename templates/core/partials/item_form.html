@@ -84,9 +84,29 @@
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: var(--spacing-md);">
                 {% if bucket.category.template.use_amount %}
-                <div class="form-group">
-                    <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Menge / Anzahl</label>
-                    <input type="text" name="amount" value="{{ item.amount|default:'' }}" class="glass">
+                <div style="display: flex; flex-direction: column; gap: 4px; width: 100%;">
+                    <div style="display: flex; gap: var(--spacing-sm); align-items: start; width: 100%;">
+                        <!-- Menge (Zahl) -->
+                        <div class="form-group" style="flex: 1;">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Menge / Anzahl</label>
+                            <input type="number" step="any" name="amount_value" value="{% if item.amount_value is not None %}{{ item.amount_value|unlocalize }}{% endif %}" class="glass" style="width: 100%;">
+                        </div>
+                        <!-- Einheit -->
+                        <div class="form-group" style="flex: 1.2;">
+                            <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Einheit</label>
+                            <select name="unit_id" class="glass" style="width: 100%; border-radius: var(--radius-sm); color: var(--input-text); background: var(--input-bg); border: 1px solid rgba(255, 255, 255, 0.1); padding: 10px 14px;">
+                                <option value="">-- Keine --</option>
+                                {% for unit in units %}
+                                    <option value="{{ unit.id }}" {% if item and item.unit.id == unit.id %}selected{% endif %}>{{ unit.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    {% if item and item.amount and item.amount_value is None %}
+                    <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                        ℹ️ Aktueller Freitext: <em>"{{ item.amount }}"</em>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
 

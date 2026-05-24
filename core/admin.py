@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog, WorkoutSessionLog, WorkoutActivityLog, Tenant
+from .models import Person, ListCategory, ListTemplate, BucketList, ListItem, ItemPersonRole, ListParticipant, ItemTrackerLog, WorkoutSessionLog, WorkoutActivityLog, Tenant, Unit
 
 class ListTemplateInline(admin.StackedInline):
     model = ListTemplate
@@ -131,7 +131,7 @@ class PersonAdmin(admin.ModelAdmin):
 
 class ListItemInline(admin.TabularInline):
     model = ListItem
-    fields = ('title', 'amount', 'price', 'is_completed', 'status')
+    fields = ('title', 'amount_value', 'unit', 'price', 'is_completed', 'status')
     extra = 1
 
 class ListParticipantInline(admin.TabularInline):
@@ -182,6 +182,8 @@ class BucketListAdmin(admin.ModelAdmin):
                     title=item.title,
                     price=item.price,
                     amount=item.amount,
+                    amount_value=item.amount_value,
+                    unit=item.unit,
                     brand=item.brand,
                     shop=item.shop,
                     url=item.url,
@@ -281,4 +283,11 @@ class TenantAdmin(admin.ModelAdmin):
     list_display = ('name', 'slug', 'owner_email', 'is_active', 'created_at')
     search_fields = ('name', 'slug', 'owner_email')
     prepopulated_fields = {'slug': ('name',)}
+
+
+@admin.register(Unit)
+class UnitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ('name',)
 

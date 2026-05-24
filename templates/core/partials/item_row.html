@@ -179,7 +179,7 @@
         grid-template-columns:
             auto
             1fr
-            {% if bucket.category.template.use_amount %}minmax(80px,110px){% endif %}
+            {% if bucket.category.template.use_amount %}minmax(120px,160px){% endif %}
             {% if bucket.category.template.use_price %}minmax(55px,70px){% endif %}
             {% if bucket.category.template.use_rating %}minmax(80px,100px){% endif %}
             auto;
@@ -423,41 +423,50 @@
     </div>
     <div class="list-item-meta-group">
         {% if bucket.category.template.use_amount %}
-            <div class="list-item-amount" style="display: inline-flex; align-items: center; gap: 8px;">
-                {% if can_edit and not item.is_completed %}
-                    <!-- Decrement Button -->
-                    <button type="button" 
-                            hx-post="{% url 'core:adjust_amount' item.id %}"
-                            hx-vals='{"action": "decrement"}'
-                            hx-target="#item-list"
-                            hx-swap="innerHTML"
-                            class="glass amount-btn"
-                            style="border: none; background: rgba(255,255,255,0.05); color: var(--primary); width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s;"
-                            onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='scale(1.08)';"
-                            onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='scale(1)';"
-                            title="Menge verringern">
-                        -
-                    </button>
-                {% endif %}
+            <div class="list-item-amount" style="display: inline-flex; align-items: center; gap: 8px; flex-wrap: nowrap; white-space: nowrap;">
+                {% if item.amount_value is not None %}
+                    {% if can_edit and not item.is_completed %}
+                        <!-- Decrement Button -->
+                        <button type="button" 
+                                hx-post="{% url 'core:adjust_amount' item.id %}"
+                                hx-vals='{"action": "decrement"}'
+                                hx-target="#item-list"
+                                hx-swap="innerHTML"
+                                class="glass amount-btn"
+                                style="border: none; background: rgba(255,255,255,0.05); color: var(--primary); width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s; flex-shrink: 0;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='scale(1.08)';"
+                                onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='scale(1)';"
+                                title="Menge verringern">
+                            -
+                        </button>
+                    {% endif %}
 
-                <span style="font-weight: 700; color: #fff; min-width: 16px; text-align: center; font-size: 0.95rem;">
-                    {{ item.amount|default:"0" }}
-                </span>
+                    <span style="font-weight: 700; color: #fff; min-width: 24px; text-align: center; font-size: 0.95rem; white-space: nowrap; display: inline-block;">
+                        {{ item.amount_value|floatformat:"-2" }}
+                    </span>
 
-                {% if can_edit and not item.is_completed %}
-                    <!-- Increment Button -->
-                    <button type="button" 
-                            hx-post="{% url 'core:adjust_amount' item.id %}"
-                            hx-vals='{"action": "increment"}'
-                            hx-target="#item-list"
-                            hx-swap="innerHTML"
-                            class="glass amount-btn"
-                            style="border: none; background: rgba(255,255,255,0.05); color: var(--primary); width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s;"
-                            onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='scale(1.08)';"
-                            onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='scale(1)';"
-                            title="Menge erhöhen">
-                        +
-                    </button>
+                    {% if can_edit and not item.is_completed %}
+                        <!-- Increment Button -->
+                        <button type="button" 
+                                hx-post="{% url 'core:adjust_amount' item.id %}"
+                                hx-vals='{"action": "increment"}'
+                                hx-target="#item-list"
+                                hx-swap="innerHTML"
+                                class="glass amount-btn"
+                                style="border: none; background: rgba(255,255,255,0.05); color: var(--primary); width: 22px; height: 22px; border-radius: 4px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: bold; cursor: pointer; transition: all 0.2s; flex-shrink: 0;"
+                                onmouseover="this.style.background='rgba(255,255,255,0.12)'; this.style.transform='scale(1.08)';"
+                                onmouseout="this.style.background='rgba(255,255,255,0.05)'; this.style.transform='scale(1)';"
+                                title="Menge erhöhen">
+                            +
+                        </button>
+                    {% endif %}
+
+                    {% if item.unit %}
+                        <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 2px;">{{ item.unit.name }}</span>
+                    {% endif %}
+                {% else %}
+                    <!-- Fallback for legacy unparseable string -->
+                    <span class="text-muted" style="font-size: 0.9rem;">{{ item.amount|default:"-" }}</span>
                 {% endif %}
             </div>
         {% endif %}

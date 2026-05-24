@@ -180,6 +180,18 @@ class ListParticipant(models.Model):
         verbose_name = _("Listen-Teilnehmer")
         verbose_name_plural = _("Listen-Teilnehmer")
 
+class Unit(models.Model):
+    name = models.CharField(max_length=50, unique=True, verbose_name="Name")
+    slug = models.SlugField(max_length=50, unique=True, verbose_name="Slug")
+
+    class Meta:
+        verbose_name = "Einheit"
+        verbose_name_plural = "Einheiten"
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
 class ListItem(models.Model):
     bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='items')
     title = models.CharField(max_length=255)
@@ -187,6 +199,8 @@ class ListItem(models.Model):
     # Potential fields (managed by template)
     price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     amount = models.CharField(max_length=100, null=True, blank=True)
+    amount_value = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.SET_NULL, null=True, blank=True, related_name='items')
     brand = models.CharField(max_length=255, null=True, blank=True)
     shop = models.CharField(max_length=255, null=True, blank=True)
     url = models.URLField(max_length=1000, null=True, blank=True)
@@ -259,6 +273,62 @@ class ListItem(models.Model):
         return self.title
 
     def save(self, *args, **kwargs):
+        # Synchronize and parse amount/unit fields
+        if self.amount_value is not None:
+            val_str = f"{self.amount_value:f}"
+            if '.' in val_str:
+                val_str = val_str.rstrip('0').rstrip('.')
+            
+            if self.unit:
+                self.amount = f"{val_str} {self.unit.name}"
+            else:
+                self.amount = val_str
+        elif self.amount:
+            import re
+            from decimal import Decimal, InvalidOperation
+            s = self.amount.strip()
+            match = re.match(r'^([\d\.,]+)\s*(.*)$', s)
+            if match:
+                num_str, unit_str = match.groups()
+                num_str = num_str.replace(',', '.')
+                try:
+                    self.amount_value = Decimal(num_str)
+                    unit_clean = unit_str.strip().lower()
+                    if unit_clean:
+                        from core.models import Unit
+                        from django.utils.text import slugify
+                        slug_mapping = {
+                            'stk': 'stk', 'stk.': 'stk', 'stück': 'stk', 'stueck': 'stk', 'x': 'stk',
+                            'flaschen': 'flaschen', 'flasche': 'flaschen', 'fl.': 'flaschen', 'fl': 'flaschen',
+                            'l': 'l', 'liter': 'l',
+                            'g': 'g', 'gramm': 'g',
+                            'kg': 'kg', 'kilo': 'kg', 'kilogramm': 'kg',
+                            'm': 'm', 'meter': 'm',
+                            'cm': 'cm', 'zentimeter': 'cm',
+                        }
+                        unit_slug = slug_mapping.get(unit_clean, slugify(unit_clean)[:50])
+                        
+                        name_mapping = {
+                            'stk': 'stk.',
+                            'flaschen': 'Fl.',
+                            'l': 'l',
+                            'g': 'g',
+                            'kg': 'kg',
+                            'm': 'm',
+                            'cm': 'cm'
+                        }
+                        unit_name = name_mapping.get(unit_slug, unit_str.strip())
+                        
+                        db_alias = self._state.db or 'default'
+                        unit_obj, _ = Unit.objects.using(db_alias).get_or_create(
+                            slug=unit_slug,
+                            defaults={'name': unit_name or unit_clean}
+                        )
+                        self.unit = unit_obj
+                except (InvalidOperation, ValueError, Exception):
+                    pass
+
+        # Handle completion dates
         if self.is_completed:
             if not self.completed_at:
                 from django.utils import timezone
@@ -266,6 +336,14 @@ class ListItem(models.Model):
         else:
             self.completed_at = None
         super().save(*args, **kwargs)
+        if self.bucket_list:
+            self.bucket_list.save()
+
+    def delete(self, *args, **kwargs):
+        bucket = self.bucket_list
+        super().delete(*args, **kwargs)
+        if bucket:
+            bucket.save()
 
     @property
     def completed_tracker_times_today(self):
