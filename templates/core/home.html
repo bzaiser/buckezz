@@ -42,7 +42,7 @@
                 <div style="margin-top: var(--spacing-md); display: flex; gap: var(--spacing-md); flex-wrap: wrap;">
                     <a href="{% url 'core:login' %}?next={% url 'core:dashboard' %}" class="btn btn-primary">Jetzt anmelden</a>
                     {% if not request.tenant %}
-                        <a href="{% url 'core:register' %}" class="btn btn-glass" style="border: 1px solid var(--accent); color: var(--accent); font-weight: 600;">🏡 Neue Familie anlegen</a>
+                        <a href="{% url 'core:register' %}" class="btn btn-glass" style="border: 1px solid var(--accent); color: var(--accent); font-weight: 600;">🏡 Neue Instanz anlegen</a>
                     {% endif %}
                 </div>
             {% endif %}

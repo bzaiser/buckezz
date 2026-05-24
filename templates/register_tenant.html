@@ -8,7 +8,7 @@
     <!-- Title & Description Header -->
     <div style="text-align: center; margin-bottom: var(--spacing-lg);">
         <h1 style="font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; margin-bottom: var(--spacing-sm); background: linear-gradient(135deg, var(--primary), var(--accent)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-            Neue Familie anlegen
+            Neue Instanz anlegen
         </h1>
         <p class="text-muted" style="font-size: 1.05rem;">
             Erstelle eine komplett neue, isolierte Buckezz-Instanz für deine Familie.
@@ -62,7 +62,7 @@
                         {% if errors.instance_slug %}
                             <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.instance_slug }}</span>
                         {% else %}
-                            <span class="text-muted" style="font-size: 0.75rem; display: block;">Erlaubt sind nur Kleinbuchstaben, Zahlen und Bindestriche.</span>
+                            <span class="text-muted" style="font-size: 0.75rem; display: block;">Bitte hier die Subdomain eintragen, die der Administrator des Servers für dich angelegt hat. (Erlaubt sind nur Kleinbuchstaben, Zahlen und Bindestriche)</span>
                         {% endif %}
                     </div>
                 </div>
