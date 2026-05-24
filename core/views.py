@@ -132,7 +132,10 @@ def get_list_items_for_user(request, bucket):
     if bucket.is_secret_santa and bucket.beneficiary and current_person == bucket.beneficiary:
         is_beneficiary = True
 
-    items = bucket.items.all()
+    if bucket.category.template.new_items_at_bottom:
+        items = bucket.items.order_by('order', 'created_at')
+    else:
+        items = bucket.items.order_by('order', '-created_at')
     
     # Live Search Filter
     q = request.GET.get('q')

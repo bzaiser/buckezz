@@ -121,6 +121,7 @@ class ListTemplate(models.Model):
     use_rating = models.BooleanField(default=False)
     use_tracker = models.BooleanField(default=False)
     use_milestone = models.BooleanField(default=False)
+    new_items_at_bottom = models.BooleanField(default=False, verbose_name="Neue Einträge unten anfügen", help_text="Wenn aktiv, werden neue Einträge am Ende der Liste angefügt, andernfalls oben.")
 
     # Customizable help guidelines
     help_purpose = models.TextField(blank=True, null=True, help_text="💡 Zweck der Vorlage (z.B. Ideal für den Wocheneinkauf)")
