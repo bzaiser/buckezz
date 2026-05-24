@@ -219,6 +219,43 @@ Du kannst den Skill jetzt direkt in der Konsole im Reiter **Test** (oben) oder a
 *   *„Alexa, sag Buckezz setze Mehl auf die Liste!“* -> Antwort: *„Ich habe Mehl auf deine Liste Einkaufsliste gesetzt.“*
 *   *„Alexa, sag Buckezz setze 4 Flaschen trockenen Rotwein von Aldi für 3,99 Euro auf die Liste!“* -> Antwort: *„Ich habe 4 Flaschen trockenen Rotwein von Aldi für 3,99 Euro auf deine Liste Weinvorrat gesetzt.“*
 
+### 👥 Haushalts-Sprachsteuerung & Alexa-Multi-User-Routing (Premium)
+Buckezz unterstützt echtes **Multi-User Voice Routing** für den gesamten Haushalt! Wenn verschiedene Personen mit Alexa sprechen, kann Buckezz die Stimmen unterscheiden und die Einträge automatisch auf die persönlichen oder geteilten Listen (Shared Lists) der jeweiligen Person routen:
+
+1. **Alexa-ID hinterlegen:** Jedes Haushaltsmitglied hinterlegt in seinen persönlichen **⚙️ Einstellungen** seine eindeutige Alexa-User-ID (wird im Alexa-Entwickler-Protokoll oder Debug-Log angezeigt).
+2. **Kollaboratives Routing:** Fügt eine Person (z. B. dein Partner oder dein Kind) per Sprache einen Eintrag hinzu, ermittelt der NLP-Parser den Sprecher und sucht nach passenden Listen, die entweder dem Sprecher gehören oder mit ihm **geteilt (shared)** sind.
+3. **Schlüsselwort-Kategorisierung:** Das System ordnet Aufgaben anhand von Schlüsselwörtern wie *"to do"*, *"hausarbeit"*, *"einkauf"* o.ä. vollautomatisch der richtigen Liste zu und filtert das Trigger-Wort aus dem Titel, um die Listen sauber zu halten.
+
+---
+
+## 🎨 Globales Branding & Farbthemen-Management (Multi-Tenant)
+
+Buckezz besitzt ein hochentwickeltes Farbthemen-System, das sowohl im Benutzer-Interface als auch im Django-Admin-Panel für ein konsistentes, edles Branding sorgt.
+
+### 1. Farbthemen exportieren & importieren (UI)
+Du kannst deine mühevoll zusammengestellten Designs kinderleicht sichern und mit anderen teilen:
+* **Exportieren:** Klicke in den **⚙️ Einstellungen** unter *„Farbthema teilen & sichern“* auf **"Code kopieren"**. Das System kopiert ein kompaktes JSON direkt in deine Zwischenablage.
+* **Importieren:** Klicke bei einem anderen Benutzer/Mandanten auf **"Code einfügen"**, füge das JSON ein und sieh dir die Live-Vorschau in Echtzeit an! Mit *„Speichern“* wird das Design dauerhaft in der Datenbank gesichert.
+
+### 2. Administrator-Befehle (CLI / NAS)
+Für Administratoren stehen leistungsstarke CLI-Befehle im Docker-Container bereit, um das Branding systemweit zu steuern:
+
+* **Das standardisierte Design in einen bestimmten Mandanten einspielen:**
+  Löscht alle alten Themes im Mandanten und spielt das vordefinierte `custom_theme.json` ein:
+  ```bash
+  docker exec -it buckezz-web-1 python manage.py seed_tenant_theme <mandanten_slug>
+  ```
+* **Die Master-Datenbankvorlage aktualisieren:**
+  Aktualisiert die Master-Vorlage (`db_template.sqlite3`). Jeder **neu registrierte** Mandant startet ab der ersten Sekunde automatisch mit deinen Standardfarben und deinem Custom-Logo, ohne dass manuelle Einstellungen nötig sind:
+  ```bash
+  docker exec -it buckezz-web-1 python manage.py build_template_db
+  ```
+* **Migrationen über alle Mandanten-Datenbanken ausführen:**
+  Migriert die Zentral-Datenbank sowie alle isolierten Mandanten-Datenbanken in einem Rutsch und aktualisiert danach die Master-Vorlage:
+  ```bash
+  docker exec -it buckezz-web-1 python manage.py migrate_all
+  ```
+
 ---
 
 ## 🔄 Wartung, Updates & PWA-Cache
