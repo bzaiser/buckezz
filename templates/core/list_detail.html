@@ -1853,26 +1853,20 @@ document.addEventListener('alpine:init', () => {
             </div>
 
             <div style="display: flex; flex-direction: column; gap: var(--spacing-md); line-height: 1.5;">
+                {% if bucket.category.template.help_fields %}
+                <div style="font-size: 0.92rem; white-space: pre-line; color: var(--text-muted);">
+                    {{ bucket.category.template.help_fields }}
+                </div>
+                {% else %}
                 <div>
                     <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
-                        <span>🆕</span> 1. So erstellst du deinen Plan
+                        <span>🆕</span> 1. So erstellst du Einträge
                     </h3>
                     <p style="margin: 0; font-size: 0.9rem;">
-                        Klicke oben rechts auf <strong>"+ Übung hinzufügen"</strong>. Wähle den Aktivitätstyp (Kraft, Ausdauer oder Intervall) und trage deine Vorgaben (z.B. Sets, Wiederholungen, Gewicht) ein.
+                        Klicke oben rechts auf den Hinzufügen-Button, um neue Einträge auf deine Liste zu setzen.
                     </p>
                 </div>
-
-                <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md);">
-                    <h3 style="margin: 0 0 6px 0; font-size: 1.05rem; color: #fff; display: flex; align-items: center; gap: 8px;">
-                        <span>🏋️‍♂️</span> 2. So absolvierst du dein Training (Gym Mode)
-                    </h3>
-                    <p style="margin: 0 0 8px 0; font-size: 0.9rem;">
-                        Tippe oben auf den leuchtenden grünen Button <strong>"▶️ Training Starten"</strong>, um das ablenkungsfreie Gym-Cockpit aufzurufen.
-                    </p>
-                    <p style="margin: 0; font-size: 0.9rem;">
-                        Hake während deines Trainings die Sätze ab. Die integrierte Stoppuhr zählt deine Pause runter und signalisiert das Ende mit einem unaufdringlichen Beep-Ton! Du kannst Reps und Gewichte direkt live verändern, falls du ein anderes Gewicht gestemmt hast.
-                    </p>
-                </div>
+                {% endif %}
 
                 {% if bucket.category.template.help_example %}
                 <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: var(--spacing-md); background: rgba(255,255,255,0.02); padding: 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.05);">
