@@ -460,6 +460,14 @@ class AddItemView(View):
             except Exception:
                 pass
                 
+        # Determine the order for the new item based on the template setting
+        from django.db.models import Max
+        if bucket.category.template.new_items_at_bottom:
+            max_order = bucket.items.aggregate(Max('order'))['order__max'] or 0
+            order_val = max_order + 1
+        else:
+            order_val = 0
+
         item = ListItem.objects.create(
             bucket_list=bucket,
             title=data.get('title'),
@@ -484,7 +492,8 @@ class AddItemView(View):
             reminder_at=data.get('reminder_at') if data.get('reminder_at') else None,
             created_by=request.user if request.user.is_authenticated else None,
             guest_created_by=guest_name if not request.user.is_authenticated else None,
-            workout_type=data.get('workout_type', 'strength')
+            workout_type=data.get('workout_type', 'strength'),
+            order=order_val
         )
         
         # Save workout config
