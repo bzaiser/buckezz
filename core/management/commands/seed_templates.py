@@ -55,7 +55,7 @@ Notizen: Abdeckfolie, Malerkrepp und weiße Wandfarbe (Alpina) vorher im Baumark
                 'old_name': '🍷 Weinvorrat',
                 'name': 'Weinvorrat',
                 'icon': '🍷',
-                'fields': {'logic_type': 'generic', 'use_amount': True, 'use_brand': True, 'use_location': True},
+                'fields': {'logic_type': 'generic', 'use_amount': True, 'use_brand': True, 'use_location': True, 'use_rating': True},
                 'help_purpose': 'Präzise Bestandsübersicht über deinen Weinkeller, Gin-Regale, deine Hausbar oder Vorratskammer.',
                 'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Inventarisieren: Trage Flaschen mit genauer Menge, auswählbarer Einheit, Marke, Jahrgang und Lagerort ein.\n2. Schneller Abgleich: Über die +/- Knöpfe direkt in der Liste kannst du die Mengen sekundenschnell anpassen, wenn du eine Flasche entnimmst oder einlagerst – ganz ohne die Zeile öffnen zu müssen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des edlen Tropfens / Getränks\n• Menge: Strukturierter Bestand (Zahl & Einheit, direkt in der Liste per +/- Buttons editierbar)\n• Winzer/Marke: Hersteller, Winzer oder Marke zur Orientierung\n• Lagerort: Wo genau sich das Produkt befindet (z.B. "Keller, Regal B")',
                 'help_example': """Titel / Bezeichnung: Cabernet Sauvignon (Jahrgang 2019)
@@ -119,7 +119,8 @@ Notizen: Immer mit ausreichend Wasser direkt nach dem Abendessen einnehmen. Nach
                     'use_beneficiary': True,
                     'use_secret_santa': True,
                     'use_is_public': True,
-                    'use_allow_public_edit': True
+                    'use_allow_public_edit': True,
+                    'use_rating': True
                 },
                 'help_purpose': 'Smarte Verwaltung von Geschenken und Wünschen für Geburtstage, Weihnachten oder Hochzeiten – mit eingebautem Überraschungs-Schutz!',
                 'help_fields': '🔄 DER GENIALE WICHTEL- & ÜBERRASCHUNGS-WORKFLOW:\n1. Wünsche äußern: Das Geburtstagskind erstellt seine Wünsche mit Shop-Links und Bildern.\n2. Teilen: Sende den Wichtel-Link der Liste an deine Freunde/Gäste.\n3. Reservieren & Schenken: Gäste können Wünsche auf "Reserviert" (🔒) oder "Erfüllt" (🎁) setzen und sich eintragen. \n4. Der Clou (Überraschungs-Schutz!): Das Geburtstagskind sieht die Reservierungen und Zuordnungen NICHT! Für den Beschenkten bleibt alles offen und spannend. Nur die schenkenden Gäste sehen untereinander, wer was besorgt, um Doppelkäufe komplett auszuschließen!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des Wunsches\n• Geschäft/Link (Ort): Shop-Name oder Direkt-URL zum Bestellen (wird unter "Ort" erfasst)\n• Beschenkter (Personen): Für wen der Wunsch gedacht ist (wird unter "Personen" erfasst)',
