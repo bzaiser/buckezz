@@ -11,6 +11,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         self.stdout.write(self.style.MIGRATE_HEADING("1. Migriere Registry-Datenbank (default)..."))
         call_command('migrate', database='default', interactive=False)
+        call_command('seed_templates', database='default')
 
         # Alle registrierten Mandanten ermitteln
         tenants = Tenant.objects.using('default').all()
