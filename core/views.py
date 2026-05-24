@@ -1466,6 +1466,11 @@ class RegisterTenantView(View):
                 if host_only.lower().startswith(prefix.lower()):
                     host_only = host_only[len(prefix):]
 
+            # Falls die Hauptdomain buckezz.zaisers.myds.me ist, schneiden wir "buckezz." ab,
+            # damit die Mandanten direkt unter *.zaisers.myds.me erreichbar sind (wegen SSL-Zertifikat).
+            if host_only.lower().endswith('.zaisers.myds.me') and host_only.lower().startswith('buckezz.'):
+                host_only = host_only[len('buckezz.'):]
+
             parts = host_only.split('.')
             if parts[-1] == 'localhost':
                 tenant_domain = f"{instance_slug}.localhost{port_suffix}"
