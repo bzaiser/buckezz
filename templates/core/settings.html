@@ -136,6 +136,58 @@
                 </div>
             </div>
 
+            <!-- Theme Export / Import Section -->
+            <div style="margin-top: var(--spacing-md); padding: var(--spacing-md); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); background: rgba(255, 255, 255, 0.02); display: flex; flex-direction: column; gap: var(--spacing-sm); text-align: left;">
+                <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center;">
+                    <span>🎨 Farbthema teilen & sichern</span>
+                </div>
+                <div style="display: flex; gap: var(--spacing-sm); width: 100%;">
+                    <button type="button" class="btn btn-glass" style="flex: 1; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"
+                            @click="
+                                const themeData = {
+                                    primary: primary,
+                                    accent: accent,
+                                    bg: bg,
+                                    text: text,
+                                    input_bg: input_bg,
+                                    input_text: input_text,
+                                    header_bg: header_bg,
+                                    header_text: header_text,
+                                    opacity: opacity
+                                };
+                                const json = JSON.stringify(themeData);
+                                navigator.clipboard.writeText(json)
+                                    .then(() => alert('Farbthema-Code wurde erfolgreich in die Zwischenablage kopiert! 🎨📋'))
+                                    .catch(() => alert('Code: ' + json));
+                            ">
+                        📋 Code kopieren
+                    </button>
+                    <button type="button" class="btn btn-glass" style="flex: 1; font-size: 0.78rem; padding: 6px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 4px;"
+                            @click="
+                                const input = prompt('Füge hier den kopierten Farbthema-Code ein:');
+                                if (input) {
+                                    try {
+                                        const theme = JSON.parse(input);
+                                        if (theme.primary) primary = theme.primary;
+                                        if (theme.accent) accent = theme.accent;
+                                        if (theme.bg) bg = theme.bg;
+                                        if (theme.text) text = theme.text;
+                                        if (theme.input_bg) input_bg = theme.input_bg;
+                                        if (theme.input_text) input_text = theme.input_text;
+                                        if (theme.header_bg) header_bg = theme.header_bg;
+                                        if (theme.header_text) header_text = theme.header_text;
+                                        if (theme.opacity !== undefined) opacity = parseFloat(theme.opacity);
+                                        alert('Farbthema wurde erfolgreich geladen! Klicke unten auf Speichern, um es dauerhaft zu sichern. 🎨✨');
+                                    } catch (e) {
+                                        alert('Ungültiger Farbthema-Code! Bitte überprüfe deine Eingabe.');
+                                    }
+                                }
+                            ">
+                        📥 Code einfügen
+                    </button>
+                </div>
+            </div>
+
             <div style="margin: var(--spacing-lg) 0; border-top: 1px solid var(--glass-border); padding-top: var(--spacing-md);">
                 <h3 style="color: var(--primary); margin-bottom: 4px;">👤 Profil-Daten & Region</h3>
                 <p class="text-muted" style="margin-bottom: var(--spacing-md); font-size: 0.8rem;">Diese Daten werden für Zeitzonen-Erinnerungen und altersbasierte Meilensteine genutzt.</p>
