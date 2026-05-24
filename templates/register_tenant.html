@@ -110,6 +110,27 @@
                 </div>
             </div>
 
+            {% if registration_code_required %}
+            <!-- Section 3: Sicherheitsschlüssel -->
+            <div>
+                <h3 style="color: #ff5252; font-size: 1.15rem; font-weight: 800; margin-bottom: var(--spacing-md); border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                    <span>🔑</span> Sicherheitsschlüssel
+                </h3>
+                
+                <div>
+                    <label for="registration_code" style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); margin-bottom: 6px;">
+                        Registrierungsschlüssel <span style="color: var(--accent);">*</span>
+                    </label>
+                    <input type="password" id="registration_code" name="registration_code" placeholder="Geheimen Schlüssel eingeben" class="glass" required autocomplete="off" style="margin-bottom: 4px;">
+                    {% if errors.registration_code %}
+                        <span style="font-size: 0.78rem; color: #f87171; display: block; margin-top: 2px;">{{ errors.registration_code }}</span>
+                    {% else %}
+                        <span class="text-muted" style="font-size: 0.75rem; display: block;">Diese Instanz ist privat. Bitte gib den vom Administrator festgelegten Registrierungsschlüssel ein.</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Submit Button Row -->
             <div style="margin-top: var(--spacing-sm); display: flex; flex-direction: column; gap: var(--spacing-md); align-items: center;">
                 <button type="submit" class="btn btn-primary" style="width: 100%; min-height: 48px; font-size: 1.05rem; border-radius: var(--radius-sm);">

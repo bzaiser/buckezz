@@ -104,6 +104,9 @@ DATABASES = {
 
 DATABASE_ROUTERS = ['core.router.TenantRouter']
 
+# Security: Optional registration key to prevent public abuse of tenant registration
+REGISTRATION_CODE = env('REGISTRATION_CODE', default='')
+
 
 
 # Password validation

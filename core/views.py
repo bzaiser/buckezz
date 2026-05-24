@@ -1351,7 +1351,9 @@ class RegisterTenantView(View):
                 return redirect(f"{request.scheme}://{main_host}/register/")
             return redirect('/')
             
-        return render(request, 'register_tenant.html')
+        return render(request, 'register_tenant.html', {
+            'registration_code_required': bool(settings.REGISTRATION_CODE)
+        })
 
     def post(self, request, *args, **kwargs):
         if request.tenant is not None:
@@ -1362,10 +1364,14 @@ class RegisterTenantView(View):
         admin_username = request.POST.get('admin_username', '').strip()
         admin_email = request.POST.get('admin_email', '').strip()
         admin_password = request.POST.get('admin_password', '')
+        registration_code = request.POST.get('registration_code', '').strip()
 
         errors = {}
 
         # 1. Validierungen
+        if settings.REGISTRATION_CODE and registration_code != settings.REGISTRATION_CODE:
+            errors['registration_code'] = 'Der Registrierungsschlüssel ist ungültig.'
+
         if not instance_name:
             errors['instance_name'] = 'Bitte gib einen Namen für deine Instanz ein.'
         
@@ -1400,6 +1406,7 @@ class RegisterTenantView(View):
                 'instance_slug': instance_slug,
                 'admin_username': admin_username,
                 'admin_email': admin_email,
+                'registration_code_required': bool(settings.REGISTRATION_CODE),
             })
 
         # 2. Registrierung ausführen
@@ -1417,6 +1424,7 @@ class RegisterTenantView(View):
                     'instance_slug': instance_slug,
                     'admin_username': admin_username,
                     'admin_email': admin_email,
+                    'registration_code_required': bool(settings.REGISTRATION_CODE),
                 })
 
             # Klonen der Template-DB
