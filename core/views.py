@@ -1118,6 +1118,44 @@ class ToggleTrackerLogView(View):
             return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
 
+class AdjustAmountView(View):
+    def post(self, request, item_id):
+        item = get_object_or_404(ListItem, id=item_id)
+        bucket = item.bucket_list
+        can_edit = bucket.owner == request.user or \
+                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
+        if not can_edit:
+            return HttpResponseForbidden()
+
+        action = request.POST.get('action')
+        current_amount = item.amount or 0
+
+        if action == 'increment':
+            item.amount = current_amount + 1
+            if request.user.is_authenticated:
+                item.updated_by = request.user
+                item.guest_updated_by = None
+            else:
+                item.updated_by = None
+                item.guest_updated_by = request.session.get('guest_name')
+            item.save()
+        elif action == 'decrement':
+            if current_amount > 0:
+                item.amount = current_amount - 1
+                if request.user.is_authenticated:
+                    item.updated_by = request.user
+                    item.guest_updated_by = None
+                else:
+                    item.updated_by = None
+                    item.guest_updated_by = request.session.get('guest_name')
+                item.save()
+
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)
+
 
 from django.urls import reverse
 import json
