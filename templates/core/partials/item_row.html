@@ -361,25 +361,25 @@
                             hx-swap="innerHTML"
                             class="role-{{ role.role }}"
                             style="font-size: 0.7rem; padding: 2px 8px 2px 6px; border-radius: 8px; border: 1px solid currentColor; background: transparent; color: inherit; font-weight: bold; cursor: pointer; outline: none; display: inline-block;">
-                        <option value="assigned" {% if role.role == 'assigned' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="assigned" {% if role.role == 'assigned' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Organisator / Zuständig{% else %}Zuständig{% endif %})
                         </option>
-                        <option value="invited" {% if role.role == 'invited' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="invited" {% if role.role == 'invited' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Gast (Eingeladen){% else %}Eingeladen{% endif %})
                         </option>
-                        <option value="attending" {% if role.role == 'attending' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="attending" {% if role.role == 'attending' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Zusage (Teilnahme){% else %}Zugesagt{% endif %})
                         </option>
-                        <option value="declined" {% if role.role == 'declined' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="declined" {% if role.role == 'declined' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Absage (Teilnahme){% else %}Abgesagt{% endif %})
                         </option>
-                        <option value="maybe" {% if role.role == 'maybe' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="maybe" {% if role.role == 'maybe' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Vielleicht (Teilnahme){% else %}Vielleicht{% endif %})
                         </option>
-                        <option value="reserved" {% if role.role == 'reserved' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="reserved" {% if role.role == 'reserved' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Bringe ich mit! 🍻{% else %}Reserviert{% endif %})
                         </option>
-                        <option value="fulfilled" {% if role.role == 'fulfilled' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
+                        <option value="fulfilled" {% if role.role == 'fulfilled' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Erledigt / Besorgt ✓{% else %}Wunsch erfüllt{% endif %})
                         </option>
                         <option value="delete" style="background: #ff1744; color: #ffffff;">
