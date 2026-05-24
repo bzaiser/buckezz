@@ -23,6 +23,11 @@ class Command(BaseCommand):
             # Tenant-Datenbank registrieren
             db_alias = register_tenant_db(tenant_slug)
 
+            # Alle existierenden Themes löschen, um Konflikte zu vermeiden
+            self.stdout.write("🗑️ Bereinige alte Theme-Einträge im Mandanten...")
+            from admin_interface.models import Theme
+            Theme.objects.using(db_alias).all().delete()
+
             # Fixture in diese Datenbank laden
             self.stdout.write(f"🎨 Lade custom_theme.json in Datenbank '{db_alias}'...")
             call_command('loaddata', 'custom_theme.json', database=db_alias, verbosity=1)
