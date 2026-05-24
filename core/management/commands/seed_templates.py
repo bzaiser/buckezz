@@ -66,21 +66,19 @@ Notizen: Ein absoluter Spitzenwein. Sollte mindestens 2 Stunden vor dem Trinken 
                 'name': 'Veranstaltungsplaner',
                 'icon': '🗓️',
                 'fields': {'logic_type': 'event', 'use_location': True, 'use_start_date': True, 'use_end_date': True, 'use_persons': True, 'use_price': True},
-                'help_purpose': 'Umfassende Koordination von Geburtstagen, Hochzeiten, Ausflügen, Grillfesten oder Business-Events.',
-                'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Planen: Erstelle Event-Posten (z.B. "Location mieten", "Catering organisieren").\n2. Zuweisen: Teile Aufgaben und Zuständigkeiten bestimmten Personen zu (z.B. "Wer bringt den Nudelsalat mit?").\n3. Zeitplanung & Budget: Lege Start- und Endzeiten fest und behalte über die automatische Preiskalkulation das Gesamtbudget im Auge.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name der Aktivität / Planungs-Aufgabe\n• Ort: Veranstaltungsort oder Adresse\n• Start & Ende: Exakter Zeitraum für den Ablauf\n• Zuständig (Personen): Zugewiesene Organisatoren / Helfer\n• Kosten/Preis: Kalkulierter Einzelpreis zur automatischen Budgetberechnung',
-                'help_example': """Titel / Bezeichnung: Getränke und Eis für die Grillparty besorgen
+                'help_purpose': 'Umfassende Koordination von Geburtstagen, Hochzeiten, Supper Clubs, Grillfesten oder Business-Events.',
+                'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Planen: Erstelle Event-Posten (z.B. "Location mieten", "Catering organisieren").\n2. Supper Club & Einladungen: Markiere Einträge beim Erstellen als "Einladung". Dadurch werden alle Listen-Mitglieder automatisch als Gäste eingeladen und können ihren RSVP-Status (Zusage 🟢, Absage 🔴, Vielleicht ⚪) direkt in der Liste pflegen.\n3. Aufgaben & Handheben (🙋): Normale Posten (z.B. "Nudelsalat") zeigen einen "🙋 Übernehmen"-Button. Jedes Mitglied kann sich die Aufgabe mit einem Klick zuweisen (Status: Bringe ich mit! 🍻).\n4. Budget: Lege Preise fest – die Liste berechnet das Gesamtbudget automatisch.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name der Aktivität / Planungs-Aufgabe\n• Ort: Veranstaltungsort oder Adresse\n• Start & Ende: Exakter Zeitraum für den Ablauf\n• Einladung: Aktiviert die RSVP-Gästeliste für diesen Eintrag\n• Zuständig (Personen): Zugewiesene Organisatoren / Helfer / Gäste\n• Kosten/Preis: Kalkulierter Einzelpreis zur automatischen Budgetberechnung',
+                'help_example': """Titel / Bezeichnung: Bagels & mediterrane Dips besorgen
 
-Ort: Getränkemarkt Müller (Industriestraße)
+Ort: Bäckerei Schmidt / Feinkostladen
 
-Start: Donnerstag, 18.06.2026 um 15:00 Uhr
+Start: Samstag, 20.06.2026 um 17:00 Uhr
 
-Ende: Donnerstag, 18.06.2026 um 16:30 Uhr
+Zuständig: Felix (Status: Bringe ich mit! 🍻)
 
-Zuständig: Felix
+Preis / Budget: 25,00 € (Gesamtkalkulation für Bagels und frischen Hummus)
 
-Preis / Budget: 60,00 € (Gesamtkalkulation für 3 Kisten Bier und Softdrinks)
-
-Notizen: Bitte die Pfandflaschen aus dem Keller vorher ins Auto einladen und direkt verrechnen lassen! Kassenbon für die Abrechnung aufheben."""
+Notizen: Felix hat über den "🙋 Übernehmen"-Button freiwillig die Hand gehoben. Bitte Kassenbon aufheben für die Umlage!"""
             },
             {
                 'old_name': '💊 Medikamentenplan',
