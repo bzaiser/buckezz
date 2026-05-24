@@ -10,7 +10,7 @@ class HomeView(TemplateView):
     template_name = 'core/home.html'
 
     def get(self, request, *args, **kwargs):
-        if request.user.is_authenticated:
+        if request.user.is_authenticated and 'start' not in request.GET:
             return redirect('core:dashboard')
         return super().get(request, *args, **kwargs)
 

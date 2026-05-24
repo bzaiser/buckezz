@@ -476,7 +476,7 @@
     <header class="glass">
         <div class="container nav-content">
             <div class="nav-left">
-                <a href="{% url 'core:home' %}" class="logo" style="display: flex; align-items: center; text-decoration: none; height: 75px;">
+                <a href="{% url 'core:home' %}{% if user.is_authenticated %}?start=1{% endif %}" class="logo" style="display: flex; align-items: center; text-decoration: none; height: 75px;">
                     <img src="{% static 'img/logo.svg' %}" alt="buckezz" style="height: 100%; width: auto; display: block;">
                 </a>
                 {% if user.is_authenticated %}

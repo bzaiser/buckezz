@@ -731,7 +731,7 @@ document.addEventListener('alpine:init', () => {
             </div>
         {% else %}
             <div style="font-size: 0.88rem; display: flex; align-items: center; gap: 4px;">
-                <a href="{% url 'core:home' %}" class="text-muted" style="text-decoration: none; font-weight: 500;">Startseite</a>
+                <a href="{% url 'core:home' %}{% if user.is_authenticated %}?start=1{% endif %}" class="text-muted" style="text-decoration: none; font-weight: 500;">Startseite</a>
                 <span class="text-muted" style="opacity: 0.5;">&gt;</span>
                 <span class="text-muted" style="font-weight: 500;">Liste</span>
             </div>
