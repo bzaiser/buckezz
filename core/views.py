@@ -766,9 +766,12 @@ class ToggleItemView(View):
         item.is_completed = not item.is_completed
         item.status = 'done' if item.is_completed else 'active'
         
-        # Reset guest RSVP roles back to 'invited' if reopened
-        if not item.is_completed and item.is_invitation and bucket.category.template.logic_type == 'event':
-            item.person_roles.exclude(role='assigned').update(role='invited')
+        # Reset guest RSVP roles back to 'invited' if reopened, and clear normal claimed roles
+        if not item.is_completed and bucket.category.template.logic_type == 'event':
+            if item.is_invitation:
+                item.person_roles.exclude(role='assigned').update(role='invited')
+            else:
+                item.person_roles.all().delete()
             
         if request.user.is_authenticated:
             item.updated_by = request.user
@@ -910,27 +913,46 @@ class CyclePersonRoleView(View):
                     role.item.save()
         else:
             new_role = request.POST.get('role')
-            if new_role and new_role in [c[0] for c in ItemPersonRole.STATUS_CHOICES]:
+            if new_role == 'delete':
+                role.delete()
+                # Check if any other person role is 'fulfilled' on this item, if not, set is_completed to False
+                other_fulfilled = role.item.person_roles.filter(role='fulfilled').exists()
+                if not other_fulfilled:
+                    role.item.is_completed = False
+                    role.item.save()
+            elif new_role and new_role in [c[0] for c in ItemPersonRole.STATUS_CHOICES]:
                 role.role = new_role
                 role.save()
+                
+                # If the role is now 'fulfilled', mark the list item completed
+                if role.role == 'fulfilled':
+                    role.item.is_completed = True
+                    role.item.save()
+                else:
+                    # If it transitioned away from fulfilled, make sure it's marked active
+                    # (only if no other person role is currently 'fulfilled' on this item)
+                    other_fulfilled = role.item.person_roles.filter(role='fulfilled').exclude(id=role.id).exists()
+                    if not other_fulfilled:
+                        role.item.is_completed = False
+                        role.item.save()
             else:
                 choices = [c[0] for c in ItemPersonRole.STATUS_CHOICES]
                 current_index = choices.index(role.role)
                 next_index = (current_index + 1) % len(choices)
                 role.role = choices[next_index]
                 role.save()
-            
-            # If the role is now 'fulfilled', mark the list item completed
-            if role.role == 'fulfilled':
-                role.item.is_completed = True
-                role.item.save()
-            else:
-                # If it transitioned away from fulfilled, make sure it's marked active
-                # (only if no other person role is currently 'fulfilled' on this item)
-                other_fulfilled = role.item.person_roles.filter(role='fulfilled').exclude(id=role.id).exists()
-                if not other_fulfilled:
-                    role.item.is_completed = False
+                
+                # If the role is now 'fulfilled', mark the list item completed
+                if role.role == 'fulfilled':
+                    role.item.is_completed = True
                     role.item.save()
+                else:
+                    # If it transitioned away from fulfilled, make sure it's marked active
+                    # (only if no other person role is currently 'fulfilled' on this item)
+                    other_fulfilled = role.item.person_roles.filter(role='fulfilled').exclude(id=role.id).exists()
+                    if not other_fulfilled:
+                        role.item.is_completed = False
+                        role.item.save()
         
         if request.htmx:
             return render_item_list(request, bucket, True)

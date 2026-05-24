@@ -382,6 +382,9 @@
                         <option value="fulfilled" {% if role.role == 'fulfilled' %}selected{% endif %} style="background: #161b22; color: #ffffff;">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Erledigt / Besorgt ✓{% else %}Wunsch erfüllt{% endif %})
                         </option>
+                        <option value="delete" style="background: #ff1744; color: #ffffff;">
+                            ❌ Zuweisung löschen / Freigeben
+                        </option>
                     </select>
                     {% else %}
                     <span class="role-{{ role.role }}" style="font-size: 0.7rem; padding: 2px 6px; border-radius: 8px; border: 1px solid currentColor; cursor: pointer;"
