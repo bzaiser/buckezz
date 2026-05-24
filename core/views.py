@@ -1333,7 +1333,7 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.conf import settings
 from core.models import Tenant, UserSetting, Person
-from core.router import set_active_tenant
+from core.router import set_active_tenant, register_tenant_db
 
 class RegisterTenantView(View):
     def get(self, request, *args, **kwargs):
@@ -1427,21 +1427,24 @@ class RegisterTenantView(View):
                 is_active=True
             )
 
-            # Temporär auf die neue Mandanten-Datenbank umschalten, um den Admin anzulegen
+            # Mandanten-Datenbank registrieren und Alias holen
+            db_alias = register_tenant_db(instance_slug)
+
+            # Temporär auf die neue Mandanten-Datenbank umschalten
             set_active_tenant(instance_slug)
             try:
-                # Admin-Superuser erstellen
-                user = User.objects.create_superuser(
+                # Admin-Superuser explizit in der Mandanten-Datenbank erstellen
+                user = User.objects.db_manager(db_alias).create_superuser(
                     username=admin_username,
                     email=admin_email,
                     password=admin_password
                 )
                 
-                # UserSetting für den Admin erstellen/holen
-                UserSetting.objects.get_or_create(user=user)
+                # UserSetting für den Admin explizit in der Mandanten-Datenbank erstellen/holen
+                UserSetting.objects.using(db_alias).get_or_create(user=user)
                 
-                # Person-Eintrag für den Admin erstellen
-                Person.objects.create(
+                # Person-Eintrag für den Admin explizit in der Mandanten-Datenbank erstellen
+                Person.objects.using(db_alias).create(
                     name=admin_username,
                     email=admin_email,
                     user=user
