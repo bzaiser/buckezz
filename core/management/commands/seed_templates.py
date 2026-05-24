@@ -6,6 +6,13 @@ from django.utils.text import slugify
 class Command(BaseCommand):
     help = 'Seeds sensible list templates and cleans up icons'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--database',
+            default='default',
+            help='Nominates a database to seed templates into.',
+        )
+
     def handle(self, *args, **options):
         templates_data = [
             {
@@ -226,17 +233,18 @@ Notizen: Beim letzten Satz bis zum Muskelversagen gegangen. Nächstes Mal versuc
             }
         ]
 
-        with transaction.atomic():
+        db = options.get('database', 'default')
+        with transaction.atomic(using=db):
             for data in templates_data:
                 # Try to find by old name or new name
-                cat = ListCategory.objects.filter(name__in=[data.get('old_name'), data['name']]).first()
+                cat = ListCategory.objects.using(db).filter(name__in=[data.get('old_name'), data['name']]).first()
                 if not cat:
-                    cat = ListCategory.objects.create(name=data['name'], slug=slugify(data['name']))
+                    cat = ListCategory.objects.using(db).create(name=data['name'], slug=slugify(data['name']))
                 
                 cat.name = data['name']
                 cat.icon = data['icon']
                 cat.slug = slugify(data['name'])
-                cat.save()
+                cat.save(using=db)
                 
                 full_fields = {
                     'logic_type': 'generic',
@@ -252,8 +260,8 @@ Notizen: Beim letzten Satz bis zum Muskelversagen gegangen. Nächstes Mal versuc
                 }
                 full_fields.update(data['fields'])
                 
-                ListTemplate.objects.update_or_create(
+                ListTemplate.objects.using(db).update_or_create(
                     category=cat,
                     defaults=full_fields
                 )
-                self.stdout.write(self.style.SUCCESS(f"Updated {cat.name} with icon {cat.icon} and help texts"))
+                self.stdout.write(self.style.SUCCESS(f"Updated {cat.name} with icon {cat.icon} and help texts in database '{db}'"))

@@ -22,7 +22,8 @@ class Command(BaseCommand):
             try:
                 db_alias = register_tenant_db(tenant.slug)
                 call_command('migrate', database=db_alias, interactive=False)
-                self.stdout.write(self.style.SUCCESS(f"✅ Mandant '{tenant.slug}' erfolgreich migriert."))
+                call_command('seed_templates', database=db_alias)
+                self.stdout.write(self.style.SUCCESS(f"✅ Mandant '{tenant.slug}' erfolgreich migriert und Templates eingespielt."))
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"❌ Fehler bei der Migration von '{tenant.slug}': {e}"))
 
