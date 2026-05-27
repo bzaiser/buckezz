@@ -1590,6 +1590,24 @@ document.addEventListener('alpine:init', () => {
         .tracker-card {
             padding: var(--spacing-sm) !important;
         }
+
+        /* Print Modal Smartphone Styling */
+        #print-modal-overlay {
+            padding: 0 !important;
+        }
+        .print-modal-content {
+            border-radius: 0 !important;
+            border: none !important;
+            max-height: 100vh !important;
+            height: 100% !important;
+            width: 100% !important;
+        }
+    }
+
+    #print-modal-overlay {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     /* ── Print/PDF Stylesheet ── */
@@ -1663,7 +1681,7 @@ document.addEventListener('alpine:init', () => {
      id="print-modal-overlay"
      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;"
      class="no-print">
-    <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
+    <div class="print-modal-content" style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
          @click.away="showPrintModal = false">
         
         <!-- Modal Header -->
