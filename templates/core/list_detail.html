@@ -1782,64 +1782,6 @@ document.addEventListener('alpine:init', () => {
     </div>
 </div>
 
-<script>
-    function downloadPDFBlob(url, filename) {
-        const btn = document.getElementById('download-pdf-btn');
-        const originalText = btn.innerHTML;
-        
-        // Visuelles Feedback: Lade-Status auf dem Button anzeigen
-        btn.innerHTML = '⏳ PDF wird generiert...';
-        btn.style.pointerEvents = 'none';
-        btn.style.opacity = '0.7';
-
-        // 100% lokaler Fetch der PDF-Binärdaten von deinem NAS
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error('Netzwerk-Fehler beim PDF-Download');
-                return response.blob();
-            })
-            .then(blob => {
-                // 1. Erzeuge ein echtes File-Objekt im Speicher des Geräts
-                const file = new File([blob], filename, { type: 'application/pdf' });
-
-                // 2. Prüfen, ob es sich um ein Mobilgerät handelt (iPhone, iPad, Android)
-                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-                // 3. Nur auf Mobilgeräten das Teilen-Menü erzwingen (schützt vor URL-Leak)
-                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
-                    // Hier übergeben wir NUR die Datei. Keine URL!
-                    navigator.share({
-                        files: [file],
-                        title: filename
-                    })
-                    .catch(error => {
-                        console.log('Teilen abgebrochen oder fehlgeschlagen:', error);
-                    });
-                } else {
-                    // Auf PCs: Direkter, verlässlicher Standard-Download in den Downloads-Ordner (garantiert Dateinamen für Outlook)
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = filename;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
-                }
-            })
-            .catch(error => {
-                console.error(error);
-                alert('Fehler beim Generieren des PDFs. Bitte versuche es erneut.');
-            })
-            .finally(() => {
-                // Button wieder in den Normalzustand versetzen
-                btn.innerHTML = originalText;
-                btn.style.pointerEvents = 'auto';
-                btn.style.opacity = '1';
-            });
-    }
-</script>
-
 <!-- Help Modal -->
 <template x-if="showHelpModal">
     <div class="modal-overlay" @click.self="showHelpModal = false" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 2100; backdrop-filter: blur(10px);">
@@ -1963,5 +1905,58 @@ document.addEventListener('alpine:init', () => {
     });
 </script>
 {% endif %}
+
+<script>
+    window.downloadPDFBlob = function(url, filename) {
+        const btn = document.getElementById('download-pdf-btn');
+        if (!btn) {
+            console.error('Download button not found');
+            return;
+        }
+        const originalText = btn.innerHTML;
+        
+        btn.innerHTML = '⏳ PDF wird generiert...';
+        btn.style.pointerEvents = 'none';
+        btn.style.opacity = '0.7';
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error('Netzwerk-Fehler beim PDF-Download');
+                return response.blob();
+            })
+            .then(blob => {
+                const file = new File([blob], filename, { type: 'application/pdf' });
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+                if (isMobile && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: filename
+                    })
+                    .catch(error => {
+                        console.log('Teilen abgebrochen oder fehlgeschlagen:', error);
+                    });
+                } else {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert('Fehler beim Generieren des PDFs. Bitte versuche es erneut.');
+            })
+            .finally(() => {
+                btn.innerHTML = originalText;
+                btn.style.pointerEvents = 'auto';
+                btn.style.opacity = '1';
+            });
+    };
+</script>
 
 {% endblock %}
