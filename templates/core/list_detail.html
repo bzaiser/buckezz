@@ -9,7 +9,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('listDetail', () => ({
         showShare: false,
 
-        showPrintModal: true,
+        showPrintModal: false,
         showHelpModal: false,
         showStats: false,
 
@@ -772,7 +772,7 @@ document.addEventListener('alpine:init', () => {
                 </button>
             {% endif %}
 
-            <button @click="showPrintModal = true" onclick="console.log('PDF Export clicked'); alert('Debug: Button geklickt. Suche Modal...'); const modal = document.getElementById('print-modal-overlay'); if (modal) { console.log('Modal found:', modal); modal.style.setProperty('display', 'flex', 'important'); try { if (window.Alpine) { const data = Alpine.$data(modal); if (data) { data.showPrintModal = true; console.log('Alpine showPrintModal set to true'); } } } catch(e) { console.error('Alpine toggle failed, using pure JS:', e); } } else { alert('Fehler: Modal-Element print-modal-overlay wurde nicht im DOM gefunden!'); }" class="btn btn-glass btn-icon-text" title="PDF Export">📄 <span class="btn-label">PDF Export</span></button>
+            <button @click="showPrintModal = true" class="btn btn-glass btn-icon-text" title="PDF Export">📄 <span class="btn-label">PDF Export</span></button>
             {% if bucket.owner == user %}
                 <button class="btn btn-glass btn-icon-text" @click="showShare = !showShare" title="Teilen">🔗 <span class="btn-label">Teilen</span></button>
                 <a href="{% url 'admin:core_bucketlist_change' bucket.id %}" class="btn btn-glass btn-icon-text" title="Liste konfigurieren">🔧 <span class="btn-label">Konfigurieren</span></a>
@@ -1661,9 +1661,8 @@ document.addEventListener('alpine:init', () => {
 <!-- Print Preview Modal for Screen Mode -->
 <div x-show="showPrintModal" 
      id="print-modal-overlay"
-     style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;"
-     class="no-print"
-     onclick="if (event.target === this) { this.style.setProperty('display', 'none', 'important'); }">
+     style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;"
+     class="no-print">
     <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
          @click.away="showPrintModal = false">
         
