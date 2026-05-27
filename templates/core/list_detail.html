@@ -271,7 +271,7 @@ document.addEventListener('alpine:init', () => {
         let initialLogs = {};
         {% for item in active_items %}
             // Base object with ALL possible fields pre-initialized to safe defaults
-            initialLogs[{{ item.id }}] = {
+            initialLogs['{{ item.id }}'] = {
                 title: '{{ item.title|escapejs }}',
                 type: '{{ item.workout_type|default:"" }}',
                 // strength fields
@@ -296,7 +296,7 @@ document.addEventListener('alpine:init', () => {
                     let repsArr = repsStr.split(',');
                     let weightsArr = weightsStr.split(',');
                     for (let i = 0; i < sets; i++) {
-                        initialLogs[{{ item.id }}].sets.push({
+                        initialLogs['{{ item.id }}'].sets.push({
                             reps: (repsArr[i] || repsArr[repsArr.length - 1] || '10').trim(),
                             weight: (weightsArr[i] || weightsArr[weightsArr.length - 1] || '50').trim(),
                             done: false
@@ -304,12 +304,12 @@ document.addEventListener('alpine:init', () => {
                     }
                 }
             {% elif item.workout_type == 'endurance' %}
-                initialLogs[{{ item.id }}].distance = '{{ item.workout_config_json.target_distance|default:"" }}';
-                initialLogs[{{ item.id }}].duration = '{{ item.workout_config_json.target_duration|default:"" }}';
-                initialLogs[{{ item.id }}].pace     = '{{ item.workout_config_json.target_pace|default:"" }}';
+                initialLogs['{{ item.id }}'].distance = '{{ item.workout_config_json.target_distance|default:"" }}';
+                initialLogs['{{ item.id }}'].duration = '{{ item.workout_config_json.target_duration|default:"" }}';
+                initialLogs['{{ item.id }}'].pace     = '{{ item.workout_config_json.target_pace|default:"" }}';
             {% elif item.workout_type == 'interval' %}
-                initialLogs[{{ item.id }}].format   = '{{ item.workout_config_json.interval_format|default:"AMRAP" }}';
-                initialLogs[{{ item.id }}].duration = '{{ item.workout_config_json.interval_duration|default:"" }}';
+                initialLogs['{{ item.id }}'].format   = '{{ item.workout_config_json.interval_format|default:"AMRAP" }}';
+                initialLogs['{{ item.id }}'].duration = '{{ item.workout_config_json.interval_duration|default:"" }}';
             {% endif %}
         {% endfor %}
         this.logs = initialLogs;
@@ -1245,11 +1245,11 @@ document.addEventListener('alpine:init', () => {
                         {% if item.workout_type == 'strength' %}
                             <!-- Strength sets checkpoints -->
                             <div style="display: flex; flex-direction: column; gap: 12px;">
-                                <template x-if="logs[{{ item.id }}]">
-                                    <template x-for="(set, idx) in logs[{{ item.id }}].sets" :key="idx">
+                                <template x-if="logs['{{ item.id }}']">
+                                    <template x-for="(set, idx) in logs['{{ item.id }}'].sets" :key="idx">
                                         <div style="background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;">
                                             <div style="display: flex; align-items: center; gap: 12px;">
-                                                <button @click="toggleSet({{ item.id }}, idx, {{ item.workout_config_json.rest_time|default:120 }})" 
+                                                <button @click="toggleSet('{{ item.id }}', idx, {{ item.workout_config_json.rest_time|default:120 }})" 
                                                         class="btn" 
                                                         :style="set.done ? 'background: #00e676; border-color: #00e676; color: #000;' : 'background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); color: rgba(255,255,255,0.25);'" 
                                                         style="width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; cursor: pointer; transition: all 0.2s;">
@@ -1313,13 +1313,13 @@ document.addEventListener('alpine:init', () => {
                                         <div style="display: flex; gap: 8px;">
                                             <button @click="startLapTimer()" class="btn" style="background: rgba(0,230,118,0.2); color: #00e676; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Start</button>
                                             <button @click="stopLapTimer()" class="btn" style="background: rgba(255,82,82,0.2); color: #ff5252; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Stop</button>
-                                            <button @click="recordLap({{ item.id }})" class="btn" style="background: rgba(255,171,0,0.2); color: var(--accent); border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;" :disabled="lapTimer === 0">Split</button>
+                                            <button @click="recordLap('{{ item.id }}')" class="btn" style="background: rgba(255,171,0,0.2); color: var(--accent); border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;" :disabled="lapTimer === 0">Split</button>
                                             <button @click="resetLapTimer()" class="btn" style="background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; font-size: 0.8rem; border-radius: 4px;">Reset</button>
                                         </div>
                                     </div>
 
                                     <!-- Recorded Lap Splits Carousel/table -->
-                                    <template x-if="logs[{{ item.id }}] && logs[{{ item.id }}].laps.length > 0">
+                                    <template x-if="logs['{{ item.id }}'] && logs['{{ item.id }}'].laps.length > 0">
                                         <div style="max-height: 120px; overflow-y: auto; border: 1px solid rgba(255,255,255,0.05); padding: 8px; border-radius: 4px; background: rgba(0,0,0,0.3);">
                                             <table style="width: 100%; font-size: 0.8rem; text-align: left;">
                                                 <thead>
@@ -1329,7 +1329,7 @@ document.addEventListener('alpine:init', () => {
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    <template x-for="lap in logs[{{ item.id }}].laps" :key="lap.lap">
+                                                    <template x-for="lap in logs['{{ item.id }}'].laps" :key="lap.lap">
                                                         <tr style="border-bottom: 1px solid rgba(255,255,255,0.03);">
                                                             <td style="font-weight: bold; color: var(--primary);" x-text="'Lap ' + lap.lap"></td>
                                                             <td style="font-family: monospace; color: #fff;" x-text="lap.time + 's'"></td>
@@ -1344,12 +1344,12 @@ document.addEventListener('alpine:init', () => {
                                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
                                     <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Tatsächlicher Lauf / Fahrt loggen:</h4>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
-                                        <input type="text" placeholder="Distanz (km)" x-model="logs[{{ item.id }}].distance" class="glass" style="font-size: 0.9rem; padding: 8px;">
-                                        <input type="text" placeholder="Dauer (Min.)" x-model="logs[{{ item.id }}].duration" class="glass" style="font-size: 0.9rem; padding: 8px;">
-                                        <input type="text" placeholder="Pace (Min/km)" x-model="logs[{{ item.id }}].pace" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Distanz (km)" x-model="logs['{{ item.id }}'].distance" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Dauer (Min.)" x-model="logs['{{ item.id }}'].duration" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Pace (Min/km)" x-model="logs['{{ item.id }}'].pace" class="glass" style="font-size: 0.9rem; padding: 8px;">
                                     </div>
                                     <label style="display: flex; align-items: center; gap: 8px; margin-top: 5px; cursor: pointer;">
-                                        <input type="checkbox" x-model="logs[{{ item.id }}].done" style="width: 18px; height: 18px; accent-color: #00e676;">
+                                        <input type="checkbox" x-model="logs['{{ item.id }}'].done" style="width: 18px; height: 18px; accent-color: #00e676;">
                                         <span style="font-size: 0.85rem;">Als erledigt markieren</span>
                                     </label>
                                 </div>
@@ -1393,11 +1393,11 @@ document.addEventListener('alpine:init', () => {
                                 <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 10px;">
                                     <h4 style="margin: 0; font-size: 0.85rem; color: var(--text-muted);">Runden loggen:</h4>
                                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                        <input type="text" placeholder="Runden geschafft" x-model="logs[{{ item.id }}].completed_rounds" class="glass" style="font-size: 0.9rem; padding: 8px;">
-                                        <input type="text" placeholder="Dauer (Min/Sek)" x-model="logs[{{ item.id }}].completed_time" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Runden geschafft" x-model="logs['{{ item.id }}'].completed_rounds" class="glass" style="font-size: 0.9rem; padding: 8px;">
+                                        <input type="text" placeholder="Dauer (Min/Sek)" x-model="logs['{{ item.id }}'].completed_time" class="glass" style="font-size: 0.9rem; padding: 8px;">
                                     </div>
                                     <label style="display: flex; align-items: center; gap: 8px; margin-top: 5px; cursor: pointer;">
-                                        <input type="checkbox" x-model="logs[{{ item.id }}].done" style="width: 18px; height: 18px; accent-color: #00e676;">
+                                        <input type="checkbox" x-model="logs['{{ item.id }}'].done" style="width: 18px; height: 18px; accent-color: #00e676;">
                                         <span style="font-size: 0.85rem;">Als erledigt markieren</span>
                                     </label>
                                 </div>
