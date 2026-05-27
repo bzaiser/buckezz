@@ -1420,7 +1420,7 @@ document.addEventListener('alpine:init', () => {
 <!-- COMPLETED WORKOUT LOG MODAL -->
 <div x-show="showLogSessionModal" 
      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(10px); z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px;"
-     :style="showLogSessionModal ? 'display: flex' : 'display: none'">
+     :style="{ display: showLogSessionModal ? 'flex' : 'none' }">
     <div class="modal-content glass card" style="width: 100%; max-width: 500px; padding: var(--spacing-lg); border: 1px solid var(--accent); position: relative; background: var(--bg-surface);">
         <h3 style="margin-top: 0; color: var(--primary); display: flex; align-items: center; gap: 8px;">
             <span>🎉</span> Training geschafft!
@@ -1661,7 +1661,7 @@ document.addEventListener('alpine:init', () => {
 <!-- Print Preview Modal for Screen Mode -->
 <div x-show="showPrintModal" 
      style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;"
-     :style="showPrintModal ? 'display: flex' : 'display: none'"
+     :style="{ display: showPrintModal ? 'flex' : 'none' }"
      class="no-print">
     <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
          @click.away="showPrintModal = false">
