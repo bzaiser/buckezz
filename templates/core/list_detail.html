@@ -9,7 +9,7 @@ document.addEventListener('alpine:init', () => {
     Alpine.data('listDetail', () => ({
         showShare: false,
 
-        showPrintModal: false,
+        showPrintModal: true,
         showHelpModal: false,
         showStats: false,
 
@@ -1661,7 +1661,7 @@ document.addEventListener('alpine:init', () => {
 <!-- Print Preview Modal for Screen Mode -->
 <div x-show="showPrintModal" 
      id="print-modal-overlay"
-     style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: none; align-items: center; justify-content: center; padding: 20px;"
+     style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(8px); z-index: 10000; display: flex; align-items: center; justify-content: center; padding: 20px;"
      class="no-print"
      onclick="if (event.target === this) { this.style.setProperty('display', 'none', 'important'); }">
     <div style="background: #0d1117; border: 1px solid var(--primary); border-radius: 16px; width: 100%; max-width: 900px; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.6);"
