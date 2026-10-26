@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 
 # Ensure default environment variables BEFORE any Django/WSGI import
 if not os.environ.get('SECRET_KEY'):
@@ -16,6 +17,17 @@ from waitress import serve
 from buckezz_project.wsgi import application
 from django.conf import settings
 from django.core.management import call_command
+
+LOG_DIR = Path(os.getenv('LOCALAPPDATA', str(Path.home()))) / 'Buckezz Desktop'
+LOG_FILE = LOG_DIR / 'buckezz.log'
+
+def _log(msg):
+    try:
+        LOG_DIR.mkdir(parents=True, exist_ok=True)
+        with open(LOG_FILE, 'a', encoding='utf-8') as f:
+            f.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
+    except Exception:
+        pass
 
 SPLASH_HTML = """<!DOCTYPE html>
 <html>
@@ -112,15 +124,19 @@ def wait_for_server(port, timeout=15.0):
 
 def init_django_database():
     """Initializes migrations and seed templates quietly."""
+    _log("init_django_database: running migrate")
     try:
         call_command('migrate', interactive=False)
+        _log("migrate: OK")
     except Exception as e:
-        print(f"Migration error: {e}")
+        _log(f"migrate ERROR: {traceback.format_exc()}")
 
+    _log("init_django_database: running seed_templates")
     try:
         call_command('seed_templates')
+        _log("seed_templates: OK")
     except Exception as e:
-        print(f"Seed templates error: {e}")
+        _log(f"seed_templates ERROR: {traceback.format_exc()}")
 
 if __name__ == '__main__':
     import multiprocessing
@@ -131,6 +147,8 @@ if __name__ == '__main__':
         os.environ['SECRET_KEY'] = 'django-insecure-desktop-mode-buckezz-key-local-run'
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buckezz_project.settings')
+
+    _log(f"=== Buckezz Desktop starting === frozen={getattr(sys, 'frozen', False)}")
 
     # CLI Support: Allow executing Django management commands via desktop exe
     if len(sys.argv) > 1:
@@ -182,11 +200,21 @@ if __name__ == '__main__':
         )
 
         def bootstrap_and_navigate():
-            init_django_database()
-            server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
-            server_thread.start()
-            if wait_for_server(port):
-                window.load_url(url)
+            try:
+                _log("bootstrap_and_navigate: start")
+                init_django_database()
+                _log(f"bootstrap_and_navigate: starting server on port {port}")
+                server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
+                server_thread.start()
+                _log("bootstrap_and_navigate: waiting for server")
+                if wait_for_server(port):
+                    _log(f"bootstrap_and_navigate: server ready, loading {url}")
+                    window.load_url(url)
+                    _log("bootstrap_and_navigate: load_url called")
+                else:
+                    _log("bootstrap_and_navigate: server NEVER responded (timeout)")
+            except Exception:
+                _log(f"bootstrap_and_navigate CRASH:\n{traceback.format_exc()}")
 
         storage_dir = Path(os.getenv('LOCALAPPDATA', str(Path.home()))) / 'Buckezz Desktop' / 'webview_data'
         try:
