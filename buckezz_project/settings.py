@@ -1,9 +1,15 @@
 import os
+import sys
 import environ
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+if getattr(sys, 'frozen', False):
+    BASE_DIR = Path(sys.executable).resolve().parent
+    BUNDLE_DIR = Path(sys._MEIPASS) if hasattr(sys, '_MEIPASS') else BASE_DIR / '_internal'
+else:
+    BASE_DIR = Path(__file__).resolve().parent.parent
+    BUNDLE_DIR = BASE_DIR
 
 env = environ.Env(
     DEBUG=(bool, False),
@@ -79,7 +85,7 @@ ROOT_URLCONF = 'buckezz_project.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],
+        'DIRS': [BUNDLE_DIR / 'templates', BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -148,7 +154,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [BASE_DIR / 'static']
+STATICFILES_DIRS = [BUNDLE_DIR / 'static'] if (BUNDLE_DIR / 'static').exists() else [BASE_DIR / 'static']
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

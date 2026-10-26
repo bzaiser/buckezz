@@ -123,6 +123,9 @@ def init_django_database():
         print(f"Seed templates error: {e}")
 
 if __name__ == '__main__':
+    import multiprocessing
+    multiprocessing.freeze_support()
+
     # Ensure default SECRET_KEY if not in environment
     if not os.environ.get('SECRET_KEY'):
         os.environ['SECRET_KEY'] = 'django-insecure-desktop-mode-buckezz-key-local-run'

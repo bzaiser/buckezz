@@ -292,4 +292,7 @@ Teil-Checkliste:
                     category_id=cat.pk,
                     defaults=full_fields
                 )
-                self.stdout.write(self.style.SUCCESS(f"Updated {cat.name} with icon {cat.icon} and help texts in database '{db}'"))
+                try:
+                    self.stdout.write(self.style.SUCCESS(f"Updated {cat.name} with icon {cat.icon} and help texts in database '{db}'"))
+                except Exception:
+                    self.stdout.write(f"Updated {cat.name} with help texts in database '{db}'")
