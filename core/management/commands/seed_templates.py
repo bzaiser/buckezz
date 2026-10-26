@@ -231,6 +231,31 @@ Pause nach Sätzen: 3 Minuten (180s)
 Rest-Timer: Aktiviert
 
 Notizen: Beim letzten Satz bis zum Muskelversagen gegangen. Nächstes Mal versuchen, das Gewicht beim 2. Satz um 2.5 kg zu erhöhen!"""
+            },
+            {
+                'old_name': 'Geliehen & Verliehen',
+                'name': 'Geliehen & Verliehen',
+                'icon': '🤝',
+                'fields': {
+                    'logic_type': 'todo',
+                    'use_persons': True,
+                    'use_end_date': True,
+                    'use_reminder': True,
+                    'use_location': True,
+                    'use_image': True,
+                    'use_subchecklist': True
+                },
+                'help_purpose': 'Behalte immer den perfekten Überblick über verliehene oder geliehene Gegenstände, Kisten und Sachen.',
+                'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Erfassen: Trage geliehene/verliehene Gegenstände ein. Fotografiere die Sachen direkt mit deinem Smartphone oder lade ein Foto hoch.\n2. Kontakt & Rolle: Wähle die beteiligte Person aus. Du siehst direkt Telefonnummer und WhatsApp-Direktlink und kannst die Rolle auf "Geliehen von" oder "Verliehen an" stellen.\n3. Teilweises Abhaken: Wenn du einen Korb voller Sachen geliehen hast (z.B. Babysachen), kannst du die Einzelteile zeilenweise erfassen und bei Rückgabe schrittweise einzeln oder komplett abhaken!\n4. Rückgabefrist: Setze ein Rückgabedatum und einen E-Mail-Wecker, um nichts zu vergessen.\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Haupttitel (z.B. "Korb mit Babysachen")\n• Foto / Beleg: Bildaufnahme zur Dokumentation des Zustands\n• Teil-Checkliste: Einzelne Gegenstände zum separaten Abhaken\n• Personen / Kontakte: Wer leiht / von wem geliehen inkl. Schnellkontakt\n• Fälligkeit / Rückgabe: Frist für die Rückgabe\n• Erinnerung: Automatischer Wecker per E-Mail',
+                'help_example': """Titel: Korb mit Babysachen Gr. 62/68
+Beteiligte Person: Anna (Geliehen von, 📞 0171-1234567)
+Rückgabe bis: 30.11.2026
+Teil-Checkliste:
+- Korb geflochten
+- 4x Wickelbodys
+- 2x Strampler blau
+- Wollmütze beige
+- Babyschlafsack"""
             }
         ]
 

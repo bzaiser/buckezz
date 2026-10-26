@@ -458,7 +458,15 @@ class QuickAddPersonView(View):
         name = request.POST.get('name')
         if not name:
             return JsonResponse({'error': 'Name is required'}, status=400)
-        person = Person.objects.create(name=name)
+        phone = request.POST.get('phone', '').strip()
+        email = request.POST.get('email', '').strip()
+        notes = request.POST.get('notes', '').strip()
+        person = Person.objects.create(
+            name=name,
+            phone=phone if phone else None,
+            email=email if email else None,
+            notes=notes if notes else None
+        )
         return JsonResponse({'id': person.id, 'name': person.name})
 
 import datetime

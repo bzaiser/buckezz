@@ -39,6 +39,8 @@ class UserSetting(models.Model):
 class Person(models.Model):
     name = models.CharField(max_length=255)
     email = models.EmailField(blank=True, null=True)
+    phone = models.CharField(max_length=50, blank=True, null=True, verbose_name=_("Telefonnummer"))
+    notes = models.TextField(blank=True, null=True, verbose_name=_("Kontaktnotizen"))
     user = models.OneToOneField(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='person_profile')
     access_token = models.UUIDField(default=uuid.uuid4, unique=True)
     birth_date = models.DateField(null=True, blank=True)
@@ -121,6 +123,8 @@ class ListTemplate(models.Model):
     use_rating = models.BooleanField(default=False)
     use_tracker = models.BooleanField(default=False)
     use_milestone = models.BooleanField(default=False)
+    use_image = models.BooleanField(default=False, verbose_name=_("Foto / Bildanhang erlauben"))
+    use_subchecklist = models.BooleanField(default=False, verbose_name=_("Teil-Checkliste / Aufzählung aktivieren"))
     new_items_at_bottom = models.BooleanField(default=False, verbose_name="Neue Einträge unten anfügen", help_text="Wenn aktiv, werden neue Einträge am Ende der Liste angefügt, andernfalls oben.")
 
     # Customizable help guidelines
@@ -219,6 +223,8 @@ class ListItem(models.Model):
     reminder_sent = models.BooleanField(default=False)
     
     location = models.CharField(max_length=255, null=True, blank=True)
+    image = models.ImageField(upload_to='item_photos/', blank=True, null=True, verbose_name=_("Foto / Beleg"))
+    subchecklist_json = models.JSONField(default=list, blank=True, verbose_name=_("Teil-Checkliste"))
     
     # Workout activity fields
     WORKOUT_TYPE_CHOICES = [
@@ -371,7 +377,9 @@ class ItemPersonRole(models.Model):
         ('declined', _('Abgesagt')),
         ('maybe', _('Vielleicht')),
         ('reserved', _('Reserviert')),
-        ('fulfilled', _('Wunsch erfüllt'))
+        ('fulfilled', _('Wunsch erfüllt')),
+        ('borrowed_from', _('Geliehen von')),
+        ('lent_to', _('Verliehen an')),
     ]
     item = models.ForeignKey(ListItem, on_delete=models.CASCADE, related_name='person_roles')
     person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name='item_roles')

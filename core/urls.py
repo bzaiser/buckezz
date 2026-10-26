@@ -29,6 +29,7 @@ urlpatterns = [
     path('list/<uuid:bucket_id>/add/', views.AddItemView.as_view(), name='add_item'),
     path('item/<int:item_id>/edit/', views.EditItemView.as_view(), name='edit_item'),
     path('item/<int:pk>/toggle/', views.ToggleItemView.as_view(), name='toggle_item'),
+    path('item/<int:item_id>/subitem/<int:index>/toggle/', views.ToggleSubCheckitemView.as_view(), name='toggle_subitem'),
     path('item/<int:pk>/delete/', views.DeleteItemView.as_view(), name='delete_item'),
     path('list/<uuid:bucket_id>/reorder/', views.ReorderItemsView.as_view(), name='reorder_items'),
     path('role/<int:role_id>/cycle/', views.CyclePersonRoleView.as_view(), name='cycle_person_role'),

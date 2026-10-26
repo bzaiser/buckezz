@@ -7,6 +7,7 @@
         <form hx-post="{% if item %}{% url 'core:edit_item' item.id %}{% else %}{% url 'core:add_item' bucket.id %}{% endif %}" 
               hx-target="#item-list" 
               hx-swap="innerHTML"
+              hx-encoding="multipart/form-data"
               hx-on::after-request="if(event.detail.successful) { this.closest('#item-form-container').remove(); {% if bucket.category.template.logic_type == 'workout' or item.bucket_list.category.template.logic_type == 'workout' %} window.location.reload(); {% endif %} }"
               onkeydown="if(event.key === 'Enter' && event.target.tagName === 'INPUT') { event.preventDefault(); return false; }">
         {% csrf_token %}
@@ -267,7 +268,7 @@
 
             {% if bucket.category.template.use_persons %}
             <div class="form-group">
-                <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Beteiligte Personen</label>
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 6px; color: var(--text-muted);">Beteiligte Personen / Kontakte</label>
                 <select id="select-persons" name="persons" multiple placeholder="Personen auswählen oder neu..." autocomplete="off">
                     {% for p in people %}
                         <option value="{{ p.id }}" 
@@ -280,9 +281,9 @@
                                             selected
                                         {% endif %}
                                     {% endif %}
-                                {% endfor %}
+                                endfor %}
                             {% endif %}>
-                            {{ p.name }}
+                            {{ p.name }}{% if p.phone %} (📞 {{ p.phone }}){% endif %}
                         </option>
                     {% endfor %}
                 </select>
@@ -318,6 +319,31 @@
                         });
                     })();
                 </script>
+            </div>
+            {% endif %}
+
+            {% if bucket.category.template.use_image %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">Foto / Beleg (Kamera oder Upload)</label>
+                {% if item.image %}
+                <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 10px;">
+                    <a href="{{ item.image.url }}" target="_blank">
+                        <img src="{{ item.image.url }}" alt="Vorschau" style="max-height: 80px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); object-fit: cover;">
+                    </a>
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">Bereits ein Foto hinterlegt. Neues Foto wählen zum Ersetzen.</span>
+                </div>
+                {% endif %}
+                <input type="file" name="image" accept="image/*" capture="environment" class="glass" style="padding: 8px;">
+            </div>
+            {% endif %}
+
+            {% if bucket.category.template.use_subchecklist %}
+            <div class="form-group">
+                <label style="display: block; font-size: 0.8rem; margin-bottom: 4px; color: var(--text-muted);">
+                    Teil-Gegenstände / Einzelne Sachen (eine pro Zeile zum separaten Abhaken)
+                </label>
+                <textarea name="subchecklist_text" class="glass" style="min-height: 90px; font-family: inherit;" placeholder="z.B.&#10;Korb&#10;3x Strampler&#10;Babyschuhe gelb&#10;Schlafsack">{% if item.subchecklist_json %}{% for sub in item.subchecklist_json %}{{ sub.title }}{% if not forloop.last %}
+{% endif %}{% endfor %}{% endif %}</textarea>
             </div>
             {% endif %}
 

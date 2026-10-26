@@ -314,6 +314,37 @@
         </div>
         {% endif %}
         
+        <!-- Photo Preview -->
+        {% if item.image and bucket.category.template.use_image %}
+        <div style="margin-top: 6px;">
+            <a href="{{ item.image.url }}" target="_blank" style="display: inline-block;">
+                <img src="{{ item.image.url }}" alt="{{ item.title }}" style="max-height: 90px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border); object-fit: cover;">
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Subchecklist / Einzelteile -->
+        {% if item.subchecklist_json and bucket.category.template.use_subchecklist %}
+        <div style="margin-top: 8px; padding: 6px 10px; background: rgba(0,0,0,0.25); border-radius: var(--radius-sm); border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: bold;">📦 Einzelne Gegenstände / Rückgabe-Punkte:</span>
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+                {% for sub in item.subchecklist_json %}
+                <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; cursor: pointer;">
+                    <input type="checkbox"
+                           {% if sub.done %}checked{% endif %}
+                           {% if not can_edit %}disabled{% endif %}
+                           {% if can_edit %}
+                           hx-post="{% url 'core:toggle_subitem' item.id forloop.counter0 %}"
+                           hx-target="#item-list"
+                           hx-swap="innerHTML"
+                           {% endif %}>
+                    <span style="{% if sub.done %}text-decoration: line-through; opacity: 0.6;{% endif %}">{{ sub.title }}</span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Secret Santa Action Button -->
         {% if bucket.is_secret_santa and not is_beneficiary and not item.person_roles.exists and current_person %}
         <div style="margin-top: 6px;">
@@ -351,8 +382,22 @@
                 .role-maybe { background: color-mix(in srgb, #9e9e9e 20%, transparent); color: #9e9e9e; }
                 .role-reserved { background: color-mix(in srgb, #29b6f6 20%, transparent); color: #29b6f6; }
                 .role-fulfilled { background: color-mix(in srgb, #66bb6a 20%, transparent); color: #66bb6a; }
+                .role-borrowed_from { background: color-mix(in srgb, #ff9800 20%, transparent); color: #ff9800; }
+                .role-lent_to { background: color-mix(in srgb, #ab47bc 20%, transparent); color: #ab47bc; }
             </style>
             {% for role in item.person_roles.all %}
+                {% if role.person.phone or role.person.email %}
+                <span style="font-size: 0.7rem; display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 6px; padding: 2px 6px;">
+                    👤 {{ role.person.name }}:
+                    {% if role.person.phone %}
+                        <a href="tel:{{ role.person.phone }}" style="color: var(--primary); text-decoration: none;" title="Anrufen">📞 {{ role.person.phone }}</a>
+                        <a href="https://wa.me/{{ role.person.phone|cut:' '|cut:'+'|cut:'-' }}" target="_blank" style="color: #25d366; text-decoration: none;" title="WhatsApp">💬 WA</a>
+                    {% endif %}
+                    {% if role.person.email %}
+                        <a href="mailto:{{ role.person.email }}" style="color: var(--primary); text-decoration: none;" title="E-Mail">✉️</a>
+                    {% endif %}
+                </span>
+                {% endif %}
                 {% if bucket.owner == request.user or current_person and role.person_id == current_person.id %}
                     {% if not bucket.is_secret_santa %}
                     <select name="role"
@@ -381,6 +426,12 @@
                         </option>
                         <option value="fulfilled" {% if role.role == 'fulfilled' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
                             {{ role.person.name }} ({% if bucket.category.template.logic_type == 'event' %}Erledigt / Besorgt ✓{% else %}Wunsch erfüllt{% endif %})
+                        </option>
+                        <option value="borrowed_from" {% if role.role == 'borrowed_from' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
+                            {{ role.person.name }} (Geliehen von)
+                        </option>
+                        <option value="lent_to" {% if role.role == 'lent_to' %}selected{% endif %} style="background: var(--input-bg, #161b22); color: var(--input-text, #ffffff);">
+                            {{ role.person.name }} (Verliehen an)
                         </option>
                         <option value="delete" style="background: #ff1744; color: #ffffff;">
                             ❌ Zuweisung löschen / Freigeben

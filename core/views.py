@@ -526,6 +526,23 @@ class AddItemView(View):
             }
         is_invitation = request.POST.get('is_invitation') == 'true'
         item.is_invitation = is_invitation
+
+        # Handle image upload
+        if 'image' in request.FILES:
+            item.image = request.FILES['image']
+
+        # Handle subchecklist items
+        raw_checklist = data.get('subchecklist_text')
+        if raw_checklist is not None:
+            # Preserve existing done states if titles match
+            existing_states = {s.get('title'): s.get('done', False) for s in (item.subchecklist_json or []) if isinstance(s, dict)}
+            sub_items = []
+            for line in raw_checklist.splitlines():
+                line = line.strip()
+                if line:
+                    sub_items.append({'title': line, 'done': existing_states.get(line, False)})
+            item.subchecklist_json = sub_items
+
         item.save()
         
         # Handle persons
@@ -669,6 +686,23 @@ class EditItemView(View):
         was_completed = item.is_completed
         is_invitation = request.POST.get('is_invitation') == 'true'
         item.is_invitation = is_invitation
+
+        # Handle image upload
+        if 'image' in request.FILES:
+            item.image = request.FILES['image']
+
+        # Handle subchecklist items
+        raw_checklist = data.get('subchecklist_text')
+        if raw_checklist is not None:
+            # Preserve existing done states if titles match
+            existing_states = {s.get('title'): s.get('done', False) for s in (item.subchecklist_json or []) if isinstance(s, dict)}
+            sub_items = []
+            for line in raw_checklist.splitlines():
+                line = line.strip()
+                if line:
+                    sub_items.append({'title': line, 'done': existing_states.get(line, False)})
+            item.subchecklist_json = sub_items
+
         item.save()
         
         # Handle persons
@@ -778,6 +812,14 @@ class ToggleItemView(View):
         item.is_completed = not item.is_completed
         item.status = 'done' if item.is_completed else 'active'
         
+        # When main item is toggled, also sync all subchecklist items
+        if item.subchecklist_json and isinstance(item.subchecklist_json, list):
+            new_sub = []
+            for sub in item.subchecklist_json:
+                if isinstance(sub, dict):
+                    new_sub.append({'title': sub.get('title', ''), 'done': item.is_completed})
+            item.subchecklist_json = new_sub
+
         # Reset guest RSVP roles back to 'invited' if reopened, and clear normal claimed roles
         if not item.is_completed and bucket.category.template.logic_type == 'event':
             if item.is_invitation:
@@ -794,6 +836,35 @@ class ToggleItemView(View):
             
         item.save()
         
+        if request.htmx:
+            return render_item_list(request, bucket, True)
+        return HttpResponse(status=204)
+
+class ToggleSubCheckitemView(View):
+    def post(self, request, item_id, index):
+        item = get_object_or_404(ListItem, id=item_id)
+        bucket = item.bucket_list
+        can_edit = bucket.owner == request.user or \
+                  (request.user.is_authenticated and request.user in bucket.shared_with.all()) or \
+                  (bucket.is_public and bucket.allow_public_edit) or \
+                  (request.user.is_authenticated and request.user.is_superuser)
+        if not can_edit:
+            return HttpResponseForbidden()
+
+        sub_list = item.subchecklist_json or []
+        if 0 <= index < len(sub_list) and isinstance(sub_list[index], dict):
+            sub_list[index]['done'] = not sub_list[index].get('done', False)
+            item.subchecklist_json = sub_list
+            # If all subitems done, mark main item completed; otherwise leave/set active
+            all_done = len(sub_list) > 0 and all(s.get('done', False) for s in sub_list)
+            if all_done:
+                item.is_completed = True
+                item.status = 'done'
+            else:
+                item.is_completed = False
+                item.status = 'active'
+            item.save()
+
         if request.htmx:
             return render_item_list(request, bucket, True)
         return HttpResponse(status=204)
