@@ -1,5 +1,11 @@
 import os
 import sys
+
+# Ensure default environment variables BEFORE any Django/WSGI import
+if not os.environ.get('SECRET_KEY'):
+    os.environ['SECRET_KEY'] = 'django-insecure-desktop-mode-buckezz-key-local-run'
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buckezz_project.settings')
+
 import time
 import socket
 import threading
