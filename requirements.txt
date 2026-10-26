@@ -8,3 +8,5 @@ whitenoise
 gunicorn
 django-admin-interface
 django-colorfield
+waitress
+pywebview
