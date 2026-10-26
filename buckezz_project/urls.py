@@ -11,6 +11,9 @@ urlpatterns = [
 
 handler404 = 'core.views.custom_404_view'
 
+# Media-Dateien immer über Django ausliefern (DEBUG und Produktion mit Gunicorn)
+# Whitenoise o.ä. nicht vorhanden – Django übernimmt das direkt
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
