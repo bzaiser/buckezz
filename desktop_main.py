@@ -1,33 +1,15 @@
 import os
 import sys
-import traceback
-
-# Ensure default environment variables BEFORE any Django/WSGI import
-if not os.environ.get('SECRET_KEY'):
-    os.environ['SECRET_KEY'] = 'django-insecure-desktop-mode-buckezz-key-local-run'
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buckezz_project.settings')
-
 import time
 import socket
 import threading
 import urllib.request
 import webbrowser
 from pathlib import Path
-from waitress.server import create_server
+from waitress import serve
 from buckezz_project.wsgi import application
 from django.conf import settings
 from django.core.management import call_command
-
-LOG_DIR = Path(os.getenv('LOCALAPPDATA', str(Path.home()))) / 'Buckezz Desktop'
-LOG_FILE = LOG_DIR / 'buckezz.log'
-
-def _log(msg):
-    try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        with open(LOG_FILE, 'a', encoding='utf-8') as f:
-            f.write(f"[{time.strftime('%H:%M:%S')}] {msg}\n")
-    except Exception:
-        pass
 
 SPLASH_HTML = """<!DOCTYPE html>
 <html>
@@ -52,11 +34,11 @@ SPLASH_HTML = """<!DOCTYPE html>
     max-width: 85%;
   }
   .logo-icon {
-    font-size: 46px;
+    font-size: 42px;
     margin-bottom: 12px;
   }
   .title {
-    font-size: 26px;
+    font-size: 24px;
     font-weight: 700;
     margin-bottom: 6px;
     letter-spacing: -0.02em;
@@ -109,62 +91,38 @@ def find_free_port():
     return port
 
 def start_server(port):
-    try:
-        _log(f"start_server: starting waitress on port {port}")
-        serve(application, host='127.0.0.1', port=port, threads=6, _quiet=False)
-        _log("start_server: waitress exited")
-    except Exception:
-        _log(f"start_server ERROR:\n{traceback.format_exc()}")
+    serve(application, host='127.0.0.1', port=port, threads=6, _quiet=True)
 
-def wait_for_server(port, timeout=25.0):
+def wait_for_server(port, timeout=15.0):
     url = f"http://127.0.0.1:{port}"
     start = time.time()
     while time.time() - start < timeout:
         try:
-            with urllib.request.urlopen(url, timeout=1.0):
+            with urllib.request.urlopen(url, timeout=0.5):
                 return True
         except Exception:
-            time.sleep(0.1)
+            time.sleep(0.05)
     return False
 
 def init_django_database():
-    """Initializes migrations and seed templates quietly."""
-    from django.db import connections
-    _log("init_django_database: running migrate")
+    """Initializes migrations and templates quietly."""
     try:
         call_command('migrate', interactive=False)
-        _log("migrate: OK")
     except Exception as e:
-        _log(f"migrate ERROR: {traceback.format_exc()}")
+        print(f"Migration error: {e}")
 
-    _log("init_django_database: running seed_templates")
     try:
         call_command('seed_templates')
-        _log("seed_templates: OK")
     except Exception as e:
-        _log(f"seed_templates ERROR: {traceback.format_exc()}")
-
-    # Release any held database locks before waitress worker threads connect
-    try:
-        for conn in connections.all():
-            conn.close()
-        _log("init_django_database: DB connections closed")
-    except Exception:
-        pass
+        print(f"Seed templates error: {e}")
 
 if __name__ == '__main__':
-    import multiprocessing
-    multiprocessing.freeze_support()
-
-    # Ensure default SECRET_KEY if not in environment
+    # Default environment variables
     if not os.environ.get('SECRET_KEY'):
         os.environ['SECRET_KEY'] = 'django-insecure-desktop-mode-buckezz-key-local-run'
-
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'buckezz_project.settings')
 
-    _log(f"=== Buckezz Desktop starting === frozen={getattr(sys, 'frozen', False)}")
-
-    # CLI Support: Allow executing Django management commands via desktop exe
+    # CLI Support: Allow executing Django management commands via the desktop executable
     if len(sys.argv) > 1:
         import django
         django.setup()
@@ -178,32 +136,22 @@ if __name__ == '__main__':
             call_command(cmd_name, *cmd_args)
             sys.exit(0)
 
+    # Initialize Django app registry and configuration
     import django
     django.setup()
 
     ui_mode = os.getenv('DESKTOP_UI_MODE', 'window').strip().lower()
-
-    # Pre-bind waitress server to an OS-assigned free port (port 0)
-    server = create_server(application, host='127.0.0.1', port=0, threads=6)
-    port = server.effective_port
+    port = find_free_port()
     url = f"http://127.0.0.1:{port}"
-    _log(f"Waitress bound to port {port}")
 
     for host in ('127.0.0.1', 'localhost'):
         origin = f"http://{host}:{port}"
         if origin not in settings.CSRF_TRUSTED_ORIGINS:
             settings.CSRF_TRUSTED_ORIGINS.append(origin)
 
-    def run_waitress():
-        try:
-            _log(f"start_server: waitress serving on port {port}")
-            server.run()
-        except Exception:
-            _log(f"start_server ERROR:\n{traceback.format_exc()}")
-
     if ui_mode == 'browser':
         init_django_database()
-        server_thread = threading.Thread(target=run_waitress, daemon=True)
+        server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
         server_thread.start()
         wait_for_server(port)
         webbrowser.open(url)
@@ -225,21 +173,11 @@ if __name__ == '__main__':
         )
 
         def bootstrap_and_navigate():
-            try:
-                _log("bootstrap_and_navigate: start")
-                init_django_database()
-                _log(f"bootstrap_and_navigate: starting server on port {port}")
-                server_thread = threading.Thread(target=run_waitress, daemon=True)
-                server_thread.start()
-                _log("bootstrap_and_navigate: waiting for server")
-                if wait_for_server(port):
-                    _log(f"bootstrap_and_navigate: server ready, loading {url}")
-                    window.load_url(url)
-                    _log("bootstrap_and_navigate: load_url called")
-                else:
-                    _log("bootstrap_and_navigate: server NEVER responded (timeout)")
-            except Exception:
-                _log(f"bootstrap_and_navigate CRASH:\n{traceback.format_exc()}")
+            init_django_database()
+            server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
+            server_thread.start()
+            if wait_for_server(port):
+                window.load_url(url)
 
         storage_dir = Path(os.getenv('LOCALAPPDATA', str(Path.home()))) / 'Buckezz Desktop' / 'webview_data'
         try:
