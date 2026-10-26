@@ -13,7 +13,7 @@ import threading
 import urllib.request
 import webbrowser
 from pathlib import Path
-from waitress import serve
+from waitress.server import create_server
 from buckezz_project.wsgi import application
 from django.conf import settings
 from django.core.management import call_command
@@ -116,15 +116,15 @@ def start_server(port):
     except Exception:
         _log(f"start_server ERROR:\n{traceback.format_exc()}")
 
-def wait_for_server(port, timeout=15.0):
+def wait_for_server(port, timeout=25.0):
     url = f"http://127.0.0.1:{port}"
     start = time.time()
     while time.time() - start < timeout:
         try:
-            with urllib.request.urlopen(url, timeout=0.5):
+            with urllib.request.urlopen(url, timeout=1.0):
                 return True
         except Exception:
-            time.sleep(0.05)
+            time.sleep(0.1)
     return False
 
 def init_django_database():
@@ -182,17 +182,28 @@ if __name__ == '__main__':
     django.setup()
 
     ui_mode = os.getenv('DESKTOP_UI_MODE', 'window').strip().lower()
-    port = find_free_port()
+
+    # Pre-bind waitress server to an OS-assigned free port (port 0)
+    server = create_server(application, host='127.0.0.1', port=0, threads=6)
+    port = server.effective_port
     url = f"http://127.0.0.1:{port}"
+    _log(f"Waitress bound to port {port}")
 
     for host in ('127.0.0.1', 'localhost'):
         origin = f"http://{host}:{port}"
         if origin not in settings.CSRF_TRUSTED_ORIGINS:
             settings.CSRF_TRUSTED_ORIGINS.append(origin)
 
+    def run_waitress():
+        try:
+            _log(f"start_server: waitress serving on port {port}")
+            server.run()
+        except Exception:
+            _log(f"start_server ERROR:\n{traceback.format_exc()}")
+
     if ui_mode == 'browser':
         init_django_database()
-        server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
+        server_thread = threading.Thread(target=run_waitress, daemon=True)
         server_thread.start()
         wait_for_server(port)
         webbrowser.open(url)
@@ -218,7 +229,7 @@ if __name__ == '__main__':
                 _log("bootstrap_and_navigate: start")
                 init_django_database()
                 _log(f"bootstrap_and_navigate: starting server on port {port}")
-                server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
+                server_thread = threading.Thread(target=run_waitress, daemon=True)
                 server_thread.start()
                 _log("bootstrap_and_navigate: waiting for server")
                 if wait_for_server(port):
