@@ -129,6 +129,7 @@ def wait_for_server(port, timeout=15.0):
 
 def init_django_database():
     """Initializes migrations and seed templates quietly."""
+    from django.db import connections
     _log("init_django_database: running migrate")
     try:
         call_command('migrate', interactive=False)
@@ -142,6 +143,14 @@ def init_django_database():
         _log("seed_templates: OK")
     except Exception as e:
         _log(f"seed_templates ERROR: {traceback.format_exc()}")
+
+    # Release any held database locks before waitress worker threads connect
+    try:
+        for conn in connections.all():
+            conn.close()
+        _log("init_django_database: DB connections closed")
+    except Exception:
+        pass
 
 if __name__ == '__main__':
     import multiprocessing
