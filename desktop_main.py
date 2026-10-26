@@ -109,7 +109,12 @@ def find_free_port():
     return port
 
 def start_server(port):
-    serve(application, host='127.0.0.1', port=port, threads=6, _quiet=True)
+    try:
+        _log(f"start_server: starting waitress on port {port}")
+        serve(application, host='127.0.0.1', port=port, threads=6, _quiet=False)
+        _log("start_server: waitress exited")
+    except Exception:
+        _log(f"start_server ERROR:\n{traceback.format_exc()}")
 
 def wait_for_server(port, timeout=15.0):
     url = f"http://127.0.0.1:{port}"

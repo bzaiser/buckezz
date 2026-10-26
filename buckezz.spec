@@ -6,11 +6,14 @@ block_cipher = None
 datas = [
     ('templates', 'templates'),
     ('static', 'static'),
+    ('core', 'core'),
 ]
 
 import os
 if os.path.exists('.env'):
     datas.append(('.env', '.'))
+if os.path.exists('clean_template.sqlite3'):
+    datas.append(('clean_template.sqlite3', '.'))
 
 datas += collect_data_files('core')
 datas += collect_data_files('admin_interface')
@@ -32,6 +35,17 @@ hiddenimports = [
     'django.contrib.humanize',
     'django.db.backends.sqlite3',
     'core',
+    'core.management',
+    'core.management.commands',
+    'core.management.commands.seed_templates',
+    'core.management.commands.build_template_db',
+    'core.management.commands.seed_demo_data',
+    'core.management.commands.setup_groups',
+    'core.management.commands.send_reminders',
+    'core.management.commands.migrate_all',
+    'core.management.commands.export_tenant_theme',
+    'core.management.commands.seed_tenant_theme',
+    'core.management.commands.set_tenant_password',
     'buckezz_project',
     'buckezz_project.wsgi',
     'buckezz_project.settings',
