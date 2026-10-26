@@ -285,9 +285,11 @@ Teil-Checkliste:
                     'help_example': data.get('help_example'),
                 }
                 full_fields.update(data['fields'])
-                
+                full_fields['use_image'] = full_fields.get('use_image', False)
+                full_fields['use_subchecklist'] = full_fields.get('use_subchecklist', False)
+
                 ListTemplate.objects.using(db).update_or_create(
-                    category=cat,
+                    category_id=cat.pk,
                     defaults=full_fields
                 )
                 self.stdout.write(self.style.SUCCESS(f"Updated {cat.name} with icon {cat.icon} and help texts in database '{db}'"))
