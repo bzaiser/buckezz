@@ -7,10 +7,18 @@ import traceback
 import urllib.request
 import webbrowser
 from pathlib import Path
-from waitress import serve
+from socketserver import ThreadingMixIn
+from wsgiref.simple_server import WSGIServer, WSGIRequestHandler
 from buckezz_project.wsgi import application
 from django.conf import settings
 from django.core.management import call_command
+
+class ThreadedWSGIServer(ThreadingMixIn, WSGIServer):
+    daemon_threads = True
+
+class SilentHandler(WSGIRequestHandler):
+    def log_message(self, format, *args):
+        pass
 
 LOG_DIR = Path(os.getenv('LOCALAPPDATA', str(Path.home()))) / 'Buckezz Desktop'
 LOG_FILE = LOG_DIR / 'buckezz.log'
@@ -112,15 +120,7 @@ def find_free_port():
     s.close()
     return port
 
-def start_server(port):
-    try:
-        _log(f"waitress: starting on port {port}")
-        serve(application, host='127.0.0.1', port=port, threads=6, _quiet=False)
-        _log("waitress: stopped")
-    except Exception:
-        _log(f"waitress CRASH:\n{traceback.format_exc()}")
-
-def wait_for_server(port, timeout=20.0, set_status=None):
+def wait_for_server(port, timeout=15.0, set_status=None):
     url = f"http://127.0.0.1:{port}"
     start = time.time()
     attempts = 0
@@ -131,11 +131,11 @@ def wait_for_server(port, timeout=20.0, set_status=None):
                 _log(f"wait_for_server: OK after {attempts} attempts ({time.time() - start:.2f}s)")
                 return True
         except Exception as e:
-            if attempts % 10 == 0:
+            if attempts % 5 == 0:
                 _log(f"wait_for_server attempt {attempts}: {e}")
                 if set_status:
                     set_status(f"Warte auf lokalen Server (Versuch {attempts})...")
-            time.sleep(0.08)
+            time.sleep(0.05)
     _log(f"wait_for_server: TIMEOUT after {attempts} attempts ({timeout}s)")
     return False
 
@@ -185,7 +185,14 @@ if __name__ == '__main__':
     ui_mode = os.getenv('DESKTOP_UI_MODE', 'window').strip().lower()
     port = find_free_port()
     url = f"http://127.0.0.1:{port}"
-    _log(f"Free port assigned: {port}")
+    _log(f"Starting ThreadedWSGIServer on port {port}")
+
+    # Bind and start standard threaded WSGI server immediately
+    httpd = ThreadedWSGIServer(('127.0.0.1', port), SilentHandler)
+    httpd.set_app(application)
+    server_thread = threading.Thread(target=httpd.serve_forever, daemon=True)
+    server_thread.start()
+    _log("ThreadedWSGIServer thread started")
 
     for host in ('127.0.0.1', 'localhost'):
         origin = f"http://{host}:{port}"
@@ -194,14 +201,13 @@ if __name__ == '__main__':
 
     if ui_mode == 'browser':
         init_django_database()
-        server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
-        server_thread.start()
         wait_for_server(port)
         webbrowser.open(url)
         try:
             while True:
                 time.sleep(1)
         except KeyboardInterrupt:
+            httpd.shutdown()
             sys.exit(0)
     else:
         import webview
@@ -227,13 +233,8 @@ if __name__ == '__main__':
                 _log("bootstrap: running DB init")
                 init_django_database(set_ui_status)
 
-                _log("bootstrap: starting waitress thread")
-                set_ui_status("Starte lokalen Server...")
-                server_thread = threading.Thread(target=start_server, args=(port,), daemon=True)
-                server_thread.start()
-
-                _log("bootstrap: waiting for waitress")
-                if wait_for_server(port, timeout=20.0, set_status=set_ui_status):
+                _log("bootstrap: waiting for WSGI server")
+                if wait_for_server(port, timeout=15.0, set_status=set_ui_status):
                     _log(f"bootstrap: loading {url} into window")
                     set_ui_status("Lade Anwendung...")
                     window.load_url(url)
@@ -253,4 +254,6 @@ if __name__ == '__main__':
         except Exception:
             _log(f"webview.start fallback:\n{traceback.format_exc()}")
             webview.start(bootstrap_and_navigate)
+
+        httpd.shutdown()
         sys.exit(0)
