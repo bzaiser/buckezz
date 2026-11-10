@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 {# Safe JSON data island – avoids breaking Alpine x-data attribute parsing #}
@@ -786,7 +787,7 @@ document.addEventListener('alpine:init', () => {
 </div>
 
 {% if can_edit %}
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+    <script src="{% static 'vendor/js/Sortable.min.js' %}"></script>
     <style>
         .drag-handle {
             cursor: grab;
@@ -826,7 +827,7 @@ document.addEventListener('alpine:init', () => {
 {% endif %}
 
 {% if bucket.category.template.logic_type == 'workout' %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="{% static 'vendor/js/chart.min.js' %}"></script>
     <!-- Workout Stats Header Widget -->
     {% if user_settings %}
     <div class="card glass" style="margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.05); padding: var(--spacing-md);">

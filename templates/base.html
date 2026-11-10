@@ -14,9 +14,7 @@
     <link rel="alternate icon" type="image/png" href="{% static 'img/logo.png' %}">
     
     <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'vendor/css/inter.css' %}">
     
     <!-- CSS -->
     <style>
@@ -404,12 +402,12 @@
     </style>
     
     <!-- Tom Select CSS & JS -->
-    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+    <link href="{% static 'vendor/css/tom-select.css' %}" rel="stylesheet">
+    <script src="{% static 'vendor/js/tom-select.complete.min.js' %}"></script>
 
     <!-- JS -->
-    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="{% static 'vendor/js/htmx.min.js' %}"></script>
+    <script src="{% static 'vendor/js/alpine.min.js' %}" defer></script>
     <script>
         window.initPersonSelector = function(initialPersons, initialSelected) {
             return {
