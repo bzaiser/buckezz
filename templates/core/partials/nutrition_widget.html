@@ -134,9 +134,67 @@
                 <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #fff;">
                     Einträge am <span x-text="formatDateGerman(selectedDate)"></span>
                 </h3>
-                <button type="button" @click="openAddMealModal()" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 6px 14px; border-radius: var(--radius-md); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px;">
-                    ➕ Mahlzeit eintragen
+                <button type="button" @click="showMealModal = !showMealModal" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 6px 14px; border-radius: var(--radius-md); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                    ➕ <span x-text="showMealModal ? 'Schließen' : 'Mahlzeit eintragen'"></span>
                 </button>
+            </div>
+
+            <!-- Inline-Formular: Direkt nach dem Button ausklappbar -->
+            <div x-show="showMealModal" style="display: none; margin-bottom: 20px; animation: fadeIn 0.2s ease-out;">
+                <div class="card glass" style="border: 1px solid var(--primary); background: rgba(15, 23, 42, 0.95); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                        <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #fff;">🥗 Neue Mahlzeit eintragen</h4>
+                        <button type="button" @click="showMealModal = false" class="btn btn-sm btn-glass">✕</button>
+                    </div>
+
+                    <form @submit.prevent="submitMeal()">
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kategorie</label>
+                                <select x-model="newMeal.meal_type" class="form-input" style="width: 100%;">
+                                    <option value="breakfast">🥣 Frühstück</option>
+                                    <option value="lunch">🥗 Mittagessen</option>
+                                    <option value="dinner">🍲 Abendessen</option>
+                                    <option value="snack">🍎 Snacks & Drinks</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Gericht / Lebensmittel *</label>
+                                <input type="text" x-model="newMeal.title" required class="form-input" style="width: 100%;" placeholder="z.B. Lachs mit Kartoffeln">
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kalorien (kcal) *</label>
+                                <input type="number" min="0" x-model="newMeal.calories" required class="form-input" style="width: 100%; font-weight: 700; color: #00e676;" placeholder="z.B. 550">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Menge / Portion</label>
+                                <input type="text" x-model="newMeal.amount" class="form-input" style="width: 100%;" placeholder="z.B. 350g">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #4fc3f7; margin-bottom: 4px;">Protein (g)</label>
+                                <input type="number" step="0.1" min="0" x-model="newMeal.protein_g" class="form-input" style="width: 100%;" placeholder="0">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #ffd54f; margin-bottom: 4px;">Carbs (g)</label>
+                                <input type="number" step="0.1" min="0" x-model="newMeal.carbs_g" class="form-input" style="width: 100%;" placeholder="0">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.8rem; color: #ff8a65; margin-bottom: 4px;">Fett (g)</label>
+                                <input type="number" step="0.1" min="0" x-model="newMeal.fat_g" class="form-input" style="width: 100%;" placeholder="0">
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <button type="button" @click="showMealModal = false" class="btn btn-glass">Abbrechen</button>
+                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 8px 24px; border-radius: var(--radius-md); cursor: pointer;">
+                                Eintragen
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
 
             <!-- Mahlzeiten-Gruppierung (Frühstück, Mittag, Abend, Snacks) -->
@@ -270,67 +328,6 @@
                     <button type="button" @click="showGoalModal = false" class="btn btn-glass">Abbrechen</button>
                     <button type="submit" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 8px 20px; border-radius: var(--radius-md);">
                         Speichern
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- MODAL 2: MAHLZEIT EINTRAGEN -->
-    <div x-show="showMealModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" :style="showMealModal ? 'display: flex' : 'display: none'">
-        <div class="card glass" style="max-width: 500px; width: 100%; padding: 24px; border-radius: var(--radius-lg); background: #151b23; border: 1px solid var(--glass-border);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: #fff;">Mahlzeit eintragen</h3>
-                <button type="button" @click="showMealModal = false" class="btn btn-sm btn-glass" style="font-size: 1rem;">✕</button>
-            </div>
-
-            <form @submit.prevent="submitMeal()">
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kategorie</label>
-                    <select x-model="newMeal.meal_type" class="form-input" style="width: 100%;">
-                        <option value="breakfast">🥣 Frühstück</option>
-                        <option value="lunch">🥗 Mittagessen</option>
-                        <option value="dinner">🍲 Abendessen</option>
-                        <option value="snack">🍎 Snacks & Drinks</option>
-                    </select>
-                </div>
-
-                <div style="margin-bottom: 12px;">
-                    <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Gericht / Lebensmittel *</label>
-                    <input type="text" x-model="newMeal.title" required class="form-input" style="width: 100%;" placeholder="z.B. Lachs mit Kartoffeln">
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kalorien (kcal) *</label>
-                        <input type="number" min="0" x-model="newMeal.calories" required class="form-input" style="width: 100%; font-weight: 700; color: #00e676;" placeholder="z.B. 550">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Menge / Portion</label>
-                        <input type="text" x-model="newMeal.amount" class="form-input" style="width: 100%;" placeholder="z.B. 350g oder 1 Teller">
-                    </div>
-                </div>
-
-                <!-- Optionale Makros -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-                    <div>
-                        <label style="display: block; font-size: 0.75rem; color: #4fc3f7; margin-bottom: 2px;">Protein (g)</label>
-                        <input type="number" step="0.1" min="0" x-model="newMeal.protein_g" class="form-input" style="width: 100%; font-size: 0.85rem;" placeholder="0">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.75rem; color: #ffd54f; margin-bottom: 2px;">Carbs (g)</label>
-                        <input type="number" step="0.1" min="0" x-model="newMeal.carbs_g" class="form-input" style="width: 100%; font-size: 0.85rem;" placeholder="0">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.75rem; color: #ff8a65; margin-bottom: 2px;">Fett (g)</label>
-                        <input type="number" step="0.1" min="0" x-model="newMeal.fat_g" class="form-input" style="width: 100%; font-size: 0.85rem;" placeholder="0">
-                    </div>
-                </div>
-
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button type="button" @click="showMealModal = false" class="btn btn-glass">Abbrechen</button>
-                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 8px 20px; border-radius: var(--radius-md);">
-                        Eintragen
                     </button>
                 </div>
             </form>
