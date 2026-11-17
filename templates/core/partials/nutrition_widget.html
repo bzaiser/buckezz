@@ -8,22 +8,22 @@
 
 <div x-data="nutritionCockpit()" x-init="init()" class="nutrition-cockpit-container" style="margin-bottom: 30px;">
     <!-- Oberes Cockpit: Dashboard Karten -->
-    <div class="card glass" style="padding: var(--spacing-lg); border-radius: var(--radius-lg); border: 1px solid var(--glass-border); background: var(--bg-card); box-shadow: var(--shadow-lg);">
+    <div class="card glass" style="padding: var(--spacing-lg); border-radius: var(--radius-lg); border: 1px solid var(--glass-border); box-shadow: var(--shadow-lg);">
         
         <!-- Header Zeile: Titel, Datumswähler, Ziel-Button -->
         <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 12px;">
                 <span style="font-size: 1.8rem;">🥗</span>
                 <div>
-                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: #fff;">Ernährungs- & Gewichtscockpit</h2>
+                    <h2 style="font-size: 1.25rem; font-weight: 800; margin: 0; color: var(--text-main);">Ernährungs- & Gewichtscockpit</h2>
                     <div style="font-size: 0.8rem; color: var(--text-muted);">Tageskalorien, Makros & Körpergewichts-Trend</div>
                 </div>
             </div>
 
             <!-- Datum-Navigator -->
-            <div style="display: inline-flex; align-items: center; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 4px 8px; gap: 8px;">
+            <div style="display: inline-flex; align-items: center; background: var(--input-bg); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 4px 8px; gap: 8px;">
                 <button type="button" @click="changeDate(-1)" class="btn btn-sm btn-glass" style="padding: 4px 8px; font-size: 0.85rem;" title="Vorheriger Tag">◀</button>
-                <input type="date" x-model="selectedDate" @change="onDateChanged()" style="background: transparent; border: none; color: #fff; font-family: inherit; font-size: 0.9rem; outline: none; cursor: pointer;">
+                <input type="date" x-model="selectedDate" @change="onDateChanged()" class="glass" style="background: transparent; border: none; color: var(--input-text); font-family: inherit; font-size: 0.9rem; outline: none; cursor: pointer; padding: 2px 4px; margin-bottom: 0;">
                 <button type="button" @click="changeDate(1)" class="btn btn-sm btn-glass" style="padding: 4px 8px; font-size: 0.85rem;" title="Nächster Tag">▶</button>
                 <button type="button" @click="setDateToday()" class="btn btn-sm btn-glass" style="font-size: 0.8rem; padding: 4px 8px;" x-show="selectedDate !== todayIso">Heute</button>
             </div>
@@ -40,52 +40,52 @@
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
             
             <!-- Karte 1: Kalorien Tagesbilanz -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px; position: relative;">
+            <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px; position: relative;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Kalorien heute</span>
-                    <span :style="'font-size: 0.8rem; font-weight: 700; color:' + (calorieDiff >= 0 ? '#00e676' : '#ff5252')" x-text="(calorieDiff >= 0 ? calorieDiff + ' kcal übrig' : Math.abs(calorieDiff) + ' kcal über Ziel')"></span>
+                    <span :style="'font-size: 0.8rem; font-weight: 700; color:' + (calorieDiff >= 0 ? 'var(--accent)' : '#ff5252')" x-text="(calorieDiff >= 0 ? calorieDiff + ' kcal übrig' : Math.abs(calorieDiff) + ' kcal über Ziel')"></span>
                 </div>
                 <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 12px;">
-                    <span style="font-size: 2rem; font-weight: 900; color: #fff;" x-text="dayTotalCalories"></span>
+                    <span style="font-size: 2rem; font-weight: 900; color: var(--text-main);" x-text="dayTotalCalories"></span>
                     <span style="font-size: 1rem; color: var(--text-muted);" x-text="'/ ' + goal.target_calories + ' kcal'"></span>
                 </div>
                 <!-- Progress Bar -->
                 <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; position: relative;">
-                    <div :style="'height: 100%; transition: width 0.3s; border-radius: 999px; background: ' + (caloriePercent > 105 ? 'linear-gradient(90deg, #ff9100, #ff5252)' : 'linear-gradient(90deg, #00d2ff, #00e676)') + '; width: ' + Math.min(caloriePercent, 100) + '%;'"></div>
+                    <div :style="'height: 100%; transition: width 0.3s; border-radius: 999px; background: ' + (caloriePercent > 105 ? 'linear-gradient(90deg, #ff9100, #ff5252)' : 'linear-gradient(90deg, var(--primary), var(--accent))') + '; width: ' + Math.min(caloriePercent, 100) + '%;'"></div>
                 </div>
                 <div style="margin-top: 10px; font-size: 0.75rem; color: var(--text-muted); text-align: right;" x-text="caloriePercent + '% des Tagesziels erreicht'"></div>
             </div>
 
             <!-- Karte 2: Makro-Nährstoffe -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
+            <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
                 <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 12px;">Nährwerte (Makros)</span>
                 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <!-- Protein -->
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 3px;">
-                            <span style="color: #4fc3f7; font-weight: 600;">🥩 Protein</span>
-                            <span style="color: #fff;"><strong x-text="dayTotalProtein"></strong> / <span x-text="goal.target_protein_g"></span>g</span>
+                            <span style="color: var(--primary); font-weight: 600;">🥩 Protein</span>
+                            <span style="color: var(--text-main);"><strong x-text="dayTotalProtein"></strong> / <span x-text="goal.target_protein_g"></span>g</span>
                         </div>
                         <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
-                            <div :style="'height: 100%; background: #4fc3f7; width: ' + Math.min(Math.round((dayTotalProtein / (goal.target_protein_g || 1)) * 100), 100) + '%;'"></div>
+                            <div :style="'height: 100%; background: var(--primary); width: ' + Math.min(Math.round((dayTotalProtein / (goal.target_protein_g || 1)) * 100), 100) + '%;'"></div>
                         </div>
                     </div>
                     <!-- Carbs -->
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 3px;">
-                            <span style="color: #ffd54f; font-weight: 600;">🌾 Kohlenhydrate</span>
-                            <span style="color: #fff;"><strong x-text="dayTotalCarbs"></strong> / <span x-text="goal.target_carbs_g"></span>g</span>
+                            <span style="color: var(--accent); font-weight: 600;">🌾 Kohlenhydrate</span>
+                            <span style="color: var(--text-main);"><strong x-text="dayTotalCarbs"></strong> / <span x-text="goal.target_carbs_g"></span>g</span>
                         </div>
                         <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
-                            <div :style="'height: 100%; background: #ffd54f; width: ' + Math.min(Math.round((dayTotalCarbs / (goal.target_carbs_g || 1)) * 100), 100) + '%;'"></div>
+                            <div :style="'height: 100%; background: var(--accent); width: ' + Math.min(Math.round((dayTotalCarbs / (goal.target_carbs_g || 1)) * 100), 100) + '%;'"></div>
                         </div>
                     </div>
                     <!-- Fat -->
                     <div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 3px;">
                             <span style="color: #ff8a65; font-weight: 600;">🥑 Fett</span>
-                            <span style="color: #fff;"><strong x-text="dayTotalFat"></strong> / <span x-text="goal.target_fat_g"></span>g</span>
+                            <span style="color: var(--text-main);"><strong x-text="dayTotalFat"></strong> / <span x-text="goal.target_fat_g"></span>g</span>
                         </div>
                         <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
                             <div :style="'height: 100%; background: #ff8a65; width: ' + Math.min(Math.round((dayTotalFat / (goal.target_fat_g || 1)) * 100), 100) + '%;'"></div>
@@ -95,7 +95,7 @@
             </div>
 
             <!-- Karte 3: Körpergewicht Status & Quick-Log -->
-            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
+            <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Aktuelles Gewicht</span>
                     <button type="button" @click="showWeightHistoryModal = true" class="btn btn-sm btn-glass" style="font-size: 0.75rem; padding: 2px 6px;">Verlauf</button>
@@ -103,22 +103,22 @@
                 
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;">
                     <div>
-                        <span style="font-size: 2rem; font-weight: 900; color: #fff;" x-text="currentWeight ? currentWeight + ' kg' : 'Kein Eintrag'"></span>
+                        <span style="font-size: 2rem; font-weight: 900; color: var(--text-main);" x-text="currentWeight ? currentWeight + ' kg' : 'Kein Eintrag'"></span>
                         <div style="font-size: 0.75rem; color: var(--text-muted);" x-show="goal.target_weight" x-text="'Ziel: ' + goal.target_weight + ' kg (Start: ' + (goal.start_weight || '-') + ' kg)'"></div>
                     </div>
-                    <div x-show="weightDiffFromStart !== null" :style="'font-size: 0.9rem; font-weight: 800; color:' + (weightDiffFromStart <= 0 ? '#00e676' : '#ff9100')" x-text="(weightDiffFromStart > 0 ? '+' : '') + weightDiffFromStart + ' kg'"></div>
+                    <div x-show="weightDiffFromStart !== null" :style="'font-size: 0.9rem; font-weight: 800; color:' + (weightDiffFromStart <= 0 ? 'var(--accent)' : '#ff9100')" x-text="(weightDiffFromStart > 0 ? '+' : '') + weightDiffFromStart + ' kg'"></div>
                 </div>
 
                 <!-- Schnelleingabe Gewicht -->
                 <form @submit.prevent="submitWeightQuick()" style="display: flex; gap: 6px;">
-                    <input type="number" step="0.1" min="30" max="300" x-model="quickWeightVal" placeholder="z.B. 81.5" required style="width: 100%; background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); border-radius: var(--radius-sm); padding: 6px 10px; color: #fff; font-size: 0.9rem;">
-                    <button type="submit" class="btn btn-glass" style="white-space: nowrap; font-weight: 700; background: rgba(0,230,118,0.15); border-color: #00e676; color: #00e676;">⚖️ Speichern</button>
+                    <input type="number" step="0.1" min="30" max="300" x-model="quickWeightVal" placeholder="z.B. 81.5" required class="glass" style="margin-bottom: 0;">
+                    <button type="submit" class="btn btn-glass" style="white-space: nowrap; font-weight: 700; border-color: var(--primary); color: var(--primary);">⚖️ Speichern</button>
                 </form>
             </div>
         </div>
 
         <!-- Verlaufschart für Gewicht (ausklappbar oder permanent) -->
-        <div style="margin-top: 15px; background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
+        <div class="card glass" style="margin-top: 15px; border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">📈 Gewichtsverlauf & Trend</span>
                 <span style="font-size: 0.75rem; color: var(--text-muted);" x-text="weightLogs.length + ' Messungen protokolliert'"></span>
@@ -131,19 +131,19 @@
         <!-- Mahlzeiten des ausgewählten Tages -->
         <div style="margin-top: 24px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-                <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #fff;">
+                <h3 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">
                     Einträge am <span x-text="formatDateGerman(selectedDate)"></span>
                 </h3>
-                <button type="button" @click="showMealModal = !showMealModal" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 6px 14px; border-radius: var(--radius-md); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+                <button type="button" @click="showMealModal = !showMealModal" class="btn btn-glass" style="border-color: var(--primary); color: var(--primary); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
                     ➕ <span x-text="showMealModal ? 'Schließen' : 'Mahlzeit eintragen'"></span>
                 </button>
             </div>
 
             <!-- Inline-Formular: Direkt nach dem Button ausklappbar -->
             <div x-show="showMealModal" style="display: none; margin-bottom: 20px; animation: fadeIn 0.2s ease-out;">
-                <div class="card glass" style="border: 1px solid var(--primary); background: rgba(15, 23, 42, 0.95); padding: 20px; border-radius: var(--radius-md); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div class="card glass" style="border: 1px solid var(--primary); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: #fff;">🥗 Neue Mahlzeit eintragen</h4>
+                        <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">🥗 Neue Mahlzeit eintragen</h4>
                         <button type="button" @click="showMealModal = false" class="btn btn-sm btn-glass">✕</button>
                     </div>
 
@@ -151,7 +151,7 @@
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kategorie</label>
-                                <select x-model="newMeal.meal_type" class="form-input" style="width: 100%;">
+                                <select x-model="newMeal.meal_type" class="glass select" style="width: 100%; margin-bottom: 0;">
                                     <option value="breakfast">🥣 Frühstück</option>
                                     <option value="lunch">🥗 Mittagessen</option>
                                     <option value="dinner">🍲 Abendessen</option>
@@ -160,36 +160,36 @@
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Gericht / Lebensmittel *</label>
-                                <input type="text" x-model="newMeal.title" required class="form-input" style="width: 100%;" placeholder="z.B. Lachs mit Kartoffeln">
+                                <input type="text" x-model="newMeal.title" required class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. Lachs mit Kartoffeln">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kalorien (kcal) *</label>
-                                <input type="number" min="0" x-model="newMeal.calories" required class="form-input" style="width: 100%; font-weight: 700; color: #00e676;" placeholder="z.B. 550">
+                                <input type="number" min="0" x-model="newMeal.calories" required class="glass" style="width: 100%; font-weight: 700; color: var(--accent); margin-bottom: 0;" placeholder="z.B. 550">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Menge / Portion</label>
-                                <input type="text" x-model="newMeal.amount" class="form-input" style="width: 100%;" placeholder="z.B. 350g">
+                                <input type="text" x-model="newMeal.amount" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. 350g">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.8rem; color: #4fc3f7; margin-bottom: 4px;">Protein (g)</label>
-                                <input type="number" step="0.1" min="0" x-model="newMeal.protein_g" class="form-input" style="width: 100%;" placeholder="0">
+                                <label style="display: block; font-size: 0.8rem; color: var(--primary); margin-bottom: 4px;">Protein (g)</label>
+                                <input type="number" step="0.1" min="0" x-model="newMeal.protein_g" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="0">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.8rem; color: #ffd54f; margin-bottom: 4px;">Carbs (g)</label>
-                                <input type="number" step="0.1" min="0" x-model="newMeal.carbs_g" class="form-input" style="width: 100%;" placeholder="0">
+                                <label style="display: block; font-size: 0.8rem; color: var(--accent); margin-bottom: 4px;">Carbs (g)</label>
+                                <input type="number" step="0.1" min="0" x-model="newMeal.carbs_g" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="0">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: #ff8a65; margin-bottom: 4px;">Fett (g)</label>
-                                <input type="number" step="0.1" min="0" x-model="newMeal.fat_g" class="form-input" style="width: 100%;" placeholder="0">
+                                <input type="number" step="0.1" min="0" x-model="newMeal.fat_g" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="0">
                             </div>
                         </div>
 
-                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px;">
                             <button type="button" @click="showMealModal = false" class="btn btn-glass">Abbrechen</button>
-                            <button type="submit" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 8px 24px; border-radius: var(--radius-md); cursor: pointer;">
+                            <button type="submit" class="btn btn-glass" style="border-color: var(--primary); color: var(--primary); font-weight: 800; padding: 8px 24px; cursor: pointer;">
                                 Eintragen
                             </button>
                         </div>
@@ -200,25 +200,25 @@
             <!-- Mahlzeiten-Gruppierung (Frühstück, Mittag, Abend, Snacks) -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <template x-for="cat in mealCategories" :key="cat.key">
-                    <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 12px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.06); padding-bottom: 6px;">
-                            <span style="font-weight: 700; font-size: 0.95rem; color: #fff;" x-text="cat.icon + ' ' + cat.title"></span>
+                    <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--glass-border); padding-bottom: 6px;">
+                            <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" x-text="cat.icon + ' ' + cat.title"></span>
                             <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);" x-text="getCategoryCalories(cat.key) + ' kcal'"></span>
                         </div>
                         
                         <!-- Liste der Einträge -->
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <template x-for="meal in getMealsForCategory(cat.key)" :key="meal.id">
-                                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid rgba(255,255,255,0.04);">
+                                <div class="glass" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border);">
                                     <div>
-                                        <div style="font-weight: 600; color: #fff; font-size: 0.9rem;" x-text="meal.title"></div>
+                                        <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;" x-text="meal.title"></div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);">
                                             <span x-show="meal.amount" x-text="meal.amount + ' • '"></span>
                                             <span x-text="'P: ' + meal.protein_g + 'g | K: ' + meal.carbs_g + 'g | F: ' + meal.fat_g + 'g'"></span>
                                         </div>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="font-weight: 800; color: #00e676; font-size: 0.95rem;" x-text="meal.calories + ' kcal'"></span>
+                                        <span style="font-weight: 800; color: var(--accent); font-size: 0.95rem;" x-text="meal.calories + ' kcal'"></span>
                                         <button type="button" @click="deleteMeal(meal.id)" class="btn btn-sm btn-glass" style="color: #ff5252; padding: 2px 6px; font-size: 0.75rem;" title="Löschen">✕</button>
                                     </div>
                                 </div>
@@ -237,9 +237,9 @@
 
     <!-- MODAL 1: ZIELE & BEDARFSRECHNER -->
     <div x-show="showGoalModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" :style="showGoalModal ? 'display: flex' : 'display: none'">
-        <div class="card glass" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); background: #151b23; border: 1px solid var(--glass-border);">
+        <div class="card glass" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h3 style="font-size: 1.3rem; font-weight: 800; margin: 0; color: #fff;">🎯 Ziele & Kalorienrechner</h3>
+                <h3 style="font-size: 1.3rem; font-weight: 800; margin: 0; color: var(--text-main);">🎯 Ziele & Kalorienrechner</h3>
                 <button type="button" @click="showGoalModal = false" class="btn btn-sm btn-glass" style="font-size: 1rem;">✕</button>
             </div>
 
@@ -247,40 +247,40 @@
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px;">
                     <div>
                         <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Startgewicht (kg)</label>
-                        <input type="number" step="0.1" x-model="goal.start_weight" class="form-input" style="width: 100%;" placeholder="z.B. 85.0">
+                        <input type="number" step="0.1" x-model="goal.start_weight" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. 85.0">
                     </div>
                     <div>
                         <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Zielgewicht (kg)</label>
-                        <input type="number" step="0.1" x-model="goal.target_weight" class="form-input" style="width: 100%;" placeholder="z.B. 75.0">
+                        <input type="number" step="0.1" x-model="goal.target_weight" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. 75.0">
                     </div>
                 </div>
 
                 <!-- Rechner-Parameter -->
-                <div style="background: rgba(0,210,255,0.04); border: 1px solid rgba(0,210,255,0.2); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
-                    <div style="font-weight: 700; color: #00d2ff; font-size: 0.9rem; margin-bottom: 10px;">⚡ Kalorienbedarfs-Rechner (Mifflin-St. Jeor)</div>
+                <div class="card glass" style="border: 1px solid var(--primary); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+                    <div style="font-weight: 700; color: var(--primary); font-size: 0.9rem; margin-bottom: 10px;">⚡ Kalorienbedarfs-Rechner (Mifflin-St. Jeor)</div>
                     
                     <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px;">
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Geschlecht</label>
-                            <select x-model="goal.gender" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                            <select x-model="goal.gender" class="glass select" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                                 <option value="male">Männlich</option>
                                 <option value="female">Weiblich</option>
                             </select>
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Alter</label>
-                            <input type="number" min="10" max="120" x-model="goal.age" class="form-input" style="width: 100%; font-size: 0.85rem;" placeholder="z.B. 35">
+                            <input type="number" min="10" max="120" x-model="goal.age" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;" placeholder="z.B. 35">
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Größe (cm)</label>
-                            <input type="number" min="100" max="250" x-model="goal.height_cm" class="form-input" style="width: 100%; font-size: 0.85rem;" placeholder="z.B. 180">
+                            <input type="number" min="100" max="250" x-model="goal.height_cm" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;" placeholder="z.B. 180">
                         </div>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px;">
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Aktivitätslevel</label>
-                            <select x-model="goal.activity_level" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                            <select x-model="goal.activity_level" class="glass select" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                                 <option value="1.2">Sitzend (Büro, wenig Bewegung)</option>
                                 <option value="1.375">Leicht aktiv (1-3x Sport)</option>
                                 <option value="1.55">Moderat aktiv (3-5x Sport)</option>
@@ -289,7 +289,7 @@
                         </div>
                         <div>
                             <label style="display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 2px;">Ziel</label>
-                            <select x-model="goal.goal_type" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                            <select x-model="goal.goal_type" class="glass select" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                                 <option value="lose">Abnehmen (-400 kcal)</option>
                                 <option value="maintain">Halten (+/- 0 kcal)</option>
                                 <option value="gain">Aufbau (+350 kcal)</option>
@@ -297,36 +297,36 @@
                         </div>
                     </div>
 
-                    <button type="button" @click="calculateRecommendedCalories()" class="btn btn-sm btn-glass" style="width: 100%; font-weight: 700; color: #00d2ff; border-color: rgba(0,210,255,0.3);">
+                    <button type="button" @click="calculateRecommendedCalories()" class="btn btn-sm btn-glass" style="width: 100%; font-weight: 700; color: var(--primary); border-color: var(--primary);">
                         Vorschlag berechnen & übernehmen
                     </button>
                 </div>
 
                 <!-- Tägliches Kalorienziel -->
                 <div style="margin-bottom: 16px;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 4px;">Tägliches Ziel (kcal)</label>
-                    <input type="number" step="10" min="500" max="10000" x-model="goal.target_calories" required class="form-input" style="width: 100%; font-size: 1.1rem; font-weight: 800; color: #00e676;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Tägliches Ziel (kcal)</label>
+                    <input type="number" step="10" min="500" max="10000" x-model="goal.target_calories" required class="glass" style="width: 100%; font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 0;">
                 </div>
 
                 <!-- Makro-Ziele -->
                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;">
                     <div>
-                        <label style="display: block; font-size: 0.75rem; color: #4fc3f7; margin-bottom: 2px;">Protein (g)</label>
-                        <input type="number" min="0" x-model="goal.target_protein_g" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                        <label style="display: block; font-size: 0.75rem; color: var(--primary); margin-bottom: 2px;">Protein (g)</label>
+                        <input type="number" min="0" x-model="goal.target_protein_g" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                     </div>
                     <div>
-                        <label style="display: block; font-size: 0.75rem; color: #ffd54f; margin-bottom: 2px;">Carbs (g)</label>
-                        <input type="number" min="0" x-model="goal.target_carbs_g" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                        <label style="display: block; font-size: 0.75rem; color: var(--accent); margin-bottom: 2px;">Carbs (g)</label>
+                        <input type="number" min="0" x-model="goal.target_carbs_g" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                     </div>
                     <div>
                         <label style="display: block; font-size: 0.75rem; color: #ff8a65; margin-bottom: 2px;">Fett (g)</label>
-                        <input type="number" min="0" x-model="goal.target_fat_g" class="form-input" style="width: 100%; font-size: 0.85rem;">
+                        <input type="number" min="0" x-model="goal.target_fat_g" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                     </div>
                 </div>
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <button type="button" @click="showGoalModal = false" class="btn btn-glass">Abbrechen</button>
-                    <button type="submit" class="btn" style="background: linear-gradient(135deg, #00d2ff, #00e676); color: #000; font-weight: 800; border: none; padding: 8px 20px; border-radius: var(--radius-md);">
+                    <button type="submit" class="btn btn-glass" style="border-color: var(--primary); color: var(--primary); font-weight: 800; padding: 8px 20px;">
                         Speichern
                     </button>
                 </div>
@@ -336,17 +336,17 @@
 
     <!-- MODAL 3: GEWICHTS-HISTORIE TABELLE -->
     <div x-show="showWeightHistoryModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" :style="showWeightHistoryModal ? 'display: flex' : 'display: none'">
-        <div class="card glass" style="max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); background: #151b23; border: 1px solid var(--glass-border);">
+        <div class="card glass" style="max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: #fff;">Gewichtsmessungen</h3>
+                <h3 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--text-main);">Gewichtsmessungen</h3>
                 <button type="button" @click="showWeightHistoryModal = false" class="btn btn-sm btn-glass" style="font-size: 1rem;">✕</button>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 8px;">
                 <template x-for="item in weightLogs.slice().reverse()" :key="item.id">
-                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border);">
+                    <div class="glass" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--glass-border);">
                         <div>
-                            <span style="font-weight: 700; color: #fff; font-size: 0.9rem;" x-text="item.weight + ' kg'"></span>
+                            <span style="font-weight: 700; color: var(--text-main); font-size: 0.9rem;" x-text="item.weight + ' kg'"></span>
                             <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 8px;" x-text="item.date"></span>
                             <div x-show="item.note" style="font-size: 0.75rem; color: var(--text-muted);" x-text="item.note"></div>
                         </div>
