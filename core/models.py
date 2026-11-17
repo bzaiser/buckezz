@@ -485,6 +485,7 @@ class NutritionGoal(models.Model):
     target_protein_g = models.PositiveIntegerField(default=140, verbose_name=_("Ziel-Protein (g)"))
     target_carbs_g = models.PositiveIntegerField(default=220, verbose_name=_("Ziel-Kohlenhydrate (g)"))
     target_fat_g = models.PositiveIntegerField(default=65, verbose_name=_("Ziel-Fett (g)"))
+    target_water_ml = models.PositiveIntegerField(default=2500, verbose_name=_("Ziel-Wasser (ml)"))
 
     def calculate_recommended_calories(self):
         """Mifflin-St. Jeor Formel"""
@@ -538,6 +539,7 @@ class NutritionMealLog(models.Model):
         ('lunch', _('Mittagessen')),
         ('dinner', _('Abendessen')),
         ('snack', _('Snacks & Drinks')),
+        ('water', _('Wasser / Trinken')),
     ]
 
     bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='nutrition_meal_logs')

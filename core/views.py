@@ -369,6 +369,7 @@ class BucketListDetailView(DetailView):
                 'target_protein_g': goal.target_protein_g or 140,
                 'target_carbs_g': goal.target_carbs_g or 220,
                 'target_fat_g': goal.target_fat_g or 65,
+                'target_water_ml': goal.target_water_ml or 2500,
             }, cls=DjangoJSONEncoder)
 
             weight_logs = list(bucket.weight_logs.order_by('date'))
@@ -1300,6 +1301,8 @@ class SaveNutritionGoalView(LoginRequiredMixin, View):
             goal.target_carbs_g = int(data['target_carbs_g'])
         if 'target_fat_g' in data and data['target_fat_g']:
             goal.target_fat_g = int(data['target_fat_g'])
+        if 'target_water_ml' in data and data['target_water_ml']:
+            goal.target_water_ml = int(data['target_water_ml'])
             
         goal.save()
         rec = goal.calculate_recommended_calories()
@@ -1374,10 +1377,10 @@ class LogMealView(LoginRequiredMixin, View):
             date=log_date,
             meal_type=data.get('meal_type', 'lunch'),
             title=data.get('title', 'Mahlzeit'),
-            calories=int(data.get('calories', 0)),
-            protein_g=float(data.get('protein_g', 0.0) or 0.0),
-            carbs_g=float(data.get('carbs_g', 0.0) or 0.0),
-            fat_g=float(data.get('fat_g', 0.0) or 0.0),
+            calories=int(data.get('calories') or 0),
+            protein_g=float(data.get('protein_g') or 0.0),
+            carbs_g=float(data.get('carbs_g') or 0.0),
+            fat_g=float(data.get('fat_g') or 0.0),
             amount=data.get('amount', '')
         )
         return JsonResponse({

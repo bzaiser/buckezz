@@ -30,14 +30,14 @@
 
             <!-- Ziel & Rechner Button -->
             <div style="display: flex; gap: 8px;">
-                <button type="button" @click="showGoalModal = true" class="btn btn-glass" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600;">
+                <button type="button" @click.stop="showGoalModal = true" class="btn btn-glass" style="display: inline-flex; align-items: center; gap: 6px; font-weight: 600; cursor: pointer;">
                     🎯 <span>Ziele & Rechner</span>
                 </button>
             </div>
         </div>
 
-        <!-- 3-Spaltiges Dashboard: Kalorien-Ring/Balken, Makros, Gewichts-Status -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 24px;">
+        <!-- 4-Spaltiges Dashboard: Kalorien, Makros, Wasser, Gewicht -->
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 24px;">
             
             <!-- Karte 1: Kalorien Tagesbilanz -->
             <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px; position: relative;">
@@ -94,11 +94,36 @@
                 </div>
             </div>
 
-            <!-- Karte 3: Körpergewicht Status & Quick-Log -->
+            <!-- Karte 3: Wasser-Tracking -->
+            <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">💧 Wasser heute</span>
+                    <span style="font-size: 0.8rem; font-weight: 700; color: #38bdf8;" x-text="dayTotalWater + ' / ' + (goal.target_water_ml || 2500) + ' ml'"></span>
+                </div>
+                
+                <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 10px;">
+                    <span style="font-size: 2rem; font-weight: 900; color: #38bdf8;" x-text="(dayTotalWater / 1000).toFixed(1) + ' L'"></span>
+                    <span style="font-size: 0.85rem; color: var(--text-muted);" x-text="'(' + waterPercent + '%)'"></span>
+                </div>
+
+                <!-- Water progress bar -->
+                <div style="width: 100%; height: 8px; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; margin-bottom: 12px;">
+                    <div :style="'height: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.3s; width: ' + Math.min(waterPercent, 100) + '%;'"></div>
+                </div>
+
+                <!-- Quick-Buttons für Wasser -->
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                    <button type="button" @click="quickAddWater(250)" class="btn btn-sm btn-glass" style="flex: 1; min-width: 65px; padding: 4px 6px; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">+250ml</button>
+                    <button type="button" @click="quickAddWater(500)" class="btn btn-sm btn-glass" style="flex: 1; min-width: 65px; padding: 4px 6px; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">+500ml</button>
+                    <button type="button" @click="quickAddWater(750)" class="btn btn-sm btn-glass" style="flex: 1; min-width: 65px; padding: 4px 6px; font-size: 0.75rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8;">+750ml</button>
+                </div>
+            </div>
+
+            <!-- Karte 4: Körpergewicht Status & Quick-Log -->
             <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                     <span style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700;">Aktuelles Gewicht</span>
-                    <button type="button" @click="showWeightHistoryModal = true" class="btn btn-sm btn-glass" style="font-size: 0.75rem; padding: 2px 6px;">Verlauf</button>
+                    <button type="button" @click.stop="showWeightHistoryModal = true" class="btn btn-sm btn-glass" style="font-size: 0.75rem; padding: 2px 6px;">Verlauf</button>
                 </div>
                 
                 <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;">
@@ -117,7 +142,7 @@
             </div>
         </div>
 
-        <!-- Verlaufschart für Gewicht (ausklappbar oder permanent) -->
+        <!-- Verlaufschart für Gewicht -->
         <div class="card glass" style="margin-top: 15px; border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 16px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">📈 Gewichtsverlauf & Trend</span>
@@ -135,7 +160,7 @@
                     Einträge am <span x-text="formatDateGerman(selectedDate)"></span>
                 </h3>
                 <button type="button" @click="showMealModal = !showMealModal" class="btn btn-glass" style="border-color: var(--primary); color: var(--primary); font-weight: 700; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
-                    ➕ <span x-text="showMealModal ? 'Schließen' : 'Mahlzeit eintragen'"></span>
+                    ➕ <span x-text="showMealModal ? 'Schließen' : 'Eintrag hinzufügen'"></span>
                 </button>
             </div>
 
@@ -143,7 +168,7 @@
             <div x-show="showMealModal" style="display: none; margin-bottom: 20px; animation: fadeIn 0.2s ease-out;">
                 <div class="card glass" style="border: 1px solid var(--primary); padding: 20px; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                        <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);">🥗 Neue Mahlzeit eintragen</h4>
+                        <h4 style="font-size: 1.1rem; font-weight: 800; margin: 0; color: var(--text-main);" x-text="newMeal.meal_type === 'water' ? '💧 Wasser / Trinken eintragen' : '🥗 Mahlzeit eintragen'"></h4>
                         <button type="button" @click="showMealModal = false" class="btn btn-sm btn-glass">✕</button>
                     </div>
 
@@ -155,23 +180,24 @@
                                     <option value="breakfast">🥣 Frühstück</option>
                                     <option value="lunch">🥗 Mittagessen</option>
                                     <option value="dinner">🍲 Abendessen</option>
-                                    <option value="snack">🍎 Snacks & Drinks</option>
+                                    <option value="snack">🍎 Snacks</option>
+                                    <option value="water">💧 Wasser & Getränke</option>
                                 </select>
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Gericht / Lebensmittel *</label>
-                                <input type="text" x-model="newMeal.title" required class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. Lachs mit Kartoffeln">
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Bezeichnung *</label>
+                                <input type="text" x-model="newMeal.title" required class="glass" style="width: 100%; margin-bottom: 0;" :placeholder="newMeal.meal_type === 'water' ? 'z.B. Mineralwasser, Tee' : 'z.B. Lachs mit Kartoffeln'">
                             </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 12px;">
                             <div>
-                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Kalorien (kcal) *</label>
-                                <input type="number" min="0" x-model="newMeal.calories" required class="glass" style="width: 100%; font-weight: 700; color: var(--accent); margin-bottom: 0;" placeholder="z.B. 550">
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;" x-text="newMeal.meal_type === 'water' ? 'Kalorien (kcal)' : 'Kalorien (kcal) *'"></label>
+                                <input type="number" min="0" x-model="newMeal.calories" :required="newMeal.meal_type !== 'water'" class="glass" style="width: 100%; font-weight: 700; color: var(--accent); margin-bottom: 0;" placeholder="0">
                             </div>
                             <div>
-                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;">Menge / Portion</label>
-                                <input type="text" x-model="newMeal.amount" class="glass" style="width: 100%; margin-bottom: 0;" placeholder="z.B. 350g">
+                                <label style="display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px;" x-text="newMeal.meal_type === 'water' ? 'Menge (z.B. 500 ml)' : 'Menge / Portion'"></label>
+                                <input type="text" x-model="newMeal.amount" class="glass" style="width: 100%; margin-bottom: 0;" :placeholder="newMeal.meal_type === 'water' ? 'z.B. 500 ml' : 'z.B. 350g'">
                             </div>
                             <div>
                                 <label style="display: block; font-size: 0.8rem; color: var(--primary); margin-bottom: 4px;">Protein (g)</label>
@@ -197,13 +223,13 @@
                 </div>
             </div>
 
-            <!-- Mahlzeiten-Gruppierung (Frühstück, Mittag, Abend, Snacks) -->
+            <!-- Mahlzeiten-Gruppierung (Frühstück, Mittag, Abend, Snacks, Wasser) -->
             <div style="display: flex; flex-direction: column; gap: 12px;">
                 <template x-for="cat in mealCategories" :key="cat.key">
                     <div class="card glass" style="border: 1px solid var(--glass-border); border-radius: var(--radius-md); padding: 12px;">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--glass-border); padding-bottom: 6px;">
                             <span style="font-weight: 700; font-size: 0.95rem; color: var(--text-main);" x-text="cat.icon + ' ' + cat.title"></span>
-                            <span style="font-size: 0.8rem; font-weight: 700; color: var(--primary);" x-text="getCategoryCalories(cat.key) + ' kcal'"></span>
+                            <span style="font-size: 0.8rem; font-weight: 700;" :style="cat.key === 'water' ? 'color: #38bdf8;' : 'color: var(--primary);'" x-text="getCategorySubtitle(cat.key)"></span>
                         </div>
                         
                         <!-- Liste der Einträge -->
@@ -214,11 +240,12 @@
                                         <div style="font-weight: 600; color: var(--text-main); font-size: 0.9rem;" x-text="meal.title"></div>
                                         <div style="font-size: 0.75rem; color: var(--text-muted);">
                                             <span x-show="meal.amount" x-text="meal.amount + ' • '"></span>
-                                            <span x-text="'P: ' + meal.protein_g + 'g | K: ' + meal.carbs_g + 'g | F: ' + meal.fat_g + 'g'"></span>
+                                            <span x-show="meal.meal_type !== 'water'" x-text="'P: ' + meal.protein_g + 'g | K: ' + meal.carbs_g + 'g | F: ' + meal.fat_g + 'g'"></span>
+                                            <span x-show="meal.meal_type === 'water'" style="color: #38bdf8;">💧 Flüssigkeit</span>
                                         </div>
                                     </div>
                                     <div style="display: flex; align-items: center; gap: 12px;">
-                                        <span style="font-weight: 800; color: var(--accent); font-size: 0.95rem;" x-text="meal.calories + ' kcal'"></span>
+                                        <span style="font-weight: 800; font-size: 0.95rem;" :style="meal.meal_type === 'water' ? 'color: #38bdf8;' : 'color: var(--accent);'" x-text="meal.meal_type === 'water' ? (meal.amount || (meal.calories ? meal.calories + ' ml' : 'Wasser')) : (meal.calories + ' kcal')"></span>
                                         <button type="button" @click="deleteMeal(meal.id)" class="btn btn-sm btn-glass" style="color: #ff5252; padding: 2px 6px; font-size: 0.75rem;" title="Löschen">✕</button>
                                     </div>
                                 </div>
@@ -236,8 +263,12 @@
     </div>
 
     <!-- MODAL 1: ZIELE & BEDARFSRECHNER -->
-    <div x-show="showGoalModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" :style="showGoalModal ? 'display: flex' : 'display: none'">
-        <div class="card glass" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
+    <div x-show="showGoalModal" 
+         x-cloak
+         @click.self="showGoalModal = false"
+         style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 25000; align-items: center; justify-content: center; padding: 20px; display: none;" 
+         :style="{ display: showGoalModal ? 'flex' : 'none' }">
+        <div class="card glass" style="max-width: 600px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border); box-shadow: var(--shadow-lg);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h3 style="font-size: 1.3rem; font-weight: 800; margin: 0; color: var(--text-main);">🎯 Ziele & Kalorienrechner</h3>
                 <button type="button" @click="showGoalModal = false" class="btn btn-sm btn-glass" style="font-size: 1rem;">✕</button>
@@ -308,8 +339,8 @@
                     <input type="number" step="10" min="500" max="10000" x-model="goal.target_calories" required class="glass" style="width: 100%; font-size: 1.1rem; font-weight: 800; color: var(--accent); margin-bottom: 0;">
                 </div>
 
-                <!-- Makro-Ziele -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 24px;">
+                <!-- Makro- & Wasser-Ziele -->
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px;">
                     <div>
                         <label style="display: block; font-size: 0.75rem; color: var(--primary); margin-bottom: 2px;">Protein (g)</label>
                         <input type="number" min="0" x-model="goal.target_protein_g" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
@@ -321,6 +352,10 @@
                     <div>
                         <label style="display: block; font-size: 0.75rem; color: #ff8a65; margin-bottom: 2px;">Fett (g)</label>
                         <input type="number" min="0" x-model="goal.target_fat_g" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
+                    </div>
+                    <div>
+                        <label style="display: block; font-size: 0.75rem; color: #38bdf8; margin-bottom: 2px;">Wasser (ml)</label>
+                        <input type="number" step="100" min="500" x-model="goal.target_water_ml" class="glass" style="width: 100%; font-size: 0.85rem; margin-bottom: 0;">
                     </div>
                 </div>
 
@@ -334,9 +369,13 @@
         </div>
     </div>
 
-    <!-- MODAL 3: GEWICHTS-HISTORIE TABELLE -->
-    <div x-show="showWeightHistoryModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 9999; align-items: center; justify-content: center; padding: 20px;" :style="showWeightHistoryModal ? 'display: flex' : 'display: none'">
-        <div class="card glass" style="max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border);">
+    <!-- MODAL 2: GEWICHTS-HISTORIE TABELLE -->
+    <div x-show="showWeightHistoryModal" 
+         x-cloak
+         @click.self="showWeightHistoryModal = false"
+         style="position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 25000; align-items: center; justify-content: center; padding: 20px; display: none;" 
+         :style="{ display: showWeightHistoryModal ? 'flex' : 'none' }">
+        <div class="card glass" style="max-width: 500px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--glass-border); box-shadow: var(--shadow-lg);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h3 style="font-size: 1.2rem; font-weight: 800; margin: 0; color: var(--text-main);">Gewichtsmessungen</h3>
                 <button type="button" @click="showWeightHistoryModal = false" class="btn btn-sm btn-glass" style="font-size: 1rem;">✕</button>
@@ -390,14 +429,17 @@ function nutritionCockpit() {
             { key: 'breakfast', title: 'Frühstück', icon: '🥣' },
             { key: 'lunch', title: 'Mittagessen', icon: '🥗' },
             { key: 'dinner', title: 'Abendessen', icon: '🍲' },
-            { key: 'snack', title: 'Snacks & Drinks', icon: '🍎' }
+            { key: 'snack', title: 'Snacks & Drinks', icon: '🍎' },
+            { key: 'water', title: 'Wasser & Flüssigkeit', icon: '💧' }
         ],
 
         chartInstance: null,
 
         init() {
             this.$nextTick(() => {
-                this.renderChart();
+                setTimeout(() => {
+                    this.renderChart();
+                }, 150);
             });
         },
 
@@ -443,6 +485,28 @@ function nutritionCockpit() {
             return Math.round(this.mealsForSelectedDate.reduce((acc, m) => acc + (parseFloat(m.fat_g) || 0), 0) * 10) / 10;
         },
 
+        get dayTotalWater() {
+            return this.mealsForSelectedDate
+                .filter(m => m.meal_type === 'water')
+                .reduce((sum, m) => {
+                    const match = (m.amount || '').match(/(\d+)/);
+                    if (match) return sum + parseInt(match[1], 10);
+                    return sum + (parseInt(m.calories) || 0);
+                }, 0);
+        },
+
+        get waterPercent() {
+            const target = parseInt(this.goal.target_water_ml) || 2500;
+            return Math.round((this.dayTotalWater / target) * 100);
+        },
+
+        getCategorySubtitle(catKey) {
+            if (catKey === 'water') {
+                return `${this.dayTotalWater} ml`;
+            }
+            return `${this.getCategoryCalories(catKey)} kcal`;
+        },
+
         get calorieDiff() {
             return (this.goal.target_calories || 2000) - this.dayTotalCalories;
         },
@@ -471,17 +535,31 @@ function nutritionCockpit() {
             return isoStr;
         },
 
-        openAddMealModal() {
-            this.newMeal = {
-                meal_type: 'lunch',
-                title: '',
-                calories: '',
-                amount: '',
-                protein_g: '',
-                carbs_g: '',
-                fat_g: ''
+        quickAddWater(ml) {
+            const payload = {
+                meal_type: 'water',
+                title: 'Wasser',
+                amount: `${ml} ml`,
+                calories: 0,
+                protein_g: 0,
+                carbs_g: 0,
+                fat_g: 0,
+                date: this.selectedDate
             };
-            this.showMealModal = true;
+            fetch(`/nutrition/${this.bucketId}/meal/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': this.getCSRFToken()
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    this.meals.push(data);
+                }
+            });
         },
 
         calculateRecommendedCalories() {
@@ -542,7 +620,6 @@ function nutritionCockpit() {
             .then(r => r.json())
             .then(data => {
                 if (data.status === 'ok') {
-                    // Update list
                     const existingIdx = this.weightLogs.findIndex(w => w.isoDate === data.isoDate);
                     if (existingIdx >= 0) {
                         this.weightLogs[existingIdx] = data;
@@ -572,8 +649,15 @@ function nutritionCockpit() {
         },
 
         submitMeal() {
+            if (this.newMeal.meal_type === 'water' && !this.newMeal.title) {
+                this.newMeal.title = 'Wasser';
+            }
             const payload = {
                 ...this.newMeal,
+                calories: this.newMeal.calories || 0,
+                protein_g: this.newMeal.protein_g || 0,
+                carbs_g: this.newMeal.carbs_g || 0,
+                fat_g: this.newMeal.fat_g || 0,
                 date: this.selectedDate
             };
             fetch(`/nutrition/${this.bucketId}/meal/`, {
@@ -589,6 +673,15 @@ function nutritionCockpit() {
                 if (data.status === 'ok') {
                     this.meals.push(data);
                     this.showMealModal = false;
+                    this.newMeal = {
+                        meal_type: 'lunch',
+                        title: '',
+                        calories: '',
+                        amount: '',
+                        protein_g: '',
+                        carbs_g: '',
+                        fat_g: ''
+                    };
                 }
             });
         },
@@ -609,10 +702,25 @@ function nutritionCockpit() {
         renderChart() {
             const canvas = document.getElementById('weightChart');
             if (!canvas) return;
+            if (typeof Chart === 'undefined') return;
 
             if (this.chartInstance) {
-                this.chartInstance.destroy();
+                try {
+                    this.chartInstance.stop();
+                    this.chartInstance.destroy();
+                } catch(e) {}
+                this.chartInstance = null;
             }
+            try {
+                const existingChart = Chart.getChart(canvas);
+                if (existingChart) {
+                    existingChart.stop();
+                    existingChart.destroy();
+                }
+            } catch(e) {}
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return;
 
             const labels = this.weightLogs.map(w => w.date);
             const dataPoints = this.weightLogs.map(w => w.weight);
@@ -639,13 +747,14 @@ function nutritionCockpit() {
                 });
             }
 
-            this.chartInstance = new Chart(canvas, {
+            this.chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
                     datasets: datasets
                 },
                 options: {
+                    animation: false,
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
