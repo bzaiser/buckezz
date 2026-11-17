@@ -2,21 +2,7 @@
 <script src="{% static 'vendor/js/chart.min.js' %}"></script>
 
 {# Safe JSON Islands #}
-<script type="application/json" id="nutrition-goal-data">
-{
-    "start_weight": {{ nutrition_goal.start_weight|default:"null" }},
-    "target_weight": {{ nutrition_goal.target_weight|default:"null" }},
-    "target_calories": {{ nutrition_goal.target_calories|default:2000 }},
-    "gender": "{{ nutrition_goal.gender|default:'male' }}",
-    "age": {{ nutrition_goal.age|default:"null" }},
-    "height_cm": {{ nutrition_goal.height_cm|default:"null" }},
-    "activity_level": {{ nutrition_goal.activity_level|default:1.2 }},
-    "goal_type": "{{ nutrition_goal.goal_type|default:'lose' }}",
-    "target_protein_g": {{ nutrition_goal.target_protein_g|default:140 }},
-    "target_carbs_g": {{ nutrition_goal.target_carbs_g|default:220 }},
-    "target_fat_g": {{ nutrition_goal.target_fat_g|default:65 }}
-}
-</script>
+<script type="application/json" id="nutrition-goal-data">{{ nutrition_goal_json|default:"{}"|safe }}</script>
 <script type="application/json" id="weight-history-data">{{ weight_chart_data_json|default:"[]"|safe }}</script>
 <script type="application/json" id="nutrition-meals-data">{{ nutrition_meals_json|default:"[]"|safe }}</script>
 

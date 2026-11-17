@@ -357,6 +357,19 @@ class BucketListDetailView(DetailView):
 
             goal, _ = NutritionGoal.objects.get_or_create(bucket_list=bucket)
             context['nutrition_goal'] = goal
+            context['nutrition_goal_json'] = json.dumps({
+                'start_weight': float(goal.start_weight) if goal.start_weight else None,
+                'target_weight': float(goal.target_weight) if goal.target_weight else None,
+                'target_calories': goal.target_calories or 2000,
+                'gender': goal.gender or 'male',
+                'age': goal.age,
+                'height_cm': goal.height_cm,
+                'activity_level': float(goal.activity_level or 1.2),
+                'goal_type': goal.goal_type or 'lose',
+                'target_protein_g': goal.target_protein_g or 140,
+                'target_carbs_g': goal.target_carbs_g or 220,
+                'target_fat_g': goal.target_fat_g or 65,
+            }, cls=DjangoJSONEncoder)
 
             weight_logs = list(bucket.weight_logs.order_by('date'))
             context['weight_logs'] = weight_logs
