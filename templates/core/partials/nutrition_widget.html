@@ -685,6 +685,8 @@ function nutritionCockpit() {
         },
 
         getCSRFToken() {
+            const input = document.querySelector('[name=csrfmiddlewaretoken]');
+            if (input && input.value) return input.value;
             const match = document.cookie.match(/csrftoken=([^;]+)/);
             return match ? match[1] : '';
         }
