@@ -347,6 +347,49 @@ class BucketListDetailView(DetailView):
                 from core.models import UserSetting
                 user_settings, _ = UserSetting.objects.get_or_create(user=self.request.user)
                 context['user_settings'] = user_settings
+
+        # Inject nutrition specific details
+        elif bucket.category.template.logic_type == 'nutrition':
+            import json
+            from django.core.serializers.json import DjangoJSONEncoder
+            from core.models import NutritionGoal, WeightLog, NutritionMealLog
+            from datetime import date
+
+            goal, _ = NutritionGoal.objects.get_or_create(bucket_list=bucket)
+            context['nutrition_goal'] = goal
+
+            weight_logs = list(bucket.weight_logs.order_by('date'))
+            context['weight_logs'] = weight_logs
+            context['latest_weight'] = weight_logs[-1].weight if weight_logs else goal.start_weight
+
+            weight_chart_data = [
+                {
+                    'id': w.id,
+                    'date': w.date.strftime('%d.%m.%Y'),
+                    'isoDate': w.date.strftime('%Y-%m-%d'),
+                    'weight': float(w.weight),
+                    'note': w.note
+                } for w in weight_logs
+            ]
+            context['weight_chart_data_json'] = json.dumps(weight_chart_data, cls=DjangoJSONEncoder)
+
+            meals_qs = bucket.nutrition_meal_logs.order_by('date', 'created_at')
+            meals_data = [
+                {
+                    'id': m.id,
+                    'date': m.date.strftime('%Y-%m-%d'),
+                    'meal_type': m.meal_type,
+                    'meal_type_display': m.get_meal_type_display(),
+                    'title': m.title,
+                    'calories': m.calories,
+                    'protein_g': m.protein_g,
+                    'carbs_g': m.carbs_g,
+                    'fat_g': m.fat_g,
+                    'amount': m.amount,
+                } for m in meals_qs
+            ]
+            context['nutrition_meals_json'] = json.dumps(meals_data, cls=DjangoJSONEncoder)
+            context['today_iso'] = date.today().strftime('%Y-%m-%d')
         
         return context
 
@@ -1208,6 +1251,144 @@ class DeleteWorkoutSessionView(LoginRequiredMixin, View):
         if session.bucket_list.owner != request.user:
             return HttpResponseForbidden()
         session.delete()
+        return JsonResponse({'status': 'ok'})
+
+
+class SaveNutritionGoalView(LoginRequiredMixin, View):
+    def post(self, request, bucket_id):
+        from core.models import BucketList, NutritionGoal
+        import json
+        bucket = get_object_or_404(BucketList, id=bucket_id)
+        if bucket.owner != request.user and request.user not in bucket.shared_with.all():
+            return HttpResponseForbidden()
+        
+        goal, _ = NutritionGoal.objects.get_or_create(bucket_list=bucket)
+        data = json.loads(request.body)
+        
+        if 'start_weight' in data and data['start_weight']:
+            goal.start_weight = float(data['start_weight'])
+        if 'target_weight' in data and data['target_weight']:
+            goal.target_weight = float(data['target_weight'])
+        if 'target_calories' in data and data['target_calories']:
+            goal.target_calories = int(data['target_calories'])
+        if 'gender' in data:
+            goal.gender = data['gender']
+        if 'age' in data and data['age']:
+            goal.age = int(data['age'])
+        if 'height_cm' in data and data['height_cm']:
+            goal.height_cm = int(data['height_cm'])
+        if 'activity_level' in data and data['activity_level']:
+            goal.activity_level = float(data['activity_level'])
+        if 'goal_type' in data:
+            goal.goal_type = data['goal_type']
+        if 'target_protein_g' in data and data['target_protein_g']:
+            goal.target_protein_g = int(data['target_protein_g'])
+        if 'target_carbs_g' in data and data['target_carbs_g']:
+            goal.target_carbs_g = int(data['target_carbs_g'])
+        if 'target_fat_g' in data and data['target_fat_g']:
+            goal.target_fat_g = int(data['target_fat_g'])
+            
+        goal.save()
+        rec = goal.calculate_recommended_calories()
+        return JsonResponse({
+            'status': 'ok',
+            'recommended_calories': rec,
+            'target_calories': goal.target_calories
+        })
+
+
+class LogWeightView(LoginRequiredMixin, View):
+    def post(self, request, bucket_id):
+        from core.models import BucketList, WeightLog
+        from datetime import datetime
+        import json
+        bucket = get_object_or_404(BucketList, id=bucket_id)
+        if bucket.owner != request.user and request.user not in bucket.shared_with.all():
+            return HttpResponseForbidden()
+
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        log_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+        weight_val = float(data.get('weight'))
+        note = data.get('note', '')
+
+        # An einem Tag wird der bestehende Eintrag aktualisiert oder neu angelegt
+        log, created = WeightLog.objects.update_or_create(
+            bucket_list=bucket,
+            date=log_date,
+            defaults={
+                'user': request.user,
+                'weight': weight_val,
+                'note': note,
+            }
+        )
+        return JsonResponse({
+            'status': 'ok',
+            'id': log.id,
+            'date': log.date.strftime('%d.%m.%Y'),
+            'isoDate': log.date.strftime('%Y-%m-%d'),
+            'weight': float(log.weight),
+            'note': log.note
+        })
+
+
+class DeleteWeightLogView(LoginRequiredMixin, View):
+    def post(self, request, log_id):
+        from core.models import WeightLog
+        log = get_object_or_404(WeightLog, id=log_id)
+        if log.bucket_list.owner != request.user and request.user not in log.bucket_list.shared_with.all():
+            return HttpResponseForbidden()
+        log.delete()
+        return JsonResponse({'status': 'ok'})
+
+
+class LogMealView(LoginRequiredMixin, View):
+    def post(self, request, bucket_id):
+        from core.models import BucketList, NutritionMealLog
+        from datetime import datetime
+        import json
+        bucket = get_object_or_404(BucketList, id=bucket_id)
+        if bucket.owner != request.user and request.user not in bucket.shared_with.all():
+            return HttpResponseForbidden()
+
+        data = json.loads(request.body)
+        date_str = data.get('date')
+        log_date = datetime.strptime(date_str, '%Y-%m-%d').date() if date_str else timezone.now().date()
+        
+        meal = NutritionMealLog.objects.create(
+            bucket_list=bucket,
+            user=request.user,
+            date=log_date,
+            meal_type=data.get('meal_type', 'lunch'),
+            title=data.get('title', 'Mahlzeit'),
+            calories=int(data.get('calories', 0)),
+            protein_g=float(data.get('protein_g', 0.0) or 0.0),
+            carbs_g=float(data.get('carbs_g', 0.0) or 0.0),
+            fat_g=float(data.get('fat_g', 0.0) or 0.0),
+            amount=data.get('amount', '')
+        )
+        return JsonResponse({
+            'status': 'ok',
+            'id': meal.id,
+            'date': meal.date.strftime('%Y-%m-%d'),
+            'meal_type': meal.meal_type,
+            'meal_type_display': meal.get_meal_type_display(),
+            'title': meal.title,
+            'calories': meal.calories,
+            'protein_g': meal.protein_g,
+            'carbs_g': meal.carbs_g,
+            'fat_g': meal.fat_g,
+            'amount': meal.amount
+        })
+
+
+class DeleteMealView(LoginRequiredMixin, View):
+    def post(self, request, meal_id):
+        from core.models import NutritionMealLog
+        meal = get_object_or_404(NutritionMealLog, id=meal_id)
+        if meal.bucket_list.owner != request.user and request.user not in meal.bucket_list.shared_with.all():
+            return HttpResponseForbidden()
+        meal.delete()
         return JsonResponse({'status': 'ok'})
 
 class ToggleTrackerLogView(View):

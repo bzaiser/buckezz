@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 import uuid
 
 class UserSetting(models.Model):
@@ -99,6 +100,7 @@ class ListTemplate(models.Model):
         ('event', _('Veranstaltungsplaner')),
         ('tracker', _('Tracker / Gewohnheiten')),
         ('workout', _('Trainingsplan / Sport')),
+        ('nutrition', _('Kalorien- & Gewichtstracking')),
     ]
     logic_type = models.CharField(max_length=20, choices=LOGIC_CHOICES, default='generic', help_text=_("Bestimmt den spezifischen Workflow für diesen Listentyp"))
 
@@ -448,4 +450,113 @@ class Tenant(models.Model):
     class Meta:
         verbose_name = _("Mandant")
         verbose_name_plural = _("Mandanten")
+
+
+class NutritionGoal(models.Model):
+    GENDER_CHOICES = [
+        ('male', _('Männlich')),
+        ('female', _('Weiblich')),
+    ]
+    ACTIVITY_CHOICES = [
+        (1.2, _('Überwiegend sitzend (Bürojob, wenig Bewegung)')),
+        (1.375, _('Leicht aktiv (1-3x Sport pro Woche)')),
+        (1.55, _('Moderat aktiv (3-5x Sport pro Woche)')),
+        (1.725, _('Sehr aktiv (6-7x Sport pro Woche)')),
+    ]
+    GOAL_CHOICES = [
+        ('lose', _('Abnehmen (-400 kcal/Tag)')),
+        ('maintain', _('Gewicht halten')),
+        ('gain', _('Zunehmen / Aufbau (+350 kcal/Tag)')),
+    ]
+
+    bucket_list = models.OneToOneField(BucketList, on_delete=models.CASCADE, related_name='nutrition_goal')
+    start_weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Startgewicht (kg)"))
+    target_weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, verbose_name=_("Zielgewicht (kg)"))
+    target_calories = models.PositiveIntegerField(default=2000, verbose_name=_("Tägliche Zielkalorien"))
+    
+    # Optional calculator parameters
+    gender = models.CharField(max_length=10, choices=GENDER_CHOICES, default='male', verbose_name=_("Geschlecht"))
+    age = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("Alter"))
+    height_cm = models.PositiveSmallIntegerField(null=True, blank=True, verbose_name=_("Körpergröße (cm)"))
+    activity_level = models.FloatField(choices=ACTIVITY_CHOICES, default=1.2, verbose_name=_("Aktivitätslevel"))
+    goal_type = models.CharField(max_length=15, choices=GOAL_CHOICES, default='lose', verbose_name=_("Ziel"))
+
+    # Macro distribution in grams (optional)
+    target_protein_g = models.PositiveIntegerField(default=140, verbose_name=_("Ziel-Protein (g)"))
+    target_carbs_g = models.PositiveIntegerField(default=220, verbose_name=_("Ziel-Kohlenhydrate (g)"))
+    target_fat_g = models.PositiveIntegerField(default=65, verbose_name=_("Ziel-Fett (g)"))
+
+    def calculate_recommended_calories(self):
+        """Mifflin-St. Jeor Formel"""
+        if not (self.start_weight and self.height_cm and self.age):
+            return self.target_calories
+        
+        weight = float(self.start_weight)
+        height = float(self.height_cm)
+        age = float(self.age)
+
+        if self.gender == 'female':
+            bmr = 10 * weight + 6.25 * height - 5 * age - 161
+        else:
+            bmr = 10 * weight + 6.25 * height - 5 * age + 5
+
+        tdee = bmr * float(self.activity_level or 1.2)
+
+        if self.goal_type == 'lose':
+            rec = tdee - 400
+        elif self.goal_type == 'gain':
+            rec = tdee + 350
+        else:
+            rec = tdee
+
+        return max(1200, int(round(rec)))
+
+    def __str__(self):
+        return f"Ziel für {self.bucket_list.title}: {self.target_calories} kcal / Ziel: {self.target_weight} kg"
+
+
+class WeightLog(models.Model):
+    bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='weight_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='user_weight_logs')
+    date = models.DateField(default=timezone.now, verbose_name=_("Messdatum"))
+    weight = models.DecimalField(max_digits=5, decimal_places=2, verbose_name=_("Gewicht (kg)"))
+    note = models.CharField(max_length=255, blank=True, verbose_name=_("Notiz"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'created_at']
+        verbose_name = _("Gewichtsmessung")
+        verbose_name_plural = _("Gewichtsmessungen")
+
+    def __str__(self):
+        return f"{self.date}: {self.weight} kg ({self.bucket_list.title})"
+
+
+class NutritionMealLog(models.Model):
+    MEAL_CHOICES = [
+        ('breakfast', _('Frühstück')),
+        ('lunch', _('Mittagessen')),
+        ('dinner', _('Abendessen')),
+        ('snack', _('Snacks & Drinks')),
+    ]
+
+    bucket_list = models.ForeignKey(BucketList, on_delete=models.CASCADE, related_name='nutrition_meal_logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='user_nutrition_logs')
+    date = models.DateField(default=timezone.now, verbose_name=_("Datum"))
+    meal_type = models.CharField(max_length=20, choices=MEAL_CHOICES, default='lunch', verbose_name=_("Mahlzeit"))
+    title = models.CharField(max_length=255, verbose_name=_("Bezeichnung / Mahlzeit"))
+    calories = models.PositiveIntegerField(verbose_name=_("Kalorien (kcal)"))
+    protein_g = models.FloatField(default=0.0, blank=True, verbose_name=_("Protein (g)"))
+    carbs_g = models.FloatField(default=0.0, blank=True, verbose_name=_("Kohlenhydrate (g)"))
+    fat_g = models.FloatField(default=0.0, blank=True, verbose_name=_("Fett (g)"))
+    amount = models.CharField(max_length=100, blank=True, verbose_name=_("Menge / Portion"))
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'created_at']
+        verbose_name = _("Mahlzeit-Protokoll")
+        verbose_name_plural = _("Mahlzeit-Protokolle")
+
+    def __str__(self):
+        return f"{self.date} [{self.get_meal_type_display()}]: {self.title} ({self.calories} kcal)"
 

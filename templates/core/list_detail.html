@@ -826,6 +826,10 @@ document.addEventListener('alpine:init', () => {
     </style>
 {% endif %}
 
+{% if bucket.category.template.logic_type == 'nutrition' %}
+    {% include 'core/partials/nutrition_widget.html' %}
+{% endif %}
+
 {% if bucket.category.template.logic_type == 'workout' %}
     <script src="{% static 'vendor/js/chart.min.js' %}"></script>
     <!-- Workout Stats Header Widget -->

@@ -233,6 +233,22 @@ Rest-Timer: Aktiviert
 Notizen: Beim letzten Satz bis zum Muskelversagen gegangen. Nächstes Mal versuchen, das Gewicht beim 2. Satz um 2.5 kg zu erhöhen!"""
             },
             {
+                'old_name': '🥗 Kalorien & Gewichtstracker',
+                'name': 'Kalorien & Gewichtstracker',
+                'icon': '🥗',
+                'fields': {
+                    'logic_type': 'nutrition',
+                    'use_amount': True,
+                },
+                'help_purpose': 'Kombiniertes Ernährungstagebuch und Gewichtstracking mit Zielkalorien-Rechner und Trendkurve.',
+                'help_fields': '🔄 WORKFLOW & MEHRWERT:\n1. Ziele erfassen: Trage dein Startgewicht, Zielgewicht und deine Wunschkalorien ein – oder nutze den integrierten Bedarfsrechner (Mifflin-St. Jeor).\n2. Kalorien loggen: Buche Mahlzeiten (Frühstück, Mittag, Abend, Snacks) für den aktuellen Tag ein. Dein Tagesfortschritt und der Makro-Split werden in Echtzeit berechnet.\n3. Gewicht dokumentieren: Trage regelmäßig dein Gewicht ein. Der interaktive Chart zeigt deine Fortschritte direkt im Vergleich zur Zielgewichtslinie!\n\n🛠️ AKTIVE FELDER IN DIESER LISTE:\n• Bezeichnung: Name des Gerichts / Lebensmittels\n• Menge / Portion: z. B. 250g, 1 Portion, 1 Teller\n• Kalorien & Nährwerte: kcal, Protein, Kohlenhydrate und Fett',
+                'help_example': """Gericht: Haferflocken mit Beeren & Whey
+Mahlzeit: Frühstück
+Menge: 1 Schale (350g)
+Kalorien: 480 kcal
+Protein: 32g | Kohlenhydrate: 65g | Fett: 8g"""
+            },
+            {
                 'old_name': 'Geliehen & Verliehen',
                 'name': 'Geliehen & Verliehen',
                 'icon': '🤝',
